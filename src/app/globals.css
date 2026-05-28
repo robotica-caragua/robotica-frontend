@@ -3,12 +3,12 @@
 
 :root {
   --bg-page: #FFFFF3;
-  --verde-pastel: #E6F5BC;
-  --verde-limao: #BEFC00;
-  --verde-oliva: #97E100;
-  --verde-musgo: #506600;
-  --verde-escuro: #002A15;
-  --vermelho: #BA1A1A;
+  --color-verde-pastel: #E6F5BC;
+  --color-verde-limao: #BEFC00;
+  --color-verde-oliva: #97E100;
+  --color-verde-musgo: #506600;
+  --color-verde-escuro: #002A15;
+  --color-vermelho: #BA1A1A;
 }
 
 @theme inline {
@@ -19,12 +19,12 @@
 @media (prefers-color-scheme: dark) {
   :root {
   --bg-page: #FFFFF3;
-  --verde-pastel: #E6F5BC;
-  --verde-limao: #BEFC00;
-  --verde-oliva: #97E100;
-  --verde-musgo: #506600;
-  --verde-escuro: #002A15;
-  --vermelho: #BA1A1A;
+  --color-verde-pastel: #E6F5BC;
+  --color-verde-limao: #BEFC00;
+  --color-verde-oliva: #97E100;
+  --color-verde-musgo: #506600;
+  --color-verde-escuro: #002A15;
+  --color-vermelho: #BA1A1A;
   }
 }
 
