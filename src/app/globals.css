@@ -1,30 +1,27 @@
 @import url('https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
-:root {
-  --bg-page: #FFFFF3;
-  --verde-pastel: #E6F5BC;
-  --verde-limao: #BEFC00;
-  --verde-oliva: #97E100;
-  --verde-musgo: #506600;
-  --verde-escuro: #002A15;
-  --vermelho: #BA1A1A;
-}
-
 @theme inline {
-  --color-background: var(--bg-page);
   --font-sans: "Work Sans", sans-serif;
+  --color-bg-page: #FFFFF3;
+  --color-verde-pastel: #E6F5BC;
+  --color-verde-limao: #BEFC00;
+  --color-verde-oliva: #97E100;
+  --color-verde-musgo: #506600;
+  --color-verde-escuro: #002A15;
+  --color-vermelho: #BA1A1A;
+  --color-input: #F4FFD5;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
   --bg-page: #FFFFF3;
-  --verde-pastel: #E6F5BC;
-  --verde-limao: #BEFC00;
-  --verde-oliva: #97E100;
-  --verde-musgo: #506600;
-  --verde-escuro: #002A15;
-  --vermelho: #BA1A1A;
+  --color-verde-pastel: #E6F5BC;
+  --color-verde-limao: #BEFC00;
+  --color-verde-oliva: #97E100;
+  --color-verde-musgo: #506600;
+  --color-verde-escuro: #002A15;
+  --color-vermelho: #BA1A1A;
   }
 }
 
