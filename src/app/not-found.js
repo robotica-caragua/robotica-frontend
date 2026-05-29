@@ -1,6 +1,7 @@
 import Image from 'next/image'
-import errorBot from '../assets/404.png'
 import { ButtonGoBack } from '@/components/ButtonGoBack'
+import { Label } from '@/components/Label'
+import errorBot from '../assets/404.png'
 
 export default function Page404() {
   return (
@@ -17,9 +18,7 @@ export default function Page404() {
 
         <div className="flex flex-col gap-10">
           <div className="flex flex-col gap-5">
-            <span className="py-1 px-4 bg-verde-limao rounded-full w-fit font-semibold">
-              ERRO 404
-            </span>
+            <Label>ERRO 404</Label>
 
             <h2 className="font-bold text-5xl">
               Ops! Parece que
