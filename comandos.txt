@@ -1,0 +1,57 @@
+## Como clonar o projeto:
+Primeiro é necessário ter a configuração do git (Se você já fez isso no pc alguma vez, não precisa fazer de novo).
+
+No terminal:
+	git config --global user.name [seu nome]
+	git config --global user.email [seu email do github]
+
+Após esse comandos vai no repositório no github, code > copia o link https 
+
+No terminal:
+	git clone [link https que você copiou]
+
+Só aguardar enquanto ele clona o projeto, quando finalizado é só abrir a pasta do projeto
+
+Comando opcional para abrir mais fácil:
+	cd robotica-frontend (Para entrar na pasta do projeto)
+	code . (Esse comando vai abrir o vs code na pasta que você está, ou seja, a do projeto)
+
+## Após clonar o projeto:
+Ao clonar, não virá a node_modules, porque ela esta na pasta .gitignore (ou seja, não sobe para o github).
+
+Então precisa abrir o terminal:
+	npm install ou npm i (Esse comando vai instalar todos os programas que estão listados no package.json)
+
+## Antes de fazer um commit
+Sempre rode esses comandos para garantir que o seu código está formatado e sem erros antes de enviar para o repositório:
+	npm run format
+	npm run lint
+
+## Para criar uma branch:
+	git checkout -b [nome da branch]
+
+Sempre que terminar uma parte do código e quiser salvar na sua branch lá no github:
+	git add .
+	git commit -m "feat: descrição curta do que foi feito"
+	git push origin  [nome da branch]
+
+Sempre que quiser atualizar a main de acordo com o a versão mais recente (a que está no github):
+	git checkout main (para sair da sua branch e entrar na main)
+	git pull origin main (para atualizar a sua main)
+
+Sempre que quiser atualizar a sua branch de acordo com o que está na main:
+	git checkout [nome] (para sair da main e entrar na sua branch)
+	git merge main (para puxar as alterações da main para a sua branch)
+
+Para enviar a sua branch para a main
+1. Abra o navegador e entre na página do repositório no GitHub.
+2. ​Clica em um botão escrito Compare & pull request. 
+3. ​Vai abrir uma outra página, você desce a tela e clica no botão verde Create pull request.
+4. ​Pronto, agora só esperar 2 pessoas aprovarem o seu commit para ele ir para a main.
+
+## Para rodar o projeto:
+	npm run dev 
+
+Ao rodar esse comando, ele vai te dar um link para abrir o projeto, geralmente é: 
+	http://localhost:3000
+Só apertar ctrl + click em cima do link que ele abre, ou copiar e colar a url no navegador
