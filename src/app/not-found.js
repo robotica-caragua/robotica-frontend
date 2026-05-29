@@ -1,6 +1,6 @@
 import Image from 'next/image'
-import errorBot from '../../assets/404.png'
-import { ButtonGoBack } from '../../components/ButtonGoBack'
+import errorBot from '../assets/404.png'
+import { ButtonGoBack } from '../components/ButtonGoBack'
 
 export default function Page404() {
   return (
