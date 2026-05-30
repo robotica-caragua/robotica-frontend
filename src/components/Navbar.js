@@ -3,7 +3,7 @@ import { MdArrowForward } from 'react-icons/md'
 import Image from 'next/image'
 import Logo from '../assets/logo.svg'
 
-export function Header() {
+export function Navbar() {
   return (
     <div className="w-full h-16 flex items-center justify-between mt-8 m-10">
       <Image src={Logo} alt="Logo Conexão Robótica" />
