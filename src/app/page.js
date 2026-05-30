@@ -8,11 +8,9 @@ export default function HomePage() {
   return (
     <>
       <Header />
-      <section className="relative flex items-center justify-between px-20 py-16 overflow-hidden -mt-45">
-        {/* Conteúdo */}
 
-        {/*Div texto seção HERO*/}
-        <div className="max-w-2xl -mt-15 ml-20">
+      <main className="flex flex-row justify-between">
+        <div className="max-w-2xl ml-55 mt-28">
           <h1 className="text-[64px] font-bold uppercase leading-tight">
             <span className="text-lime-500">
               Descubra,
@@ -56,22 +54,18 @@ export default function HomePage() {
         </div>
 
         {/* Imagem */}
-        <div className="relative w-[700px] h-[900px]">
+        <div className="relative w-175 h-225 ">
           {/* Imagem de fundo */}
-          <div className="absolute inset-0 z-0 w-[800] h-[850]">
+          <div className="absolute inset-0 z-0 w-200 h-225">
             <Image
               src={ligacoes}
               alt="Fundo decorativo"
               fill
-              className="
-        object-contain
-        opacity-18
-        
-      "
+              className="object-contain opacity-13"
             />
           </div>
 
-          <div className="relative w-[800] h-[800] overflow-hidden flex justify-end">
+          <div className="relative w-205 h-205 overflow-hidden flex justify-end -left-10">
             <Image
               src={homeBot}
               alt="Ilustração principal de robótica"
@@ -80,7 +74,7 @@ export default function HomePage() {
             />
           </div>
         </div>
-      </section>
+      </main>
     </>
   )
 }
