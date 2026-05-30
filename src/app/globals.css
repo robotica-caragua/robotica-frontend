@@ -33,3 +33,13 @@ body {
   color: var(--verde-escuro);
   font-family: 'Work Sans', sans-serif;
 }
+
+@theme {
+  --bg-page: #fffff3;
+  --color-verde-pastel: #e6f5bc;
+  --color-verde-limao: #befc00;
+  --color-verde-oliva: #97e100;
+  --color-verde-musgo: #506600;
+  --color-verde-escuro: #002a15;
+  --color-vermelho: #ba1a1a;
+}

@@ -1,7 +1,7 @@
 import Image from 'next/image'
-import { ButtonGoBack } from '@/components/ButtonGoBack'
-import { Label } from '@/components/Label'
 import errorBot from '../assets/404.png'
+import { Label } from '../components/Label'
+import { ButtonGoBack } from '../components/ButtonGoBack'
 
 export default function Page404() {
   return (
