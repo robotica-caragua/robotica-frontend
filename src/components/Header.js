@@ -5,10 +5,13 @@ import Logo from '../assets/logo.svg'
 
 export function Header() {
   return (
-    <div className="w-full h-16 flex items-center justify-between mt-8 m-10">
-      <Image src={Logo} alt="Logo Conexão Robótica" />
+    <div
+      id="topo"
+      className="w-full max-w-[100vw] mx-auto h-16 flex items-center justify-between my-6 px-6"
+    >
+      <Image src={Logo} alt="Logo Conexão Robótica" width={180} height={50} />
 
-      <nav className="p-4 flex items-center mr-20">
+      <nav className="flex items-center">
         <ul className="flex items-center gap-6 list-none m-0 p-0 font-medium text-verde-musgo text-xl">
           <li>
             {' '}
@@ -49,10 +52,10 @@ export function Header() {
 
           <Link
             href="/login"
-            className="font-bold ml-6 px-10 py-2 bg-white border-2 border-verde-musgo rounded-lg hover:bg-input transition-colors duration-300 flex items-center gap-5"
+            className="font-bold px-4 py-2 bg-white border-2 border-verde-musgo rounded-lg hover:bg-verde-musgo hover:text-white transition-colors duration-300 flex items-center gap-4"
           >
             Sou Professor
-            <MdArrowForward size={30} />
+            <MdArrowForward size={28} />
           </Link>
         </ul>
       </nav>
