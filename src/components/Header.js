@@ -13,7 +13,7 @@ export function Header() {
           <li>
             {' '}
             <Link
-              href="/cadastro"
+              href="/"
               className="inline-block text-center w-[4.75rem] p-1 hover:font-bold hover:border-b-2 border-verde-musgo uppercase"
             >
               Início
