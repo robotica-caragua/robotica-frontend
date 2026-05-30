@@ -5,8 +5,11 @@ import Logo from '../assets/logo.svg'
 
 export function Header() {
   return (
-    <div className="w-full max-w-[100vw] mx-auto h-16 flex items-center justify-between mt-6 px-6">
-      <Image src={Logo} alt="Logo Conexão Robótica" width={180} height={50}/>
+    <div
+      id="topo"
+      className="w-full max-w-[100vw] mx-auto h-16 flex items-center justify-between my-6 px-6"
+    >
+      <Image src={Logo} alt="Logo Conexão Robótica" width={180} height={50} />
 
       <nav className="flex items-center">
         <ul className="flex items-center gap-6 list-none m-0 p-0 font-medium text-verde-musgo text-xl">

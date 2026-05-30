@@ -26,8 +26,8 @@ export default function Page404() {
             </h2>
 
             <p className="text-verde-musgo text-lg">
-              Você navegou para um endereço que não existe. 
-              <br /> Confirme se o link está correto ou retorne ao início para 
+              Você navegou para um endereço que não existe.
+              <br /> Confirme se o link está correto ou retorne ao início para
               <br /> encontrar o que procura.
             </p>
           </div>

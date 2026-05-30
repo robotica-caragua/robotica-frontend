@@ -34,6 +34,11 @@ body {
   font-family: 'Work Sans', sans-serif;
 }
 
+/* Para rolagem suave */
+html {
+  scroll-behavior: smooth;
+}
+
 @theme {
   --bg-page: #fffff3;
   --color-verde-pastel: #e6f5bc;
