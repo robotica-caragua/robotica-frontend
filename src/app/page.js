@@ -6,7 +6,9 @@ export default function Home() {
     <div className="flex flex-col min-h-screen">
       <Header />
 
-      <main className="flex-grow">{/* Conteúdo da página */}</main>
+      <main className="flex-grow">
+        {/* Conteúdo da página */}
+      </main>
 
       <Footer />
     </div>
