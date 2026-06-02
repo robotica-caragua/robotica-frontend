@@ -7,6 +7,8 @@ import { GoLocation } from 'react-icons/go'
 
 import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
+import { Material } from '@/components/Material'
+import { Project } from '@/components/Project'
 
 export default function DetalhesTutorial() {
   return (
@@ -14,14 +16,11 @@ export default function DetalhesTutorial() {
       <Header />
 
       <div className="flex min-h-screen w-full flex-col items-center justify-center gap-20 mt-20 px-4">
-        <div
-          className="border border-verde-musgo justify-center items-center flex-col gap-4 flex rounded-lg p-6 w-full max-w-[900px] bg-white"
-          style={{ height: '629px' }}
-        >
+        <div className="border border-verde-musgo justify-center items-center flex-col gap-4 flex rounded-lg p-6 w-full max-w-225 h-158 bg-white">
           <h1 className="text-verde-musgo font-bold text-3xl md:text-4xl text-center md:text-left w-full max-w-3xl">
             BRAÇO ROBÓTICO DE PAPELÃO
           </h1>
-          <video className="w-full max-w-[800px] min-h-[450px] rounded-md" controls>
+          <video className="w-full max-w-200 min-h-113 rounded-md" controls>
             <source src="/video-exemplo.mp4" type="video/mp4" />
             Seu navegador não suporta a tag de vídeo.
           </video>
@@ -30,69 +29,48 @@ export default function DetalhesTutorial() {
           </p>
         </div>
 
-        <div
-          className="border border-verde-musgo justify-center items-center flex-col gap-4 flex rounded-lg p-6 w-full max-w-[900px] bg-white"
-          style={{ height: '534px' }}
-        >
-          <div className="flex items-center gap-4 w-full max-w-[838px] mb-4">
+        <div className="border border-verde-musgo justify-center items-center flex-col h-134 gap-4 flex rounded-lg p-6 w-full max-w-225 bg-white">
+          <div className="flex items-center gap-4 w-full max-w-210 mb-4">
             <BsArchive className="fill-verde-musgo" size={40} />
             <h1 className="text-verde-escuro font-bold text-3xl md:text-4xl">
               Materiais Necessários
             </h1>
           </div>
 
-          <div className="flex flex-col gap-4 w-full max-w-[838px]">
-            <div
-              className="flex items-center border border-verde-musgo px-4 bg-[var(--color-verde-pastel)]"
-              style={{ height: '54.88px', borderRadius: '15px' }}
-            >
-              <MdOutlineRecycling className="fill-verde-musgo flex-shrink-0" size={30} />
+          <div className="flex flex-col gap-4 w-full max-w-210">
+            <Material>
+              <MdOutlineRecycling className="fill-verde-musgo shrink-0" size={30} />
               <p className="text-xl ms-4">Papelão Reciclado</p>
-            </div>
-            <div
-              className="flex items-center border border-verde-musgo px-4 bg-[var(--color-verde-pastel)]"
-              style={{ height: '54.88px', borderRadius: '15px' }}
-            >
-              <MdOutlinePrecisionManufacturing
-                className="fill-verde-musgo flex-shrink-0"
-                size={30}
-              />
+            </Material>
+
+            <Material>
+              <MdOutlinePrecisionManufacturing className="fill-verde-musgo shrink-0" size={30} />
               <p className="text-xl ms-4">4x Servomotores SG90</p>
-            </div>
-            <div
-              className="flex items-center border border-verde-musgo px-4 bg-[var(--color-verde-pastel)]"
-              style={{ height: '54.88px', borderRadius: '15px' }}
-            >
-              <MdCable className="fill-verde-musgo flex-shrink-0" size={30} />
+            </Material>
+
+            <Material>
+              <MdCable className="fill-verde-musgo shrink-0" size={30} />
               <p className="text-xl ms-4">Fios Jumper</p>
-            </div>
-            <div
-              className="flex items-center border border-verde-musgo px-4 bg-[var(--color-verde-pastel)]"
-              style={{ height: '54.88px', borderRadius: '15px' }}
-            >
-              <IoMdBatteryFull className="fill-verde-musgo flex-shrink-0" size={30} />
+            </Material>
+
+            <Material>
+              <IoMdBatteryFull className="fill-verde-musgo shrink-0" size={30} />
               <p className="text-xl ms-4">Bateria 9V com Clip</p>
-            </div>
-            <div
-              className="flex items-center border border-verde-musgo px-4 bg-[var(--color-verde-pastel)]"
-              style={{ height: '54.88px', borderRadius: '15px' }}
-            >
-              <BiRuler className="fill-verde-musgo flex-shrink-0" size={30} />
+            </Material>
+
+            <Material>
+              <BiRuler className="fill-verde-musgo shrink-0" size={30} />
               <p className="text-xl ms-4">Palitos de Sorvete</p>
-            </div>
+            </Material>
           </div>
         </div>
-
-        <div
-          className="border border-verde-musgo mb-40 gap-8 rounded-[15px] flex flex-col md:flex-row justify-between p-8 w-full max-w-[1152px] bg-white"
-          style={{ minHeight: '345px' }}
-        >
+        <div className="border border-verde-musgo mb-40 gap-8 rounded-2xl min-h-86 flex flex-col md:flex-row justify-between p-8 w-full max-w-6xl bg-white">
           <div className="flex flex-col gap-3 w-full md:w-1/2">
             <h3 className="text-verde-musgo font-medium text-2xl md:text-3xl">
               EMEF MARIA DE LOURDES
             </h3>
             <div className="flex items-center text-verde-musgo">
-              <GoLocation className="fill-verde-musgo flex-shrink-0 mr-2" size={20} />
+              <GoLocation className="fill-verde-musgo shrink-0 mr-2" size={20} />
               <p className="text-lg">Caraguatatuba-SP - Bairro Perquê-Mirim</p>
             </div>
             <p className="text-xl md:text-2xl text-gray-700 mt-2">
@@ -102,28 +80,19 @@ export default function DetalhesTutorial() {
           </div>
 
           <div className="flex flex-col gap-3 w-full md:w-1/2">
-            <p className="text-verde-escuro font-medium text-xl">OUTROS PROJETOS DA UNIDADE</p>
-            <div
-              className="flex items-center justify-between px-6 bg-[var(--color-verde-pastel)] w-full max-w-[487px]"
-              style={{ height: '60px', borderRadius: '15px' }}
-            >
+            <p className="text-verde-escuro font-medium ms-2 text-xl">OUTROS PROJETOS DA UNIDADE</p>
+            <Project>
               <p className="text-verde-musgo text-xl font-medium">Horta Automatizada v2</p>
               <FaArrowRightLong className="fill-verde-escuro" size={24} />
-            </div>
-            <div
-              className="flex items-center justify-between px-6 bg-[var(--color-verde-pastel)] w-full max-w-[487px]"
-              style={{ height: '60px', borderRadius: '15px' }}
-            >
-              <p className="text-verde-musgo text-xl font-medium">Horta Automatizada v2</p>
+            </Project>
+            <Project>
+              <p className="text-verde-musgo text-xl font-medium">Sensor de Chuva IOT v2</p>
               <FaArrowRightLong className="fill-verde-escuro" size={24} />
-            </div>
-            <div
-              className="flex items-center justify-between px-6 bg-[var(--color-verde-pastel)] w-full max-w-[487px]"
-              style={{ height: '60px', borderRadius: '15px' }}
-            >
-              <p className="text-verde-musgo text-xl font-medium">Horta Automatizada v2</p>
+            </Project>
+            <Project>
+              <p className="text-verde-musgo text-xl font-medium">Lixeira Inteligente v2</p>
               <FaArrowRightLong className="fill-verde-escuro" size={24} />
-            </div>
+            </Project>
           </div>
         </div>
       </div>
