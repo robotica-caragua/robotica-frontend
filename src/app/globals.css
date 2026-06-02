@@ -1,32 +1,50 @@
 @import url('https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700&display=swap');
-@import "tailwindcss";
+@import 'tailwindcss';
+
+:root {
+  --bg-page: #fffff3;
+  --color-verde-pastel: #e6f5bc;
+  --color-verde-limao: #befc00;
+  --color-verde-oliva: #97e100;
+  --color-verde-musgo: #506600;
+  --color-verde-escuro: #002a15;
+  --color-vermelho: #ba1a1a;
+}
 
 @theme inline {
-  --font-sans: "Work Sans", sans-serif;
-  --color-bg-page: #FFFFF3;
-  --color-verde-pastel: #E6F5BC;
-  --color-verde-limao: #BEFC00;
-  --color-verde-oliva: #97E100;
-  --color-verde-musgo: #506600;
-  --color-verde-escuro: #002A15;
-  --color-vermelho: #BA1A1A;
-  --color-input: #F4FFD5;
+  --color-background: var(--bg-page);
+  --font-sans: 'Work Sans', sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-  --bg-page: #FFFFF3;
-  --color-verde-pastel: #E6F5BC;
-  --color-verde-limao: #BEFC00;
-  --color-verde-oliva: #97E100;
-  --color-verde-musgo: #506600;
-  --color-verde-escuro: #002A15;
-  --color-vermelho: #BA1A1A;
+    --bg-page: #fffff3;
+    --verde-pastel: #e6f5bc;
+    --verde-limao: #befc00;
+    --verde-oliva: #97e100;
+    --verde-musgo: #506600;
+    --verde-escuro: #002a15;
+    --vermelho: #ba1a1a;
   }
 }
 
 body {
   background: var(--bg-page);
   color: var(--verde-escuro);
-  font-family: "Work Sans", sans-serif;
+  font-family: 'Work Sans', sans-serif;
+}
+
+/* Para rolagem suave */
+html {
+  scroll-behavior: smooth;
+}
+
+@theme {
+  --bg-page: #fffff3;
+  --color-verde-pastel: #e6f5bc;
+  --color-verde-limao: #befc00;
+  --color-verde-oliva: #97e100;
+  --color-verde-musgo: #506600;
+  --color-verde-escuro: #002a15;
+  --color-vermelho: #ba1a1a;
 }

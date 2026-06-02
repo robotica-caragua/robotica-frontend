@@ -1,9 +1,10 @@
-import "./globals.css";
+import './globals.css'
 
 export const metadata = {
-  title: "BioBot",
-  description: "Conectando escolas, estudantes e a comunidade de Caraguatatuba através da tecnologia.",
-};
+  title: 'BioBot',
+  description:
+    'Conectando escolas, estudantes e a comunidade de Caraguatatuba através da tecnologia.'
+}
 
 export default function RootLayout({ children }) {
   return (
@@ -12,6 +13,7 @@ export default function RootLayout({ children }) {
         {children}
       
       </body>
+
     </html>
-  );
+  )
 }
