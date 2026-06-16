@@ -26,11 +26,22 @@ export function Header() {
             {' '}
             <Link
               href="/rede"
-              className="inline-block text-center w-[4rem] p-1 hover:font-bold hover:border-b-2 border-verde-musgo uppercase"
+              className="inline-block text-center w-[4.75rem] p-1 hover:font-bold hover:border-b-2 border-verde-musgo uppercase"
             >
               Rede
             </Link>{' '}
           </li>
+
+          <li>
+            {' '}
+            <Link
+              href="/projetos"
+              className="inline-block text-center w-[7.25rem] p-1 hover:font-bold hover:border-b-2 border-verde-musgo uppercase"
+            >
+              Projetos
+            </Link>{' '}
+          </li>
+
           <li>
             {' '}
             <Link
