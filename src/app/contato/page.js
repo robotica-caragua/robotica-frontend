@@ -12,7 +12,7 @@ export default function Contato() {
     setFaqAberto(faqAberto === index ? null : index)
   }
 
-    //perguntas frequentes...
+  //perguntas frequentes...
   const faqs = [
     {
       pergunta: 'É necessário comprar kits de robótica caros para replicar os projetos do portal?',
@@ -33,9 +33,9 @@ export default function Contato() {
     },
 
     {
-      pergunta: 'Como entro em contato com o suporte?',
+      pergunta: 'Quem pode utilizar o portal?',
       resposta:
-        'Você pode enviar uma mensagem diretamente pelo formulário acima ou entrar em contato através do nosso e-mail oficial de suporte.'
+        'O portal é aberto para estudantes, professores, escolas e qualquer pessoa interessada em aprender sobre robótica, tecnologia e reutilização de materiais eletrônicos.'
     }
   ]
 
@@ -138,9 +138,9 @@ export default function Contato() {
                   <button
                     type="button"
                     onClick={() => toggleFaq(index)}
-                    className="w-full py-12 px-10 flex justify-between items-center text-left gap-4 cursor-pointer focus:outline-none"
+                    className="w-full py-10 px-8 flex justify-between items-center text-left gap-4 cursor-pointer focus:outline-none"
                   >
-                    <span className="text-[#002A15] text-xl md:text-2xl font-medium font-['Work_Sans'] leading-tight">
+                    <span className="text-[#002A15] text-xl md:text-2xl font-medium leading-tight">
                       {faq.pergunta}
                     </span>
 
@@ -152,7 +152,7 @@ export default function Contato() {
                   {isOpen && (
                     <>
                       <div className="mx-6 border-t border-[#506600]/30" />
-                      <div className="p-6 pt-4 text-[#002A15]/90 text-lg md:text-xl font-normal font-['Work_Sans'] leading-relaxed">
+                      <div className="p-6 pt-4 text-[#002A15]/90 text-lg md:text-xl font-normal leading-relaxed">
                         {faq.resposta}
                       </div>
                     </>
