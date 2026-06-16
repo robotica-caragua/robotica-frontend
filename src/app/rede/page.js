@@ -1,7 +1,7 @@
 import { CardEvento } from '@/components/CardEvento'
 import { CardEscola } from '@/components/CardEscola'
-import { Footer } from '@/components/Footer'
 import { Header } from '@/components/Header'
+import { Footer } from '@/components/Footer'
 import { IoRocketOutline } from 'react-icons/io5'
 
 export default function Rede() {
@@ -9,7 +9,7 @@ export default function Rede() {
     <div className="flex flex-col min-h-screen">
       <Header />
 
-      <main className="flex-grow flex flex-col items-center ">
+      <main className="grow flex flex-col items-center ">
         {/* Título da página */}
         <div className="flex flex-row items-center justify-center gap-2 mb-4">
           <h1 className="font-bold text-4xl text-verde-escuro uppercase">Nossa</h1>
@@ -26,7 +26,7 @@ export default function Rede() {
         </div>
 
         {/* Sessão Eventos em Destaque */}
-        <div className="flex flex-col my-[5rem] w-[75%] bg-white border-2 border-verde-musgo rounded-lg py-10 px-2 gap-5 mb-[5rem]">
+        <div className="flex flex-col my-20 w-[75%] bg-white border-2 border-verde-musgo rounded-lg py-10 px-2 gap-5 mb-20">
           {/* Título da sessão */}
           <div className="flex flex-row items-center gap-5 text-verde-musgo ml-8">
             <IoRocketOutline size={30} />
@@ -78,9 +78,9 @@ export default function Rede() {
           </div>
         </div>
 
-        <div className="flex flex-col w-[75%] py-10 px-2 gap-5 mb-[5rem] justify-center items-center">
+        <div className="flex flex-col w-[75%] py-10 px-2 gap-5 mb-20 justify-center items-center">
           {/* Título da Sessão */}
-          <div className="flex flex-row gap-2 mb-[3rem]">
+          <div className="flex flex-row gap-2 mb-12">
             <h1 className="font-bold text-4xl text-verde-escuro uppercase">conheça nossas</h1>
             <h1 className="font-bold text-4xl text-verde-musgo uppercase">Escolas!</h1>
           </div>
