@@ -6,7 +6,7 @@ import { CiLocationOn } from 'react-icons/ci'
 import { MdOutlineFileDownload } from 'react-icons/md'
 import { IoDocumentTextOutline } from 'react-icons/io5'
 
-export default function Projetos() {
+export default function detalhesEvento() {
   return (
     <div className="flex flex-col min-h-screen">
       <Header />

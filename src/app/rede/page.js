@@ -39,41 +39,49 @@ export default function Rede() {
               title="Torneio Regional FLL"
               date="PRÓXIMO EVENTO • 04 AGO"
               location="Ginásio do Tinga, Caraguatatuba"
+              linkUrl="/detalhesEvento"
             />
             <CardEvento
               title="Hackathon Sustentável"
               date="INSCRIÇÕES • 13 AGO"
               location="FATEC Caraguatatuba"
+              linkUrl="/detalhesEvento"
             />
             <CardEvento
               title="Hackathon Sustentável"
               date="INSCRIÇÕES • 13 AGO"
               location="FATEC Caraguatatuba"
+              linkUrl="/detalhesEvento"
             />
             <CardEvento
               title="Hackathon Sustentável"
               date="INSCRIÇÕES • 13 AGO"
               location="FATEC Caraguatatuba"
+              linkUrl="/detalhesEvento"
             />
             <CardEvento
               title="Hackathon Sustentável"
               date="INSCRIÇÕES • 13 AGO"
               location="FATEC Caraguatatuba"
+              linkUrl="/detalhesEvento"
             />
             <CardEvento
               title="Hackathon Sustentável"
               date="INSCRIÇÕES • 13 AGO"
               location="FATEC Caraguatatuba"
+              linkUrl="/detalhesEvento"
             />
             <CardEvento
               title="Hackathon Sustentável"
               date="INSCRIÇÕES • 13 AGO"
               location="FATEC Caraguatatuba"
+              linkUrl="/detalhesEvento"
             />
             <CardEvento
               title="Hackathon Sustentável"
               date="INSCRIÇÕES • 13 AGO"
               location="FATEC Caraguatatuba"
+              linkUrl="/detalhesEvento"
             />
           </div>
         </div>
@@ -89,18 +97,22 @@ export default function Rede() {
             <CardEscola
               name="EMEF Profª Maria Aparecida De Carvalho"
               location="R. Seishi Yoshimoto, 120 - Getuba, Caraguatatuba - SP, 11676-403"
+              linkUrl="https://maps.app.goo.gl/pH6TnrBJsTyLY3gK8"
             />
             <CardEscola
               name="EMEF Prof. Luiz Ribeiro Muniz"
               location="R. Analândia, 355 - Martim de Sá, Caraguatatuba - SP, 11662-320"
+              linkUrl="https://maps.app.goo.gl/ueybEfw95rgpqRYU6"
             />
             <CardEscola
               name="EMEF Prof. Luiz Silvar do Prado"
               location="R. José Pedro de Oliveira Barbosa, 805 - Jardim Casa Branca, Caraguatatuba - SP"
+              linkUrl="https://maps.app.goo.gl/43diBvZfvfCGr3iZA"
             />
             <CardEscola
               name="EMEF Profª Maria Thereza de Souza Castro"
               location="R. Seishi Yoshimoto, 120 - Getuba, Caraguatatuba - SP, 11676-403"
+              linkUrl="https://maps.app.goo.gl/TWYSGxUgsena9FTCA"
             />
           </div>
         </div>
