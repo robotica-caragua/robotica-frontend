@@ -3,7 +3,6 @@ import { useState } from 'react'
 
 import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
-// Corrigido: Adicionado os ícones do FAQ na importação do react-icons/fa6
 import { FaArrowRight, FaChevronDown, FaChevronUp } from 'react-icons/fa6'
 
 export default function Contato() {
@@ -13,23 +12,26 @@ export default function Contato() {
     setFaqAberto(faqAberto === index ? null : index)
   }
 
-  // 2. LISTA DE PERGUNTAS E RESPOSTAS DO FIGMA
+    //perguntas frequentes...
   const faqs = [
     {
       pergunta: 'É necessário comprar kits de robótica caros para replicar os projetos do portal?',
       resposta:
         'De jeito nenhum! A grande maioria dos tutoriais disponíveis na nossa vitrine ensina como substituir peças comerciais complexas por materiais recicláveis!'
     },
+
     {
       pergunta: 'Vocês aceitam doação de peças e eletrônicos velhos?',
       resposta:
         'Com certeza! Nós aceitamos doações de componentes eletrônicos (como motores, LEDs, fios), mouses, teclados velhos e até placas de circuito. Esses materiais são limpos, triados e usados pelos alunos para construir os robôs e projetos dos nossos tutoriais.'
     },
+
     {
       pergunta: 'Como entro em contato com o suporte?',
       resposta:
         'Você pode enviar uma mensagem diretamente pelo formulário acima ou entrar em contato através do nosso e-mail oficial de suporte.'
     },
+
     {
       pergunta: 'Como entro em contato com o suporte?',
       resposta:
@@ -51,6 +53,7 @@ export default function Contato() {
         </div>
 
         {/* formulario */}
+
         <div className="w-full max-w-[1236px] bg-white rounded-[10px] border border-[#506600] p-6 md:p-12 shadow-sm">
           <form className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
@@ -100,7 +103,7 @@ export default function Contato() {
                 placeholder="Escreva sua mensagem aqui....."
                 className="w-full p-4 bg-[#F4FFD5] rounded-[5px] border border-[#506600] text-[#002A15] font-semibold placeholder:font-semibold placeholder-[rgba(0,42,21,0.8)] font-['Work_Sans'] text-lg focus:outline-none focus:ring-1 focus:ring-[#506600] resize-none"
               />
-              <span className="text-[#002A15]/70 text-base font-normal mt-1 block font-['Montserrat']">
+              <span className="text-[#002A15]/70 text-base font-normal mt-1 block font">
                 Por favor, coloque o máximo de informação possível...
               </span>
             </div>
@@ -119,7 +122,7 @@ export default function Contato() {
           </form>
         </div>
 
-        <section className="w-full max-w-[1236px] mt-24 mb-40">
+        <section className="w-full max-w-[1236px] mt-24 mb-20">
           <h2 className="text-center text-[#002A15] text-3xl md:text-[40px] font-bold font-['Work_Sans'] leading-tight uppercase mb-12">
             Perguntas Frequentes
           </h2>
