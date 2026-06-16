@@ -23,8 +23,8 @@ export function CardEscola({ name, location, linkUrl }) {
       </p>
 
       <Link
-        href={linkUrl} 
-        target="_blank" 
+        href={linkUrl}
+        target="_blank"
         rel="noopener noreferrer"
         className="w-[75%] rounded-xl bg-verde-limao p-3 mt-auto font-semibold text-base justify-center text-verde-escuro hover:underline flex items-center gap-5"
       >
