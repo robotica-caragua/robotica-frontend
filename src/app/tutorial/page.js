@@ -8,8 +8,8 @@ export default function tutorial() {
   return (
     <>
       <Header />
-      <div className="flex min-h-screen w-full flex-col items-center justify-center gap-20 mt-20 px-20">
-        <div className="justify-center items-center flex-col gap-12 flex">
+      <div className="flex min-h-screen w-full flex-col items-center justify-center gap-20 mt-20 ">
+        <div className="justify-center items-center flex-col gap-4 flex">
           <h1 className="text-4xl font-bold">
             NOSSOS <span className="text-verde-musgo text-4xl font-bold">TUTORIAIS</span>
           </h1>
@@ -19,10 +19,10 @@ export default function tutorial() {
         </div>
 
         {/* CONTAINER PRINCIPAL LADO A LADO */}
-        <div className="flex flex-row gap-6 items-center justify-center mt-1 w-full max-w-8xl items-start">
+        <div className="flex flex-row justify-between w-full items-start gap-8">
           
           {/* COLUNA DA ESQUERDA */}
-          <div className="w-72 top-24 flex flex-col gap-4">
+          <div className="mt-4 flex flex-col gap-4">
             <SearchBar />
           </div>
 
@@ -40,7 +40,7 @@ export default function tutorial() {
               </FilterButton>
             </div>
 
-            {/* GRID AJUSTADO PARA SUBDIVIDIR OS CARDS EM COLUNAS */}
+            {/* CARDS EM COLUNAS */}
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 w-full">
               <Card> </Card>
               <Card> </Card>
