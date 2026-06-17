@@ -36,11 +36,11 @@ Sempre que terminar uma parte do código e quiser salvar na sua branch lá no gi
 	git push origin  [nome da branch]
 
 Sempre que quiser atualizar a main de acordo com o a versão mais recente (a que está no github):
-	git checkout main (para sair da sua branch e entrar na main)
+	git switch main (para sair da sua branch e entrar na main)
 	git pull origin main (para atualizar a sua main)
 
 Sempre que quiser atualizar a sua branch de acordo com o que está na main:
-	git checkout [nome] (para sair da main e entrar na sua branch)
+	git switch [nome] (para sair da main e entrar na sua branch)
 	git merge main (para puxar as alterações da main para a sua branch)
 
 Para enviar a sua branch para a main
