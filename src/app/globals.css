@@ -9,6 +9,7 @@
   --color-verde-musgo: #506600;
   --color-verde-escuro: #002a15;
   --color-vermelho: #ba1a1a;
+  --color-input-bg: #f4ffd5;
 }
 
 @theme inline {
@@ -25,6 +26,7 @@
     --verde-musgo: #506600;
     --verde-escuro: #002a15;
     --vermelho: #ba1a1a;
+    --input-bg: #f4ffd5;
   }
 }
 
@@ -47,4 +49,5 @@ html {
   --color-verde-musgo: #506600;
   --color-verde-escuro: #002a15;
   --color-vermelho: #ba1a1a;
+  --color-input-bg: #f4ffd5;
 }
