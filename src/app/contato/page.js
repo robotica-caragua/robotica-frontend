@@ -127,7 +127,7 @@ export default function Contato() {
             Perguntas Frequentes
           </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 items-start">
             {faqs.map((faq, index) => {
               const isOpen = faqAberto === index
               return (
