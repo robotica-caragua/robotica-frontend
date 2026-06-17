@@ -19,21 +19,22 @@ export default function tutorial() {
         </div>
 
         {/* CONTAINER PRINCIPAL LADO A LADO */}
-        <div className="flex flex-row justify-between w-full items-start gap-8">
+        <div className="flex flex-row  w-full items-start gap-15">
           
           {/* COLUNA DA ESQUERDA */}
-          <div className="mt-4 flex flex-col gap-4">
+          <div className="mt-1 flex flex-col gap-4">
             <SearchBar />
+            <p className='text-verde-musgo text-sm ml-15 font-semibold'>Mostrando 48 projetos</p>
           </div>
 
           {/* COLUNA DA DIREITA: FILTROS + GRID DE CARDS */}
-          <div className="flex flex-col gap-4 flex-1">
-            <div className="flex flex-row gap-4">
+          <div className="flex flex-col  gap-8 flex-1">
+            <div className="flex flex-row ml-2 gap-4">
               <div className="rounded-3xl bg-verde-oliva items-center py-1 px-4">
                 <p className="mt-1 text-base font-semibold">Recentes</p>
               </div>
               <FilterButton>
-                <p className="ms-1 text-base font-semibold">Mais Curtidos</p>
+                <p className="ms-1 text-base  font-semibold">Mais Curtidos</p>
               </FilterButton>
               <FilterButton>
                 <p className="text-base font-semibold">Ordem Alfabética</p>
@@ -41,7 +42,10 @@ export default function tutorial() {
             </div>
 
             {/* CARDS EM COLUNAS */}
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 w-full">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 place-items-center mr-16">
+              <Card> </Card>
+              <Card> </Card>
+              <Card> </Card>
               <Card> </Card>
               <Card> </Card>
               <Card> </Card>
