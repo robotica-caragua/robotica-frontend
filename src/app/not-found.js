@@ -26,9 +26,9 @@ export default function Page404() {
             </h2>
 
             <p className="text-verde-musgo text-lg">
-              A página ou o projeto que você está procurando pode ter
-              <br /> sido movido, excluído, ou o link está quebrado. Nossos
-              <br /> sistemas estão recalibrando.
+              Você navegou para um endereço que não existe.
+              <br /> Confirme se o link está correto ou retorne ao início para
+              <br /> encontrar o que procura.
             </p>
           </div>
 
