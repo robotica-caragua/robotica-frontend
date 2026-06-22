@@ -55,7 +55,6 @@ export function CardProjeto({ title, description, linkUrl }) {
             </div>
           </div>
         </div>
-      </div>
-    </div>
+    </article>
   )
 }
