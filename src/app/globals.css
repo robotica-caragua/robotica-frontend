@@ -12,11 +12,6 @@
   --color-input-bg: #f4ffd5;
 }
 
-@theme inline {
-  --color-background: var(--bg-page);
-  --font-sans: 'Work Sans', sans-serif;
-}
-
 @media (prefers-color-scheme: dark) {
   :root {
     --bg-page: #fffff3;

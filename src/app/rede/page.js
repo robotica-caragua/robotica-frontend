@@ -1,7 +1,7 @@
 import { CardEvento } from '@/components/CardEvento'
 import { CardEscola } from '@/components/CardEscola'
-import { Footer } from '@/components/Footer'
 import { Header } from '@/components/Header'
+import { Footer } from '@/components/Footer'
 import { IoRocketOutline } from 'react-icons/io5'
 
 export default function Rede() {
@@ -9,7 +9,7 @@ export default function Rede() {
     <div className="flex flex-col min-h-screen">
       <Header />
 
-      <main className="flex-grow flex flex-col items-center ">
+      <main className="grow flex flex-col items-center ">
         {/* Título da página */}
         <div className="flex flex-row items-center justify-center gap-2 mb-4">
           <h1 className="font-bold text-4xl text-verde-escuro uppercase">Nossa</h1>
@@ -26,7 +26,7 @@ export default function Rede() {
         </div>
 
         {/* Sessão Eventos em Destaque */}
-        <div className="flex flex-col my-[5rem] w-[75%] bg-white border-2 border-verde-musgo rounded-lg py-10 px-2 gap-5 mb-[5rem]">
+        <div className="flex flex-col my-20 w-[75%] bg-white border-2 border-verde-musgo rounded-lg py-10 px-2 gap-5 mb-20">
           {/* Título da sessão */}
           <div className="flex flex-row items-center gap-5 text-verde-musgo ml-8">
             <IoRocketOutline size={30} />
@@ -39,48 +39,56 @@ export default function Rede() {
               title="Torneio Regional FLL"
               date="PRÓXIMO EVENTO • 04 AGO"
               location="Ginásio do Tinga, Caraguatatuba"
+              linkUrl="/detalhesEvento"
             />
             <CardEvento
               title="Hackathon Sustentável"
               date="INSCRIÇÕES • 13 AGO"
               location="FATEC Caraguatatuba"
+              linkUrl="/detalhesEvento"
             />
             <CardEvento
               title="Hackathon Sustentável"
               date="INSCRIÇÕES • 13 AGO"
               location="FATEC Caraguatatuba"
+              linkUrl="/detalhesEvento"
             />
             <CardEvento
               title="Hackathon Sustentável"
               date="INSCRIÇÕES • 13 AGO"
               location="FATEC Caraguatatuba"
+              linkUrl="/detalhesEvento"
             />
             <CardEvento
               title="Hackathon Sustentável"
               date="INSCRIÇÕES • 13 AGO"
               location="FATEC Caraguatatuba"
+              linkUrl="/detalhesEvento"
             />
             <CardEvento
               title="Hackathon Sustentável"
               date="INSCRIÇÕES • 13 AGO"
               location="FATEC Caraguatatuba"
+              linkUrl="/detalhesEvento"
             />
             <CardEvento
               title="Hackathon Sustentável"
               date="INSCRIÇÕES • 13 AGO"
               location="FATEC Caraguatatuba"
+              linkUrl="/detalhesEvento"
             />
             <CardEvento
               title="Hackathon Sustentável"
               date="INSCRIÇÕES • 13 AGO"
               location="FATEC Caraguatatuba"
+              linkUrl="/detalhesEvento"
             />
           </div>
         </div>
 
-        <div className="flex flex-col w-[75%] py-10 px-2 gap-5 mb-[5rem] justify-center items-center">
+        <div className="flex flex-col w-[75%] py-10 px-2 gap-5 mb-20 justify-center items-center">
           {/* Título da Sessão */}
-          <div className="flex flex-row gap-2 mb-[3rem]">
+          <div className="flex flex-row gap-2 mb-12">
             <h1 className="font-bold text-4xl text-verde-escuro uppercase">conheça nossas</h1>
             <h1 className="font-bold text-4xl text-verde-musgo uppercase">Escolas!</h1>
           </div>
@@ -89,18 +97,22 @@ export default function Rede() {
             <CardEscola
               name="EMEF Profª Maria Aparecida De Carvalho"
               location="R. Seishi Yoshimoto, 120 - Getuba, Caraguatatuba - SP, 11676-403"
+              linkUrl="https://maps.app.goo.gl/pH6TnrBJsTyLY3gK8"
             />
             <CardEscola
               name="EMEF Prof. Luiz Ribeiro Muniz"
               location="R. Analândia, 355 - Martim de Sá, Caraguatatuba - SP, 11662-320"
+              linkUrl="https://maps.app.goo.gl/ueybEfw95rgpqRYU6"
             />
             <CardEscola
               name="EMEF Prof. Luiz Silvar do Prado"
               location="R. José Pedro de Oliveira Barbosa, 805 - Jardim Casa Branca, Caraguatatuba - SP"
+              linkUrl="https://maps.app.goo.gl/43diBvZfvfCGr3iZA"
             />
             <CardEscola
               name="EMEF Profª Maria Thereza de Souza Castro"
               location="R. Seishi Yoshimoto, 120 - Getuba, Caraguatatuba - SP, 11676-403"
+              linkUrl="https://maps.app.goo.gl/TWYSGxUgsena9FTCA"
             />
           </div>
         </div>
