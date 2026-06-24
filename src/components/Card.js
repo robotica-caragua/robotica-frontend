@@ -5,7 +5,7 @@ import { MdArrowForwardIos } from "react-icons/md";
 
 export function Card({ children }) {
   return (
-    <div className="w-full max-w-xs rounded-3xl border border-verde-musgo bg-white shadow-sm">
+    <div className="w-full max-w-xs rounded-3xl border border-verde-musgo  bg-white shadow-sm">
        
       <div className="relative rounded-t-3xl overflow-hidden">
         <div className="absolute top-3 left-3 bg-verde-musgo text-white text-xs font-medium px-3 py-1 rounded-full z-10">
