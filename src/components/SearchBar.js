@@ -1,4 +1,4 @@
-import { IoSearchSharp } from "react-icons/io5";
+import { IoSearchSharp } from 'react-icons/io5'
 
 export function SearchBar() {
   return (
@@ -14,5 +14,5 @@ export function SearchBar() {
         />
       </div>
     </div>
-  );
+  )
 }
