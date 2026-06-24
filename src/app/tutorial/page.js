@@ -1,0 +1,74 @@
+import { Header } from '@/components/Header'
+import { Footer } from '@/components/Footer'
+import { FilterButton } from '@/components/FilterButton'
+import { Card } from '@/components/Card'
+import { SearchBar } from '@/components/SearchBar'
+import { Category } from '@/components/Category'
+import { Level } from '@/components/Level'
+import { School } from '@/components/School'
+import { BobIdea } from '@/components/BobIdea'
+import { Page } from '@/components/Page'
+
+export default function tutorial() {
+  return (
+    <>
+      <Header />
+      <div className="flex min-h-screen w-full flex-col items-center justify-center gap-20 mt-20 ">
+        <div className="justify-center items-center flex-col gap-4 flex">
+          <h1 className="text-4xl font-bold">
+            NOSSOS <span className="text-verde-musgo text-4xl font-bold">TUTORIAIS</span>
+          </h1>
+          <p className="text-2xl">
+            Explore tutoriais práticos desenvolvidos pelas escolas do nosso circuito
+          </p>
+        </div>
+
+        {/* CONTAINER PRINCIPAL LADO A LADO */}
+        <div className="flex flex-row  w-full items-start gap-15">
+          {/* COLUNA DA ESQUERDA */}
+          <div className="mt-1 flex w-95 flex-col gap-4">
+            <SearchBar />
+            <p className="text-verde-musgo text-sm ml-15 font-semibold">Mostrando 48 projetos</p>
+            <Category />
+            <Level />
+            <School />
+            <BobIdea />
+          </div>
+
+          {/* COLUNA DA DIREITA: FILTROS + GRID DE CARDS */}
+          <div className="flex flex-col   gap-8 flex-1">
+            <div className="flex flex-row ms-8  gap-4">
+              <FilterButton>
+                <p className="ms-1 text-base  font-semibold">Recentes</p>
+              </FilterButton>
+              <FilterButton>
+                <p className="ms-1 text-base  font-semibold">Mais Curtidos</p>
+              </FilterButton>
+              <FilterButton>
+                <p className="text-base font-semibold">Ordem Alfabética</p>
+              </FilterButton>
+            </div>
+
+            {/* CARDS EM COLUNAS */}
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 place-items-center mr-16">
+              <Card> </Card>
+              <Card> </Card>
+              <Card> </Card>
+              <Card> </Card>
+              <Card> </Card>
+              <Card> </Card>
+              <Card> </Card>
+              <Card> </Card>
+              <Card> </Card>
+              <Card> </Card>
+              <Card> </Card>
+              <Card> </Card>
+            </div>
+          </div>
+        </div>
+        <Page />
+      </div>
+      <Footer />
+    </>
+  )
+}
