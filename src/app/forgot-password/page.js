@@ -1,6 +1,7 @@
 import { Header } from '@/components/Header'
 import { Input } from '@/components/Input'
 import { Button } from '@/components/Button'
+import Link from 'next/link'
 
 export default function ForgotPassword() {
   return (
@@ -18,15 +19,15 @@ export default function ForgotPassword() {
       <Input />
 
       <div className="flex justify-center">
-        <button
-          type="submit"
-          className="mt-10 w-35 h-10 gap-2 rounded-xl bg-white border-2 border-verde-musgo font-bold text-verde-musgo text-base hover:brightness-50 duration-75 cursor-pointer"
+        <Link
+          href='/login'
+          className="flex items-center justify-center w-35 h-10 gap-2 rounded-xl bg-white border-2 border-verde-musgo font-bold text-verde-musgo text-base hover:brightness-50 duration-75 cursor-pointer mt-10"
         >
           Cancelar
-        </button>
+        </Link>
 
         <div className="ml-20">
-          <Button>Enviar</Button>
+          <Button goTo="/senhapt1">Enviar</Button>
         </div>
       </div>
     </>

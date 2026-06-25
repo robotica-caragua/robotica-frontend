@@ -48,7 +48,7 @@ export default function LoginPage() {
                 placeholder="Digite sua senha..."
               />
               <Link
-                href="/"
+                href="/forgot-password"
                 className="mt-2 text-sm text-verde-musgo underline hover:brightness-50 duration-75"
               >
                 Esqueceu sua senha?
