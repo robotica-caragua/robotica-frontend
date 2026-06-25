@@ -12,11 +12,6 @@
   --color-input-bg: #f4ffd5;
 }
 
-@theme inline {
-  --color-background: var(--bg-page);
-  --font-sans: 'Work Sans', sans-serif;
-}
-
 @media (prefers-color-scheme: dark) {
   :root {
     --bg-page: #fffff3;
@@ -36,7 +31,6 @@ body {
   font-family: 'Work Sans', sans-serif;
 }
 
-/* Para rolagem suave */
 html {
   scroll-behavior: smooth;
 }
@@ -50,4 +44,5 @@ html {
   --color-verde-escuro: #002a15;
   --color-vermelho: #ba1a1a;
   --color-input-bg: #f4ffd5;
+  --color-branco-esverdeado: #fffff3;
 }
