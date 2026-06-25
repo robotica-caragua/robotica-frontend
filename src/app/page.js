@@ -1,13 +1,15 @@
 import { MdArrowBack, MdArrowForward } from 'react-icons/md'
 import { FaRobot } from 'react-icons/fa6'
 import { ImBooks } from 'react-icons/im'
-import { PiPlant } from 'react-icons/pi'
+import { PiHouseLine, PiPlant } from 'react-icons/pi'
 import { RiCommunityLine } from 'react-icons/ri'
 import Image from 'next/image'
 import homeBot from '../assets/home.png'
 import ligacoes from '../assets/fundo.png'
+import working from '../assets/working.png'
 import { Header } from '@/components/Header'
 import { CardEvento } from '@/components/CardEvento'
+import { Footer } from '@/components/Footer'
 
 export default function HomePage() {
   const pillars = [
@@ -24,6 +26,26 @@ export default function HomePage() {
         <h3 className="mt-4 text-branco-esverdeado text-2xl font-semibold text-center text-shadow-lg/20">
           {title}
         </h3>
+      </div>
+    )
+  }
+
+  function InfoItem({ Icon, title, children }) {
+    return (
+      <div className="flex flex-col items-center text-center">
+        <div className="relative flex h-22 w-28 items-center justify-center">
+          <div className="absolute top-11 h-43 w-42 rounded-full bg-verde-pastel" />
+
+          <Icon className="relative z-10 text-7xl" />
+        </div>
+
+        <p className="relative z-10 text-xl leading-snug max-w-60">
+          <strong>
+            {title}
+            <br />
+          </strong>
+          {children}
+        </p>
       </div>
     )
   }
@@ -129,6 +151,49 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      <section className="relative my-16 min-h-82 overflow-visible mx-25 rounded-lg border border-verde-musgo bg-white px-8 py-6">
+        <div className="absolute -left-72 -bottom-30 z-20">
+          <Image
+            src={working}
+            alt="Biobot mexendo em peças"
+            width={700}
+            className="h-auto w-full scale-x-[-1]"
+            priority
+          />
+        </div>
+
+        <div className="ml-58 flex flex-col items-center">
+          <h2 className="text-center text-2xl font-bold text-verde-musgo">QUEM SOMOS?</h2>
+
+          <p className="mt-3 max-w-160 text-center font-medium leading-tight text-2xl">
+            Somos um projeto de extensão que une tecnologia e educação para transformar a robótica e
+            o futuro. Nosso foco é a democratização da robótica, provando que inovação se faz com
+            criatividade.
+          </p>
+
+          <div className="mt-8 grid grid-cols-3 gap-10">
+            {/* eslint-disable-next-line react-hooks/static-components */}
+            <InfoItem Icon={PiPlant} title="Robótica Sustentável:">
+              Ensinamos robótica de baixo custo e alternativa, utilizando materiais recicláveis e
+              acessíveis.
+            </InfoItem>
+
+            {/* eslint-disable-next-line react-hooks/static-components */}
+            <InfoItem Icon={PiHouseLine} title="Conexão Regional:">
+              Divulgamos eventos, hackathons e um portfólio de projetos desenvolvidos por nossos
+              alunos.
+            </InfoItem>
+
+            {/* eslint-disable-next-line react-hooks/static-components */}
+            <InfoItem Icon={ImBooks} title="Educação Inclusiva:">
+              Portal totalmente acessível para garantir que a tecnologia chegue a todos.
+            </InfoItem>
+          </div>
+        </div>
+      </section>
+
+      <Footer />
     </>
   )
 }
