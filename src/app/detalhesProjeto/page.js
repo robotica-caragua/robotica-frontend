@@ -1,5 +1,4 @@
 'use client'
-import { useState } from 'react'
 import Link from 'next/link'
 
 import { Header } from '@/components/Header'
@@ -21,7 +20,7 @@ export default function detalhesProjeto() {
       <Header />
 
       <main className="w-full min-h-screen bg-[#FFFDF5] py-16 px-4 flex flex-col items-center justify-start">
-        <div className="w-full max-w-[1200px] flex flex-col gap-10">
+        <div className="w-full max-w-300 flex flex-col gap-10">
           {/* botão voltar */}
           <div className="self-start mt-4 md:-ml-12">
             <Link
@@ -34,20 +33,20 @@ export default function detalhesProjeto() {
 
           {/* cabeçalho do Projeto */}
           <div className="flex flex-col gap-3">
-            <h1 className="text-[#002A15] text-5xl font-bold font-sans leading-[56px]">
+            <h1 className="text-[#002A15] text-5xl font-bold font-sans leading-14">
               Semáforo Inteligente
             </h1>
 
             {/* tags */}
-            <div className="pl-6 border-l-4 border-lime-400 flex flex-wrap items-center gap-x-6 gap-y-2 text-[#506600] font-sans text-base">
+            <div className="pl-6 border-l-4 border-lime-400 flex flex-wrap items-center gap-x-6 gap-y-2 text-verde-musgo font-sans text-base">
               <div>
                 <strong className="text-[#002A15]">Orientador:</strong> Prof. Robson Nascimento
               </div>
-              <span className="hidden md:inline text-[#506600]">|</span>
+              <span className="hidden md:inline text-verde-musgo">|</span>
               <div>
                 <strong className="text-[#002A15]">Escola:</strong> EMEF Prof. Luiz Ribeiro Muniz
               </div>
-              <span className="hidden md:inline text-[#506600]">|</span>
+              <span className="hidden md:inline text-verde-musgo">|</span>
               <div>
                 <strong className="text-[#002A15]">Data da Publicação:</strong> 15 de Outubro de
                 2024
@@ -57,10 +56,10 @@ export default function detalhesProjeto() {
 
           <div className="w-full flex flex-col lg:flex-row gap-8 justify-between items-start">
             {/* galeria do projeto */}
-            <div className="w-full max-w-[800px] flex flex-col gap-6">
+            <div className="w-full max-w-200 flex flex-col gap-6">
               <div className="flex items-center gap-3">
                 <div className="p-1 bg-[#E8F5D6] rounded-lg flex items-center justify-center">
-                  <MdPhotoLibrary className="text-xl text-[#506600]" />
+                  <MdPhotoLibrary className="text-xl text-verde-musgo" />
                 </div>
                 <h2 className="text-[#002A15] text-2xl font-semibold font-sans leading-8">
                   Galeria do Projeto
@@ -74,13 +73,13 @@ export default function detalhesProjeto() {
                   {/* seta esquerda */}
                   <button
                     type="button"
-                    className="w-10 h-10 absolute left-0 top-[50%] -translate-y-1/2 bg-[#E8F5D6] hover:opacity-90 text-[#506600] rounded-full flex justify-center items-center cursor-pointer transition-opacity text-xl focus:outline-none z-10"
+                    className="w-10 h-10 absolute left-0 top-[50%] -translate-y-1/2 bg-[#E8F5D6] hover:opacity-90 text-verde-musgo rounded-full flex justify-center items-center cursor-pointer transition-opacity text-xl focus:outline-none z-10"
                   >
                     <MdChevronLeft />
                   </button>
 
                   {/* imagem */}
-                  <div className="w-full max-w-[650px] h-96 bg-white rounded-3xl overflow-hidden shadow-sm border border-stone-100 flex-1">
+                  <div className="w-full max-w-162 h-96 bg-white rounded-3xl overflow-hidden shadow-sm border border-stone-100 flex-1">
                     <img
                       className="w-full h-full object-cover"
                       src="https://t4.ftcdn.net/jpg/01/63/58/21/360_F_163582149_7XleuAaTQJ7LYZMCCLyo2sJjiZTgv0As.jpg"
@@ -91,14 +90,14 @@ export default function detalhesProjeto() {
                   {/* seta direita */}
                   <button
                     type="button"
-                    className="w-10 h-10 absolute right-0 top-[50%] -translate-y-1/2 bg-[#E8F5D6] hover:opacity-90 text-[#506600] rounded-full flex justify-center items-center cursor-pointer transition-opacity text-xl focus:outline-none z-10"
+                    className="w-10 h-10 absolute right-0 top-[50%] -translate-y-1/2 bg-[#E8F5D6] hover:opacity-90 text-verde-musgo rounded-full flex justify-center items-center cursor-pointer transition-opacity text-xl focus:outline-none z-10"
                   >
                     <MdChevronRight />
                   </button>
                 </div>
 
                 {/* bolinhas */}
-                <div className="flex justify-center items-center gap-1 mt-2 w-full max-w-[650px]">
+                <div className="flex justify-center items-center gap-1 mt-2 w-full max-w-162">
                   <div className="w-2 h-2 bg-lime-400 rounded-full" />
                   <div className="w-2 h-2 bg-stone-300/30 rounded-full" />
                   <div className="w-2 h-2 bg-stone-300/30 rounded-full" />
@@ -112,9 +111,9 @@ export default function detalhesProjeto() {
               {/* bloco tecnologias */}
               <div className="flex flex-col gap-2.5">
                 <h3 className="text-[#002A15] text-2xl font-semibold leading-8">Tecnologias</h3>
-                <div className="py-5 border-b border-[#506600] flex flex-col">
+                <div className="py-5 border-b border-verde-musgo flex flex-col">
                   <div className="flex flex-wrap gap-2">
-                    <span className="px-3 py-1 bg-[#E8F5D6] text-[#506600] text-xs font-normal rounded-xl">
+                    <span className="px-3 py-1 bg-[#E8F5D6] text-verde-musgo text-xs font-normal rounded-xl">
                       Python
                     </span>
                     <span className="px-3 py-1 bg-[#E8F5D6] text-[#506600] text-xs font-normal rounded-xl">

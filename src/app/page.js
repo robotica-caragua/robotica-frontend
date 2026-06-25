@@ -51,7 +51,7 @@ export default function HomePage() {
   }
 
   return (
-    <>
+    <div className="overflow-x-hidden">
       <Header />
 
       <main className="relative min-h-[calc(100vh-96px)] overflow-hidden bg-branco-esverdeado">
@@ -125,18 +125,21 @@ export default function HomePage() {
               title="Torneio Regional FLL"
               date="PRÓXIMO EVENTO • 04 AGO"
               location="Ginásio do Tinga, Caraguatatuba"
+              linkUrl="/"
             />
 
             <CardEvento
               title="Torneio Regional FLL"
               date="PRÓXIMO EVENTO • 04 AGO"
               location="Ginásio do Tinga, Caraguatatuba"
+              linkUrl="/"
             />
 
             <CardEvento
               title="Torneio Regional FLL"
               date="PRÓXIMO EVENTO • 04 AGO"
               location="Ginásio do Tinga, Caraguatatuba"
+              linkUrl="/"
             />
           </div>
 

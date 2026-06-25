@@ -13,9 +13,7 @@ export function Button({ children, goTo }) {
   }
 
   return (
-
     <button type="submit" className={buttonClasses}>
-
       <span>{children}</span>
     </button>
   )

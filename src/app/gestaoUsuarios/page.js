@@ -175,7 +175,7 @@ export default function GestaoUsuarios() {
             </section>
 
             <Link
-              href="cadastrarUsuario"
+              href="/cadastrarUsuario"
               className="px-6 py-3 bg-verde-musgo hover:bg-white hover:text-verde-musgo hover:border hover:border-verde-musgo text-white text-lg font-bold rounded-lg shadow-sm  flex items-center gap-2 transition"
             >
               <IoAddOutline size={24} /> Novo Professor
@@ -245,7 +245,7 @@ export default function GestaoUsuarios() {
               </span>
             </div>
 
-            <div className="flex flex-col min-h-[350px]">
+            <div className="flex flex-col min-h-86">
               {usuariosPaginados.length > 0 ? (
                 usuariosPaginados.map((usuario) => (
                   <div
@@ -358,7 +358,7 @@ export default function GestaoUsuarios() {
             <div className="col-span-2 p-6 bg-input-bg border border-verde-musgo border-opacity-30 rounded-3xl flex gap-4 items-start">
               <IoInformationCircleOutline
                 size={24}
-                className="text-verde-musgo flex-shrink-0 mt-0.5"
+                className="text-verde-musgo shrink-0 mt-0.5"
               />
               <div className="flex flex-col gap-1">
                 <h4 className="text-verde-musgo font-bold text-lg">Dica de Segurança</h4>

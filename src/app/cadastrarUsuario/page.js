@@ -10,7 +10,6 @@ import {
 } from 'react-icons/io5'
 import { FaRegUser } from 'react-icons/fa6'
 import { MdLockOutline } from 'react-icons/md'
-import { GoQuestion } from 'react-icons/go'
 
 const RequisitoItem = ({ atendido, texto }) => (
   <div

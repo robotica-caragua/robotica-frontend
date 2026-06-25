@@ -53,7 +53,7 @@ export default function SenhaPage() {
 
       <div className="mt-10 mb-10 flex justify-center gap-14">
         <Link
-          href='/forgot-password'
+          href="/forgot-password"
           className="flex items-center justify-center w-45 h-12 gap-2 rounded-xl bg-white border-2 border-verde-musgo font-bold text-verde-musgo text-base hover:brightness-50 duration-75 cursor-pointer"
         >
           Cancelar
@@ -62,11 +62,13 @@ export default function SenhaPage() {
         <button
           type="submit"
           className="w-45 h-12 rounded-xl bg-verde-limao border-b-8 border-verde-escuro font-bold text-verde-escuro hover:brightness-50 duration-75 cursor-pointer"
-        > Enviar
+        >
+          {' '}
+          Enviar
         </button>
       </div>
 
-      <p className='text-xl font-medium text-verde-musgo flex justify-center m-10'>
+      <p className="text-xl font-medium text-verde-musgo flex justify-center m-10">
         Não recebeu o e-mail? Verifique a pasta de spam.
       </p>
     </>
