@@ -194,6 +194,6 @@ export default function HomePage() {
       </section>
 
       <Footer />
-    </>
+    </div>
   )
 }
