@@ -31,7 +31,6 @@ body {
   font-family: 'Work Sans', sans-serif;
 }
 
-/* Para rolagem suave */
 html {
   scroll-behavior: smooth;
 }

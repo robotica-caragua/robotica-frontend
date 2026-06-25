@@ -14,13 +14,11 @@ export default function Projetos() {
       <Header />
 
       <main className="grow flex flex-col items-center ">
-        {/* Título da página */}
         <div className="flex flex-row items-center justify-center gap-2 mb-4">
           <h1 className="font-bold text-4xl text-verde-escuro uppercase">Projetos</h1>
           <h1 className="font-bold text-4xl text-verde-musgo uppercase">em Destaque!</h1>
         </div>
 
-        {/* Descrição da página */}
         <div className="items-center justify-center gap-4 text-xl text-center font-medium">
           <p>
             Inspire-se com as invenções, protótipos e soluções sustentáveis
@@ -28,11 +26,8 @@ export default function Projetos() {
           </p>
         </div>
 
-        {/* CONTAINER PRINCIPAL LADO A LADO */}
         <div className="flex flex-row w-[90%] max-w-[1600px] mx-auto items-start gap-12 mt-12">
-          {/* COLUNA DA ESQUERDA */}
           <div className="flex flex-col gap-6 w-[300px]">
-            {/* Barra de Pesquisa */}
             <div className="flex flex-col gap-2 w-full">
               <SearchBar />
               <p className="text-verde-musgo text-sm font-semibold ml-2">Mostrando 48 projetos</p>
@@ -42,7 +37,6 @@ export default function Projetos() {
             <FilterSchool />
           </div>
 
-          {/* COLUNA DA DIREITA: FILTROS + GRID DE CARDS */}
           <div className="flex flex-col flex-1">
             <div className="flex flex-row gap-4 flex-wrap">
               <div className="rounded-3xl bg-verde-oliva items-center py-2 px-6 cursor-pointer">
@@ -60,7 +54,6 @@ export default function Projetos() {
               </FilterButton>
             </div>
 
-            {/* GRID DE CARDS */}
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-8 gap-y-12 w-full mt-8">
               <CardProjeto
                 imageUrl={semaforo}

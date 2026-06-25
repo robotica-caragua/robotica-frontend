@@ -11,11 +11,10 @@ import Logo from '../assets/logo.svg';
 export function SideBarAdmin() {
   const pathname = usePathname(); 
 
-  // Lógicas inteligentes para identificar a página atual de forma mais ampla
   const isVisaoGeral = pathname === "/admin";
-  const isUsuarios = pathname.includes("usuario"); // Reconhece tanto /gestao-usuarios quanto /cadastrarUsuario
-  const isEscolas = pathname.includes("escola");
-  const isEventos = pathname.includes("evento");
+  const isUsuarios = pathname.includes("Usuario"); 
+  const isEscolas = pathname.includes("Escola");
+  const isEventos = pathname.includes("Evento");
 
   return(
     <aside className="w-64 shrink-0 flex flex-col border-r border-verde-pastel bg-bg-page px-6 py-8">
@@ -36,7 +35,7 @@ export function SideBarAdmin() {
           {isVisaoGeral && <div className="w-1 h-7 absolute left-0 top-1/2 -translate-y-1/2 bg-verde-escuro rounded-tr-sm rounded-br-sm"></div>}
         </Link>
 
-        <Link href="/gestao-usuarios" className={`flex items-center gap-3 p-3 rounded-lg transition-colors relative ${isUsuarios ? "bg-verde-limao" : "hover:bg-verde-pastel"}`}>
+        <Link href="/gestaoUsuarios" className={`flex items-center gap-3 p-3 rounded-lg transition-colors relative ${isUsuarios ? "bg-verde-limao" : "hover:bg-verde-pastel"}`}>
           <MdOutlinePeopleAlt size={28} className="text-verde-escuro" />
           <span className="text-verde-escuro text-lg font-semibold tracking-wide">Usuários</span>
           {isUsuarios && <div className="w-1 h-7 absolute left-0 top-1/2 -translate-y-1/2 bg-verde-escuro rounded-tr-sm rounded-br-sm"></div>}

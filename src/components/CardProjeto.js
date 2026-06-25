@@ -19,7 +19,6 @@ export function CardProjeto({
   linkUrl
 }) {
   const [isLiked, setIsLiked] = useState(false)
-  // CORREÇÃO: Usar a prop 'likes' como valor inicial
   const [likesCount, setLikesCount] = useState(likes)
 
   const handleLike = () => {
@@ -30,12 +29,10 @@ export function CardProjeto({
       setLikesCount(likesCount + 1)
       setIsLiked(true)
     }
-  } // CORREÇÃO: Faltava fechar a função aqui!
+  }
 
   return (
-    // CORREÇÃO: Usar <article> no lugar de <main> para cards
     <article className="w-full max-w-[400px] bg-white rounded-lg outline outline-1 outline-offset-[-1px] outline-verde-musgo inline-flex flex-col justify-start items-start overflow-hidden">
-      {/* Header do Card */}
       <div className="self-stretch h-48 relative flex flex-col justify-center items-start overflow-hidden">
         {imageUrl && (
           <Image src={imageUrl} alt={`Foto do projeto ${title}`} fill className="object-cover" />
@@ -48,7 +45,6 @@ export function CardProjeto({
         )}
       </div>
 
-      {/* Conteúdo do Card */}
       <div className="self-stretch p-6 flex flex-col justify-start items-start gap-3">
         <div className="self-stretch inline-flex justify-start items-start gap-1">
           <div className="self-stretch px-3 py-0.5 bg-input-bg rounded-xl inline-flex flex-col justify-start items-start">
@@ -59,7 +55,6 @@ export function CardProjeto({
           </div>
         </div>
 
-        {/* Informações do Projeto */}
         <div className="self-stretch flex flex-col justify-start items-start gap-1">
           <div className="self-stretch flex flex-col justify-start items-start">
             <div className="self-stretch justify-center text-verde-escuro text-2xl font-semibold">
@@ -73,7 +68,6 @@ export function CardProjeto({
           </div>
         </div>
 
-        {/* Descrição do Projeto */}
         <div className="self-stretch flex flex-col justify-start items-start overflow-hidden">
           <div className="self-stretch line-clamp-2 justify-center text-verde-escuro text-base font-normal">
             {description}
@@ -81,7 +75,6 @@ export function CardProjeto({
         </div>
 
         <div className="self-stretch pt-6 border-t border-stone-300 inline-flex justify-between items-center w-full">
-          {/* Likes */}
           <div className="flex justify-start items-center gap-1">
             <button
               className="inline-flex flex-col justify-start items-start cursor-pointer hover:scale-110 transition-transform"
@@ -101,7 +94,6 @@ export function CardProjeto({
             </div>
           </div>
 
-          {/* Botão de Detalhes */}
           <div className="flex justify-start items-center gap-1 hover:opacity-80 transition-opacity">
             <Link
               href={linkUrl}

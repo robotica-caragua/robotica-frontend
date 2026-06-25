@@ -2,26 +2,44 @@
 
 import { useState } from 'react';
 import { SideBarAdmin } from "@/components/SideBarAdmin";
-import { IoClose } from "react-icons/io5";
-import { IoArrowForward } from "react-icons/io5";
+import { 
+  IoClose, 
+  IoArrowForward,
+  IoCheckmarkCircle, 
+  IoRadioButtonOffOutline 
+} from "react-icons/io5";
 import { FaRegUser } from "react-icons/fa6";
 import { MdLockOutline } from "react-icons/md";
 import { GoQuestion } from "react-icons/go";
 
-export default function CadastrarUsuario() {
-  // Estado para controlar a visibilidade da senha
-  const [mostrarSenha, setMostrarSenha] = useState(false);
+const RequisitoItem = ({ atendido, texto }) => (
+  <div className={`flex items-center gap-2 text-sm transition-colors duration-300 ${atendido ? "text-verde-escuro font-semibold" : "text-verde-musgo opacity-60"}`}>
+    {atendido ? (
+      <IoCheckmarkCircle size={18} className="text-verde-oliva shadow-[0px_0px_8px_0px_rgba(185,246,0,0.40)] rounded-full" />
+    ) : (
+      <IoRadioButtonOffOutline size={18} />
+    )}
+    <span>{texto}</span>
+  </div>
+);
 
+export default function CadastrarUsuario() {
+  const [mostrarSenha, setMostrarSenha] = useState(false);
+  const [senha, setSenha] = useState("");
   const [cpf, setCpf] = useState("");
   const [telefone, setTelefone] = useState("");
-
   const [email, setEmail] = useState("");
   const [erroEmail, setErroEmail] = useState("");
 
-  // Função para validar o E-mail em tempo real
+  const validacoes = {
+    tamanho: senha.length >= 8,
+    maiuscula: /[A-Z]/.test(senha),
+    numero: /[0-9]/.test(senha),
+    especial: /[^A-Za-z0-9]/.test(senha),
+  };
+
   const validarEmail = (valor) => {
     setEmail(valor);
-
     const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (valor.length === 0) {
@@ -36,7 +54,6 @@ export default function CadastrarUsuario() {
     }
   };
 
-  // Função da Máscara de CPF
   const handleCPF = (e) => {
     let valor = e.target.value.replace(/\D/g, "");
     valor = valor.replace(/(\d{3})(\d)/, "$1.$2");
@@ -45,7 +62,6 @@ export default function CadastrarUsuario() {
     setCpf(valor.substring(0, 14));
   };
 
-  // Função da Máscara de Telefone
   const handleTelefone = (e) => {
     let valor = e.target.value.replace(/\D/g, "");
     valor = valor.replace(/^(\d{2})(\d)/g, "+$1 ($2");
@@ -105,7 +121,7 @@ export default function CadastrarUsuario() {
 
                 <div className="flex flex-col gap-2">
                   <label className="text-verde-musgo text-sm font-bold uppercase tracking-wide px-1">CPF</label>
-<input 
+                  <input 
                     type="text" 
                     value={cpf}
                     onChange={handleCPF}
@@ -116,7 +132,7 @@ export default function CadastrarUsuario() {
 
                 <div className="flex flex-col gap-2">
                   <label className="text-verde-musgo text-sm font-bold uppercase tracking-wide px-1">Telefone</label>
-<input
+                  <input
                     type="text" 
                     value={telefone}
                     onChange={handleTelefone}
@@ -148,14 +164,16 @@ export default function CadastrarUsuario() {
 
               <div className="flex flex-col gap-6">
               
-                <div className="flex flex-col gap-2 max-w-md">
+                <div className="flex flex-col gap-2 max-w-lg">
                   <label className="text-verde-musgo text-sm font-bold uppercase tracking-wide px-1">Senha temporária</label>
                   <div className="relative">
                     <input 
-                      type={mostrarSenha ? "text" : "password"}  placeholder="Digite a senha..."
+                      type={mostrarSenha ? "text" : "password"}  
+                      placeholder="Digite a senha..."
+                      value={senha}
+                      onChange={(e) => setSenha(e.target.value)}
                       className="w-full px-4 py-3.5 pe-12 bg-input-bg border border-verde-musgo rounded-xl text-verde-musgo focus:outline-none transition" 
                     />
-
                     
                     <button 
                       type="button" 
@@ -178,10 +196,20 @@ export default function CadastrarUsuario() {
                       )}
                     </button>
                   </div>
-                  <span className="text-verde-musgo opacity-75 text-xs px-1">O usuário deverá alterar a senha no primeiro acesso.</span>
+                  <span className="text-verde-musgo opacity-75 text-xs px-1 mb-2">O usuário deverá alterar a senha no primeiro acesso.</span>
+
+                    <div className="flex flex-col gap-2 p-4 bg-input-bg rounded-xl border border-verde-musgo border-opacity-20">
+                    <span className="text-verde-escuro text-sm font-bold mb-1">A senha deve conter:</span>
+                    <div className="grid grid-cols-2 gap-y-3 gap-x-4">
+                      <RequisitoItem atendido={validacoes.tamanho} texto="Mínimo 8 caracteres" />
+                      <RequisitoItem atendido={validacoes.maiuscula} texto="1 letra maiúscula" />
+                      <RequisitoItem atendido={validacoes.numero} texto="1 número" />
+                      <RequisitoItem atendido={validacoes.especial} texto="1 caractere especial" />
+                    </div>
+                  </div>
                 </div>
 
-                <div className="w-full p-5 bg-input-bg rounded-2xl border border-verde-musgo flex justify-between items-center">
+                <div className="w-full p-5 bg-input-bg rounded-2xl border border-verde-musgo flex justify-between items-center mt-2">
                   <div className="flex flex-col">
                     <span className="text-verde-escuro text-base font-bold">Permissões de Administrador</span>
                     <span className="text-verde-musgo text-sm">Acesso completo a todos os controles.</span>
@@ -196,11 +224,14 @@ export default function CadastrarUsuario() {
             </div>
 
             <div className="flex justify-between items-center pt-4">
-<button type="button" className="flex items-center gap-2 px-8 py-4 rounded-lg text-verde-escuro font-bold uppercase hover:bg-input-bg transition cursor-pointer">
-    <IoClose size={24} /> Cancelar
-  </button>
+              <button type="button" className="flex items-center gap-2 px-8 py-4 rounded-lg text-verde-escuro font-bold uppercase hover:bg-input-bg transition cursor-pointer">
+                <IoClose size={24} /> Cancelar
+              </button>
               
-              <button type="submit" className="px-6 py-4 bg-verde-musgo hover:bg-white hover:text-verde-musgo hover:border hover:border-verde-musgo text-white text-base font-bold uppercase tracking-widest rounded-lg  flex items-center gap-4 cursor-pointer">
+              <button 
+                type="submit" 
+                className="px-6 py-4 bg-verde-musgo hover:bg-white hover:text-verde-musgo hover:border hover:border-verde-musgo text-white text-base font-bold uppercase tracking-widest rounded-lg flex items-center gap-4 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              >
                 Cadastrar Professor
                 <IoArrowForward size={28} />
               </button>
