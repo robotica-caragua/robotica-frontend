@@ -29,7 +29,7 @@ export function Footer() {
             {' '}
             <Link
               href="/"
-              className="inline-block text-center w-[4rem] p-1 hover:font-bold hover:border-b-2 border-verde-escuro uppercase"
+              className="inline-block text-center w-16 p-1 hover:font-bold hover:border-b-2 border-verde-escuro uppercase"
             >
               Início
             </Link>{' '}
@@ -38,7 +38,7 @@ export function Footer() {
             {' '}
             <Link
               href="/rede"
-              className="inline-block text-center w-[4rem] p-1 hover:font-bold hover:border-b-2 border-verde-escuro uppercase"
+              className="inline-block text-center w-16 p-1 hover:font-bold hover:border-b-2 border-verde-escuro uppercase"
             >
               Rede
             </Link>{' '}
@@ -47,7 +47,7 @@ export function Footer() {
             {' '}
             <Link
               href="/tutoriais"
-              className="inline-block text-center w-[7rem] p-1 hover:font-bold hover:border-b-2 border-verde-escuro uppercase"
+              className="inline-block text-center w-28 p-1 hover:font-bold hover:border-b-2 border-verde-escuro uppercase"
             >
               Tutoriais
             </Link>{' '}
@@ -56,7 +56,7 @@ export function Footer() {
             {' '}
             <Link
               href="/contato"
-              className="inline-block text-center w-[6rem] p-1 hover:font-bold hover:border-b-2 border-verde-escuro uppercase"
+              className="inline-block text-center w-24 p-1 hover:font-bold hover:border-b-2 border-verde-escuro uppercase"
             >
               Contato
             </Link>{' '}
