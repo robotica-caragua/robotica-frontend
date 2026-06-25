@@ -5,11 +5,8 @@ import Logo from '../assets/logo.svg'
 
 export function Footer() {
   return (
-    // Footer
     <section className="w-full max-w-[100vw] mx-auto items-center justify-between mt-6 bg-verde-pastel">
-      {/* Logo + Botão voltar ao topo */}
       <div className="flex items-center gap-4 justify-between px-6">
-        {/* div só pra equilibrar e deixar no alinhamento certo */}
         <div></div>
         <Image src={Logo} alt="Logo Conexão Robótica" width={180} height={50} />
         <Link
@@ -26,7 +23,6 @@ export function Footer() {
         </p>
       </div>
 
-      {/* Navbar */}
       <nav className="flex items-center justify-center mt-4 h-10 px-6">
         <ul className="flex items-center gap-6 list-none m-0 p-0 font-medium text-verde-escuro text-lg">
           <li>
