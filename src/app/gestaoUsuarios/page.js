@@ -15,94 +15,94 @@ import {
 } from 'react-icons/io5'
 import { MdOutlineEdit, MdLockReset, MdOutlineBlock } from 'react-icons/md'
 
-export default function GestaoUsuarios() {
-  const listaUsuarios = [
-    {
-      id: 1,
-      nome: 'Carlos Eduardo',
-      matricula: '#73915',
-      escola: 'EMEF Prof. João Batista',
-      status: 'Ativo'
-    },
-    {
-      id: 2,
-      nome: 'Márcia Silva',
-      matricula: '#82641',
-      escola: 'EMEF Prof. Ana Santos',
-      status: 'Ativo'
-    },
-    {
-      id: 3,
-      nome: 'Fernando Costa',
-      matricula: '#71203',
-      escola: 'EMEF Prof. José Pereira',
-      status: 'Ativo'
-    },
-    {
-      id: 4,
-      nome: 'Beatriz Oliveira',
-      matricula: '#84729',
-      escola: 'EMEF Prof. Maria Souza',
-      status: 'Bloqueado'
-    },
-    {
-      id: 5,
-      nome: 'Roberto Alves',
-      matricula: '#75814',
-      escola: 'EMEF Prof. João Batista',
-      status: 'Ativo'
-    },
-    {
-      id: 6,
-      nome: 'Patricia Gomes',
-      matricula: '#81536',
-      escola: 'EMEF Prof. Ana Santos',
-      status: 'Ativo'
-    },
-    {
-      id: 7,
-      nome: 'Lucas Martins',
-      matricula: '#79642',
-      escola: 'EMEF Prof. José Pereira',
-      status: 'Ativo'
-    },
-    {
-      id: 8,
-      nome: 'Amanda Santos',
-      matricula: '#83927',
-      escola: 'EMEF Prof. Maria Souza',
-      status: 'Ativo'
-    },
-    {
-      id: 9,
-      nome: 'Ricardo Ferreira',
-      matricula: '#72481',
-      escola: 'EMEF Prof. João Batista',
-      status: 'Pendente'
-    },
-    {
-      id: 10,
-      nome: 'Juliana Costa',
-      matricula: '#85643',
-      escola: 'EMEF Prof. Ana Santos',
-      status: 'Ativo'
-    },
-    {
-      id: 11,
-      nome: 'Camila Rocha',
-      matricula: '#85644',
-      escola: 'EMEF Prof. Ana Santos',
-      status: 'Pendente'
-    },
-    {
-      id: 12,
-      nome: 'Thiago Mendes',
-      matricula: '#85645',
-      escola: 'EMEF Prof. Maria Souza',
-      status: 'Bloqueado'
-    }
-  ]
+const listaUsuarios = [
+  {
+    id: 1,
+    nome: 'Carlos Eduardo',
+    matricula: '#73915',
+    escola: 'EMEF Prof. João Batista',
+    status: 'Ativo'
+  },
+  {
+    id: 2,
+    nome: 'Márcia Silva',
+    matricula: '#82641',
+    escola: 'EMEF Prof. Ana Santos',
+    status: 'Ativo'
+  },
+  {
+    id: 3,
+    nome: 'Fernando Costa',
+    matricula: '#71203',
+    escola: 'EMEF Prof. José Pereira',
+    status: 'Ativo'
+  },
+  {
+    id: 4,
+    nome: 'Beatriz Oliveira',
+    matricula: '#84729',
+    escola: 'EMEF Prof. Maria Souza',
+    status: 'Bloqueado'
+  },
+  {
+    id: 5,
+    nome: 'Roberto Alves',
+    matricula: '#75814',
+    escola: 'EMEF Prof. João Batista',
+    status: 'Ativo'
+  },
+  {
+    id: 6,
+    nome: 'Patricia Gomes',
+    matricula: '#81536',
+    escola: 'EMEF Prof. Ana Santos',
+    status: 'Ativo'
+  },
+  {
+    id: 7,
+    nome: 'Lucas Martins',
+    matricula: '#79642',
+    escola: 'EMEF Prof. José Pereira',
+    status: 'Ativo'
+  },
+  {
+    id: 8,
+    nome: 'Amanda Santos',
+    matricula: '#83927',
+    escola: 'EMEF Prof. Maria Souza',
+    status: 'Ativo'
+  },
+  {
+    id: 9,
+    nome: 'Ricardo Ferreira',
+    matricula: '#72481',
+    escola: 'EMEF Prof. João Batista',
+    status: 'Pendente'
+  },
+  {
+    id: 10,
+    nome: 'Juliana Costa',
+    matricula: '#85643',
+    escola: 'EMEF Prof. Ana Santos',
+    status: 'Ativo'
+  },
+  {
+    id: 11,
+    nome: 'Camila Rocha',
+    matricula: '#85644',
+    escola: 'EMEF Prof. Ana Santos',
+    status: 'Pendente'
+  },
+  {
+    id: 12,
+    nome: 'Thiago Mendes',
+    matricula: '#85645',
+    escola: 'EMEF Prof. Maria Souza',
+    status: 'Bloqueado'
+  }
+]
 
+export default function GestaoUsuarios() {
   const [busca, setBusca] = useState('')
   const [filtroStatus, setFiltroStatus] = useState('Todos')
   const [paginaAtual, setPaginaAtual] = useState(1)
@@ -175,7 +175,7 @@ export default function GestaoUsuarios() {
             </section>
 
             <Link
-              href="cadastrarUsuario"
+              href="/cadastrarUsuario"
               className="px-6 py-3 bg-verde-musgo hover:bg-white hover:text-verde-musgo hover:border hover:border-verde-musgo text-white text-lg font-bold rounded-lg shadow-sm  flex items-center gap-2 transition"
             >
               <IoAddOutline size={24} /> Novo Professor
@@ -245,7 +245,7 @@ export default function GestaoUsuarios() {
               </span>
             </div>
 
-            <div className="flex flex-col min-h-[350px]">
+            <div className="flex flex-col min-h-88">
               {usuariosPaginados.length > 0 ? (
                 usuariosPaginados.map((usuario) => (
                   <div
@@ -356,10 +356,7 @@ export default function GestaoUsuarios() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
             <div className="col-span-2 p-6 bg-input-bg border border-verde-musgo border-opacity-30 rounded-3xl flex gap-4 items-start">
-              <IoInformationCircleOutline
-                size={24}
-                className="text-verde-musgo flex-shrink-0 mt-0.5"
-              />
+              <IoInformationCircleOutline size={24} className="text-verde-musgo shrink-0 mt-0.5" />
               <div className="flex flex-col gap-1">
                 <h4 className="text-verde-musgo font-bold text-lg">Dica de Segurança</h4>
                 <p className="text-verde-escuro text-base font-medium">
