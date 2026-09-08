@@ -20,7 +20,7 @@ export default function ForgotPassword() {
 
       <div className="flex justify-center">
         <Link
-          href='/login'
+          href="/login"
           className="flex items-center justify-center w-35 h-10 gap-2 rounded-xl bg-white border-2 border-verde-musgo font-bold text-verde-musgo text-base hover:brightness-50 duration-75 cursor-pointer mt-10"
         >
           Cancelar
