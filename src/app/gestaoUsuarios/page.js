@@ -356,10 +356,7 @@ export default function GestaoUsuarios() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
             <div className="col-span-2 p-6 bg-input-bg border border-verde-musgo border-opacity-30 rounded-3xl flex gap-4 items-start">
-              <IoInformationCircleOutline
-                size={24}
-                className="text-verde-musgo shrink-0 mt-0.5"
-              />
+              <IoInformationCircleOutline size={24} className="text-verde-musgo shrink-0 mt-0.5" />
               <div className="flex flex-col gap-1">
                 <h4 className="text-verde-musgo font-bold text-lg">Dica de Segurança</h4>
                 <p className="text-verde-escuro text-base font-medium">

@@ -1,6 +1,6 @@
 import Image from 'next/image'
-import { ButtonGoBack } from '../../components/ButtonGoBack'
-import { Label } from '../../components/Label'
+import { ButtonGoBack } from '@/components/ButtonGoBack'
+import { Label } from '@/components/Label'
 import errorBot from '../../assets/unauthorized.png'
 
 export default function UnauthorizedPage() {

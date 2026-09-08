@@ -196,7 +196,9 @@ export default function detalhesProjeto() {
 
               <div className="flex flex-col gap-4">
                 <div className="w-full p-4 bg-[#E8F5D6] rounded-xl flex justify-between items-center hover:opacity-90 transition-opacity cursor-pointer">
-                  <span className="text-verde-musgo text-lg font-medium">Horta Automatizada v2</span>
+                  <span className="text-verde-musgo text-lg font-medium">
+                    Horta Automatizada v2
+                  </span>
                   <MdArrowForward className="text-[#002A15]" />
                 </div>
 
