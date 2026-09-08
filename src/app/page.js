@@ -125,18 +125,21 @@ export default function HomePage() {
               title="Torneio Regional FLL"
               date="PRÓXIMO EVENTO • 04 AGO"
               location="Ginásio do Tinga, Caraguatatuba"
+              linkUrl="https://google.com"
             />
 
             <CardEvento
               title="Torneio Regional FLL"
               date="PRÓXIMO EVENTO • 04 AGO"
               location="Ginásio do Tinga, Caraguatatuba"
+              linkUrl="https://google.com"
             />
 
             <CardEvento
               title="Torneio Regional FLL"
               date="PRÓXIMO EVENTO • 04 AGO"
               location="Ginásio do Tinga, Caraguatatuba"
+              linkUrl="https://google.com"
             />
           </div>
 
@@ -194,6 +197,6 @@ export default function HomePage() {
       </section>
 
       <Footer />
-    </div>
+    </>
   )
 }
