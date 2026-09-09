@@ -192,9 +192,7 @@ export default function CadastrarUsuario() {
               </div>
 
               <div className="flex flex-row gap-6 items-start w-full justify-center">
-                
                 <div className="flex flex-col gap-2 max-w-lg flex-1">
-
                   <label className="text-verde-musgo text-sm font-bold uppercase tracking-wide px-1">
                     Senha temporária
                   </label>
@@ -266,9 +264,7 @@ export default function CadastrarUsuario() {
                       <RequisitoItem atendido={validacoes.especial} texto="1 caractere especial" />
                     </div>
                   </div>
-
                 </div>
-
 
                 {/* Toggle permissões de admin */}
                 <div className="flex-1 max-w-lg p-5 bg-input-bg rounded-2xl border border-verde-musgo flex justify-between items-center mt-7">
@@ -286,7 +282,6 @@ export default function CadastrarUsuario() {
                     <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-verde-oliva"></div>
                   </label>
                 </div>
-
               </div>
             </div>
 
