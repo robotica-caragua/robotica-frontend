@@ -129,7 +129,7 @@ export default function CadastrarUsuario() {
                     type="email"
                     value={email}
                     onChange={(e) => validarEmail(e.target.value)}
-                    placeholder="name@roboticsportal.edu"
+                    placeholder="exemplo@gmail.com"
                     className={`w-full px-4 py-3.5 bg-input-bg border rounded-xl text-verde-escuro placeholder-verde-escuro placeholder-opacity-50 focus:outline-none transition ${erroEmail ? 'border-vermelho focus:ring-vermelho' : 'border-verde-musgo'}`}
                   />
                   {erroEmail && (
@@ -191,11 +191,14 @@ export default function CadastrarUsuario() {
                 <h3 className="text-verde-escuro text-2xl font-semibold">Credenciais</h3>
               </div>
 
-              <div className="flex flex-col gap-6">
-                <div className="flex flex-col gap-2 max-w-lg">
+              <div className="flex flex-row gap-6 items-start w-full justify-center">
+                
+                <div className="flex flex-col gap-2 max-w-lg flex-1">
+
                   <label className="text-verde-musgo text-sm font-bold uppercase tracking-wide px-1">
                     Senha temporária
                   </label>
+
                   <div className="relative">
                     <input
                       type={mostrarSenha ? 'text' : 'password'}
@@ -246,10 +249,12 @@ export default function CadastrarUsuario() {
                       )}
                     </button>
                   </div>
+
                   <span className="text-verde-musgo opacity-75 text-xs px-1 mb-2">
                     O usuário deverá alterar a senha no primeiro acesso.
                   </span>
 
+                  {/* Requisitos senha */}
                   <div className="flex flex-col gap-2 p-4 bg-input-bg rounded-xl border border-verde-musgo border-opacity-20">
                     <span className="text-verde-escuro text-sm font-bold mb-1">
                       A senha deve conter:
@@ -261,9 +266,12 @@ export default function CadastrarUsuario() {
                       <RequisitoItem atendido={validacoes.especial} texto="1 caractere especial" />
                     </div>
                   </div>
+
                 </div>
 
-                <div className="w-full p-5 bg-input-bg rounded-2xl border border-verde-musgo flex justify-between items-center mt-2">
+
+                {/* Toggle permissões de admin */}
+                <div className="flex-1 max-w-lg p-5 bg-input-bg rounded-2xl border border-verde-musgo flex justify-between items-center mt-7">
                   <div className="flex flex-col">
                     <span className="text-verde-escuro text-base font-bold">
                       Permissões de Administrador
@@ -278,6 +286,7 @@ export default function CadastrarUsuario() {
                     <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-verde-oliva"></div>
                   </label>
                 </div>
+
               </div>
             </div>
 
