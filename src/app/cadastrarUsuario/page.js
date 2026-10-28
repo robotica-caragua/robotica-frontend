@@ -1,7 +1,9 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { SideBarAdmin } from '@/components/SideBarAdmin'
+import { ModalConfirmacao } from '@/components/ModalConfirmacao'
 import {
   IoClose,
   IoArrowForward,
@@ -29,11 +31,15 @@ const RequisitoItem = ({ atendido, texto }) => (
 
 export default function CadastrarUsuario() {
   const [mostrarSenha, setMostrarSenha] = useState(false)
+  const [nome, setNome] = useState('')
+  const [matricula, setMatricula] = useState('')
+  const [escola, setEscola] = useState('')
   const [senha, setSenha] = useState('')
   const [cpf, setCpf] = useState('')
   const [telefone, setTelefone] = useState('')
   const [email, setEmail] = useState('')
   const [erroEmail, setErroEmail] = useState('')
+  const [modal, setModal] = useState(null) // 'sucesso' | 'erro' | null
 
   const validacoes = {
     tamanho: senha.length >= 8,
@@ -41,6 +47,9 @@ export default function CadastrarUsuario() {
     numero: /[0-9]/.test(senha),
     especial: /[^A-Za-z0-9]/.test(senha)
   }
+
+  const senhaValida =
+    validacoes.tamanho && validacoes.maiuscula && validacoes.numero && validacoes.especial
 
   const validarEmail = (valor) => {
     setEmail(valor)
@@ -74,6 +83,26 @@ export default function CadastrarUsuario() {
     setTelefone(valor.substring(0, 19))
   }
 
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    const valido =
+      nome.trim() &&
+      matricula.trim() &&
+      regexEmail.test(email) &&
+      cpf.length === 14 &&
+      escola &&
+      senhaValida
+
+    if (!valido) {
+      setModal('erro')
+      return
+    }
+
+    // TODO: integrar com a API de usuários
+    setModal('sucesso')
+  }
+
   return (
     <div className="flex min-h-screen bg-background relative">
       <SideBarAdmin />
@@ -89,7 +118,7 @@ export default function CadastrarUsuario() {
             </p>
           </section>
 
-          <form className="flex flex-col gap-8 w-full">
+          <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-8 w-full">
             <div className="w-full p-8 bg-white rounded-3xl shadow-sm border border-verde-musgo border-opacity-30 flex flex-col gap-8">
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 bg-verde-pastel rounded-lg flex justify-center items-center text-verde-musgo">
@@ -105,6 +134,8 @@ export default function CadastrarUsuario() {
                   </label>
                   <input
                     type="text"
+                    value={nome}
+                    onChange={(e) => setNome(e.target.value)}
                     placeholder="Digite o nome completo do professor..."
                     className="w-full px-4 py-3.5 bg-input-bg border border-verde-musgo rounded-xl text-verde-escuro placeholder-verde-escuro placeholder-opacity-50 focus:outline-none transition"
                   />
@@ -116,6 +147,8 @@ export default function CadastrarUsuario() {
                   </label>
                   <input
                     type="text"
+                    value={matricula}
+                    onChange={(e) => setMatricula(e.target.value)}
                     placeholder="Digite a matrícula..."
                     className="w-full px-4 py-3.5 bg-input-bg border border-verde-musgo rounded-xl text-verde-escuro placeholder-verde-escuro placeholder-opacity-50 focus:outline-none transition"
                   />
@@ -168,7 +201,8 @@ export default function CadastrarUsuario() {
                     Escola Vinculada
                   </label>
                   <select
-                    defaultValue=""
+                    value={escola}
+                    onChange={(e) => setEscola(e.target.value)}
                     className="w-full px-4 py-3.5 bg-input-bg border border-verde-musgo rounded-xl text-verde-escuro focus:outline-none appearance-none cursor-pointer"
                   >
                     <option value="" disabled>
@@ -286,12 +320,12 @@ export default function CadastrarUsuario() {
             </div>
 
             <div className="flex justify-between items-center pt-4">
-              <button
-                type="button"
+              <Link
+                href="/gestaoUsuarios"
                 className="flex items-center gap-2 px-8 py-4 rounded-lg text-verde-escuro font-bold uppercase hover:bg-input-bg transition cursor-pointer"
               >
                 <IoClose size={24} /> Cancelar
-              </button>
+              </Link>
 
               <button
                 type="submit"
@@ -304,6 +338,22 @@ export default function CadastrarUsuario() {
           </form>
         </div>
       </main>
+
+      <ModalConfirmacao
+        tipo={modal}
+        tituloPrincipal={
+          modal === 'sucesso' ? 'Professor cadastrado com' : 'Não foi possível cadastrar'
+        }
+        tituloDestaque={modal === 'sucesso' ? 'sucesso!' : 'o professor!'}
+        mensagem={
+          modal === 'sucesso'
+            ? 'O novo professor foi registrado. As credenciais temporárias já podem ser utilizadas no primeiro acesso!'
+            : 'Verifique se todos os campos e requisitos da senha foram preenchidos corretamente e tente salvar mais uma vez.'
+        }
+        textoBotaoVoltar="Voltar para Usuários"
+        hrefVoltar="/gestaoUsuarios"
+        onTentarNovamente={() => setModal(null)}
+      />
     </div>
   )
 }
