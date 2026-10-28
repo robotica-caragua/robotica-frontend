@@ -1,20 +1,29 @@
 import { IoIosArrowDown } from 'react-icons/io'
 
-export function Level() {
+export function Level({ value, onChange, options = ['Iniciante', 'Intermediário', 'Avançado'] }) {
   return (
-    <div className="w-full max-w-xs ms-13 mt-4 font-sans">
-      <label className="block text-verde-escuro text-xl ms-1 font-bold mb-2">Nível</label>
+    <div className="flex flex-col gap-1 w-full font-sans">
+      <label htmlFor="filtro-nivel" className="block text-verde-escuro text-xl font-medium">
+        Nível
+      </label>
 
       <div className="relative">
-        <select className="w-full appearance-none rounded-2xl border-2 border-verde-musgo bg-white px-5 py-3 text-verde-musgo text-base focus:outline-none pr-12 cursor-pointer">
-          <option>Todos os Níveis</option>
-          <option>Iniciante</option>
-          <option>Intermediário</option>
-          <option>Avançado</option>
+        <select
+          id="filtro-nivel"
+          value={value}
+          onChange={(e) => onChange?.(e.target.value)}
+          className="w-full h-13 appearance-none rounded-lg border-2 border-verde-musgo bg-white px-6 text-verde-musgo text-base font-normal focus:outline-none pr-12 cursor-pointer"
+        >
+          <option value="">Todos os Níveis</option>
+          {options.map((opcao) => (
+            <option key={opcao} value={opcao}>
+              {opcao}
+            </option>
+          ))}
         </select>
 
         <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-verde-musgo">
-          <IoIosArrowDown className="text-verde-musgo text-2xl" />
+          <IoIosArrowDown className="text-verde-musgo text-xl" />
         </div>
       </div>
     </div>

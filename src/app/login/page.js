@@ -54,7 +54,7 @@ export default function LoginPage() {
                 Esqueceu sua senha?
               </Link>
 
-              <Button>Entrar</Button>
+              <Button goTo="/painelProfessor">Entrar</Button>
             </form>
 
             <div className="flex items-center gap-4 w-92 mt-8">
@@ -66,13 +66,13 @@ export default function LoginPage() {
             </div>
 
             <div className="mt-5 flex justify-center">
-              <button
-                type="button"
-                className="flex items-center gap-3 h-8 w-56 px-3 bg-verde-pastel rounded-md font-medium text-xs text-verde-escuro"
+              <Link
+                href="/painelProfessor"
+                className="flex items-center gap-3 h-8 w-56 px-3 bg-verde-pastel rounded-md font-medium text-xs text-verde-escuro hover:brightness-95 transition"
               >
                 <Image src={google} alt="Logo da Google" width={18} height={18} loading="eager" />
-                <a className="cursor-pointer">CONTINUAR COM O GOOGLE</a>
-              </button>
+                <span>CONTINUAR COM O GOOGLE</span>
+              </Link>
             </div>
           </div>
         </div>
