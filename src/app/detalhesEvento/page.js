@@ -1,9 +1,10 @@
 import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
+import Link from 'next/link'
 import { CiCalendar } from 'react-icons/ci'
 import { CiClock2 } from 'react-icons/ci'
 import { CiLocationOn } from 'react-icons/ci'
-import { MdOutlineFileDownload } from 'react-icons/md'
+import { MdArrowBack, MdOutlineFileDownload } from 'react-icons/md'
 import { IoDocumentTextOutline } from 'react-icons/io5'
 
 export default function detalhesEvento() {
@@ -12,7 +13,16 @@ export default function detalhesEvento() {
       <Header />
 
       <main className="grow flex flex-col items-center ">
-        <div className="w-[75%] h-70 p-16 relative bg-linear-57 from-input-bg to-input-bg rounded-[20px] border-b-10 border-verde-musgo inline-flex flex-col justify-end items-start overflow-hidden mt-10">
+        <div className="w-[75%] flex justify-start mt-6">
+          <Link
+            href="/rede"
+            aria-label="Voltar para Rede"
+            className="text-verde-escuro hover:opacity-80 transition-opacity text-4xl md:text-5xl flex items-center cursor-pointer"
+          >
+            <MdArrowBack />
+          </Link>
+        </div>
+        <div className="w-[75%] h-70 p-16 relative bg-linear-57 from-input-bg to-input-bg rounded-[20px] border-b-10 border-verde-musgo inline-flex flex-col justify-end items-start overflow-hidden mt-4">
           <div className="w-[75%] h-80 left-0 top-0 absolute opacity-10 bg-radial from-verde-limao to-verde-limao/0 to 70%" />
 
           <div className="self-stretch flex flex-col justify-start items-start gap-10">

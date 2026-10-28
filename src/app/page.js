@@ -4,6 +4,7 @@ import { ImBooks } from 'react-icons/im'
 import { PiHouseLine, PiPlant } from 'react-icons/pi'
 import { RiCommunityLine } from 'react-icons/ri'
 import Image from 'next/image'
+import Link from 'next/link'
 import homeBot from '../assets/home.png'
 import ligacoes from '../assets/fundo.png'
 import working from '../assets/working.png'
@@ -94,13 +95,14 @@ export default function HomePage() {
               Conectando escolas, estudantes e a comunidade de Caraguatatuba através da tecnologia.
             </p>
 
-            <button
+            <Link
+              href="/projetos"
               className="mt-10 flex h-15 w-74 cursor-pointer items-center justify-between rounded-xl border
             border-verde-musgo bg-white px-5 text-xl font-bold text-verde-musgo transition hover:bg-verde-pastel"
             >
               Explorar Projetos
               <MdArrowForward size={24} />
-            </button>
+            </Link>
           </div>
         </section>
       </main>
@@ -125,21 +127,21 @@ export default function HomePage() {
               title="Torneio Regional FLL"
               date="PRÓXIMO EVENTO • 04 AGO"
               location="Ginásio do Tinga, Caraguatatuba"
-              linkUrl="https://google.com"
+              linkUrl="/detalhesEvento"
             />
 
             <CardEvento
               title="Torneio Regional FLL"
               date="PRÓXIMO EVENTO • 04 AGO"
               location="Ginásio do Tinga, Caraguatatuba"
-              linkUrl="https://google.com"
+              linkUrl="/detalhesEvento"
             />
 
             <CardEvento
               title="Torneio Regional FLL"
               date="PRÓXIMO EVENTO • 04 AGO"
               location="Ginásio do Tinga, Caraguatatuba"
-              linkUrl="https://google.com"
+              linkUrl="/detalhesEvento"
             />
           </div>
 

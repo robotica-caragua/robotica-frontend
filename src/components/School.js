@@ -1,21 +1,29 @@
 import { IoIosArrowDown } from 'react-icons/io'
 
-export function School() {
+export function School({ value, onChange, options = [] }) {
   return (
-    <div className="w-full max-w-xs ms-13 mt-4 font-sans">
-      <label className="block text-verde-escuro text-xl ms-1 font-bold mb-2">Escola</label>
+    <div className="flex flex-col gap-1 w-full font-sans">
+      <label htmlFor="filtro-escola" className="block text-verde-escuro text-xl font-medium">
+        Escola
+      </label>
 
       <div className="relative">
-        <select className="w-full appearance-none rounded-2xl border-2 border-verde-musgo bg-white px-5 py-3 text-verde-musgo text-base focus:outline-none pr-12 cursor-pointer">
-          <option>Todas as Unidades</option>
-          <option>EMEF Prof. Luiz Silvar do Prado</option>
-          <option>UEMEF Profª Maria Aparecida De Carvalho</option>
-          <option>EMEF Profª Maria Thereza de Souza Castro</option>
-          <option>EMEF Prof. Luiz Ribeiro Muniz</option>
+        <select
+          id="filtro-escola"
+          value={value}
+          onChange={(e) => onChange?.(e.target.value)}
+          className="w-full h-13 appearance-none rounded-lg border-2 border-verde-musgo bg-white px-6 text-verde-musgo text-base font-normal focus:outline-none pr-12 cursor-pointer"
+        >
+          <option value="">Todas as Unidades</option>
+          {options.map((opcao) => (
+            <option key={opcao} value={opcao}>
+              {opcao}
+            </option>
+          ))}
         </select>
 
         <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-verde-musgo">
-          <IoIosArrowDown className="text-verde-musgo text-2xl" />
+          <IoIosArrowDown className="text-verde-musgo text-xl" />
         </div>
       </div>
     </div>

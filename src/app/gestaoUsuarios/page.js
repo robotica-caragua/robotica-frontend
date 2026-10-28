@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react'
 import { SideBarAdmin } from '@/components/SideBarAdmin'
 import Link from 'next/link'
+import { correspondeBusca } from '@/utils/filtros'
 
 import {
   IoSearchOutline,
@@ -114,9 +115,7 @@ export default function GestaoUsuarios() {
 
   const usuariosFiltrados = useMemo(() => {
     return listaUsuarios.filter((usuario) => {
-      const matchBusca =
-        usuario.nome.toLowerCase().includes(busca.toLowerCase()) ||
-        usuario.matricula.toLowerCase().includes(busca.toLowerCase())
+      const matchBusca = correspondeBusca(busca, usuario.nome, usuario.matricula, usuario.escola)
       const matchStatus = filtroStatus === 'Todos' || usuario.status === filtroStatus
 
       return matchBusca && matchStatus
@@ -202,7 +201,7 @@ export default function GestaoUsuarios() {
                 type="text"
                 value={busca}
                 onChange={handleBuscaChange}
-                placeholder="Buscar por nome ou matrícula..."
+                placeholder="Buscar por nome, matrícula ou escola..."
                 className="w-full bg-transparent text-lg focus:outline-none text-verde-escuro placeholder-verde-musgo placeholder-opacity-70"
               />
             </div>
@@ -287,12 +286,13 @@ export default function GestaoUsuarios() {
                     </div>
 
                     <div className="col-span-1 flex justify-center items-center gap-3">
-                      <button
+                      <Link
+                        href={`/cadastrarUsuario?id=${usuario.id}`}
                         className="text-verde-musgo hover:text-verde-escuro transition"
                         title="Editar"
                       >
                         <MdOutlineEdit size={20} />
-                      </button>
+                      </Link>
 
                       <button
                         className="text-blue-500 hover:text-blue-700 transition"
