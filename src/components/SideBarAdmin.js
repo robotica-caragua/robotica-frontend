@@ -18,7 +18,7 @@ export function SideBarAdmin() {
 
   return (
     <aside className="w-64 shrink-0 flex flex-col border-r border-verde-pastel bg-bg-page px-6 py-8">
-      <div className="mb-12 px-2">
+      <Link href="/" className="mb-12 px-2 block w-fit">
         <Image
           src={Logo}
           alt="Logo Conexão Robótica"
@@ -26,11 +26,11 @@ export function SideBarAdmin() {
           height={50}
           style={{ width: 'auto', height: 'auto' }}
         />
-      </div>
+      </Link>
 
       <nav className="flex-1 flex flex-col gap-2">
         <Link
-          href="/admin"
+          href="/gestaoUsuarios"
           className={`flex items-center gap-3 p-3 rounded-lg transition-colors relative ${isVisaoGeral ? 'bg-verde-limao' : 'hover:bg-verde-pastel'}`}
         >
           <MdOutlineGridView size={28} className="text-verde-escuro" />
@@ -52,7 +52,7 @@ export function SideBarAdmin() {
         </Link>
 
         <Link
-          href="/admin/escolas"
+          href="/cadastrarEscola"
           className={`flex items-center gap-3 p-3 rounded-lg transition-colors relative ${isEscolas ? 'bg-verde-limao' : 'hover:bg-verde-pastel'}`}
         >
           <FaRegBuilding size={28} className="text-verde-escuro" />
@@ -63,7 +63,7 @@ export function SideBarAdmin() {
         </Link>
 
         <Link
-          href="/admin/eventos"
+          href="/gestaoEventos"
           className={`flex items-center gap-3 p-3 rounded-lg transition-colors relative ${isEventos ? 'bg-verde-limao' : 'hover:bg-verde-pastel'}`}
         >
           <MdOutlineCalendarToday size={28} className="text-verde-escuro" />
@@ -86,7 +86,7 @@ export function SideBarAdmin() {
 
       <div className="pt-6 mt-6 border-t border-verde-musgo border-opacity-30">
         <Link
-          href="/admin/suporte"
+          href="/contato"
           className="flex items-center gap-3 p-3 rounded-lg hover:bg-verde-pastel transition-colors"
         >
           <div className="w-5 h-5 bg-verde-escuro rounded-full opacity-80"></div>
