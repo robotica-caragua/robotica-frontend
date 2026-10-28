@@ -25,7 +25,7 @@ export default function detalhesProjeto() {
           {/* botão voltar */}
           <div className="self-start mt-4 md:-ml-12">
             <Link
-              href="/tutoriais"
+              href="/projetos"
               className="text-[#002A15] hover:opacity-80 transition-opacity text-4xl md:text-5xl flex items-center cursor-pointer"
             >
               <MdArrowBack />
@@ -195,22 +195,31 @@ export default function detalhesProjeto() {
               </h3>
 
               <div className="flex flex-col gap-4">
-                <div className="w-full p-4 bg-[#E8F5D6] rounded-xl flex justify-between items-center hover:opacity-90 transition-opacity cursor-pointer">
+                <Link
+                  href="/detalhesProjeto"
+                  className="w-full p-4 bg-[#E8F5D6] rounded-xl flex justify-between items-center hover:opacity-90 transition-opacity cursor-pointer"
+                >
                   <span className="text-verde-musgo text-lg font-medium">
                     Horta Automatizada v2
                   </span>
                   <MdArrowForward className="text-[#002A15]" />
-                </div>
+                </Link>
 
-                <div className="w-full p-4 bg-[#E8F5D6] rounded-xl flex justify-between items-center hover:opacity-90 transition-opacity cursor-pointer">
+                <Link
+                  href="/detalhesProjeto"
+                  className="w-full p-4 bg-[#E8F5D6] rounded-xl flex justify-between items-center hover:opacity-90 transition-opacity cursor-pointer"
+                >
                   <span className="text-verde-musgo text-lg font-medium">Sensor de Chuva IOT</span>
                   <MdArrowForward className="text-[#002A15]" />
-                </div>
+                </Link>
 
-                <div className="w-full p-4 bg-[#E8F5D6] rounded-xl flex justify-between items-center hover:opacity-90 transition-opacity cursor-pointer">
+                <Link
+                  href="/detalhesProjeto"
+                  className="w-full p-4 bg-[#E8F5D6] rounded-xl flex justify-between items-center hover:opacity-90 transition-opacity cursor-pointer"
+                >
                   <span className="text-verde-musgo text-lg font-medium">Lixeira Inteligente</span>
                   <MdArrowForward className="text-[#002A15]" />
-                </div>
+                </Link>
               </div>
             </div>
           </div>

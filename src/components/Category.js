@@ -1,21 +1,29 @@
 import { IoIosArrowDown } from 'react-icons/io'
 
-export function Category() {
+export function Category({ value, onChange, options = [] }) {
   return (
-    <div className="w-full max-w-xs ms-13 mt-10 font-sans">
-      <label className="block text-verde-escuro text-xl ms-1 font-bold mb-2">Categoria</label>
+    <div className="flex flex-col gap-1 w-full font-sans">
+      <label htmlFor="filtro-categoria" className="block text-verde-escuro text-xl font-medium">
+        Categoria
+      </label>
 
       <div className="relative">
-        <select className="w-full appearance-none rounded-2xl border-2 border-verde-musgo bg-white px-5 py-3 text-verde-musgo text-base focus:outline-none pr-12 cursor-pointer">
-          <option>Todas as Categorias</option>
-          <option>Eletrônica Básica</option>
-          <option>Programação em Blocos(Scratch)</option>
-          <option>Arduino e Automação(C++)</option>
-          <option>Maker / Reciclagem(Sucata)</option>
+        <select
+          id="filtro-categoria"
+          value={value}
+          onChange={(e) => onChange?.(e.target.value)}
+          className="w-full h-13 appearance-none rounded-lg border-2 border-verde-musgo bg-white px-6 text-verde-musgo text-base font-normal focus:outline-none pr-12 cursor-pointer"
+        >
+          <option value="">Todas as Categorias</option>
+          {options.map((opcao) => (
+            <option key={opcao} value={opcao}>
+              {opcao}
+            </option>
+          ))}
         </select>
 
-        <div className="pointer-events-none absolute inset-y-0  right-4 flex items-center text-verde-musgo">
-          <IoIosArrowDown className="text-verde-musgo text-2xl" />
+        <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-verde-musgo">
+          <IoIosArrowDown className="text-verde-musgo text-xl" />
         </div>
       </div>
     </div>

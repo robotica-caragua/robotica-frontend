@@ -46,6 +46,15 @@ export function Footer() {
           <li>
             {' '}
             <Link
+              href="/projetos"
+              className="inline-block text-center w-24 p-1 hover:font-bold hover:border-b-2 border-verde-escuro uppercase"
+            >
+              Projetos
+            </Link>{' '}
+          </li>
+          <li>
+            {' '}
+            <Link
               href="/tutoriais"
               className="inline-block text-center w-28 p-1 hover:font-bold hover:border-b-2 border-verde-escuro uppercase"
             >

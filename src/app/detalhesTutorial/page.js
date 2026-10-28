@@ -1,9 +1,15 @@
 import { BsArchive } from 'react-icons/bs'
-import { MdOutlineRecycling, MdCable, MdOutlinePrecisionManufacturing } from 'react-icons/md'
+import {
+  MdArrowBack,
+  MdOutlineRecycling,
+  MdCable,
+  MdOutlinePrecisionManufacturing
+} from 'react-icons/md'
 import { IoMdBatteryFull } from 'react-icons/io'
 import { BiRuler } from 'react-icons/bi'
 import { FaArrowRightLong } from 'react-icons/fa6'
 import { GoLocation } from 'react-icons/go'
+import Link from 'next/link'
 
 import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
@@ -16,6 +22,15 @@ export default function DetalhesTutorial() {
       <Header />
 
       <div className="flex min-h-screen w-full flex-col items-center justify-center gap-20 mt-20 px-4">
+        <div className="w-full max-w-225 flex justify-start -mb-14">
+          <Link
+            href="/tutoriais"
+            aria-label="Voltar para Tutoriais"
+            className="text-verde-escuro hover:opacity-80 transition-opacity text-4xl md:text-5xl flex items-center cursor-pointer"
+          >
+            <MdArrowBack />
+          </Link>
+        </div>
         <div className="border border-verde-musgo justify-center items-center flex-col gap-4 flex rounded-lg p-6 w-full max-w-225 h-158 bg-white">
           <h1 className="text-verde-musgo font-bold text-3xl md:text-4xl text-center md:text-left w-full max-w-3xl">
             BRAÇO ROBÓTICO DE PAPELÃO
