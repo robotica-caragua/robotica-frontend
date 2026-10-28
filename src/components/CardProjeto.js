@@ -50,9 +50,11 @@ export function CardProjeto({
           <div className="self-stretch px-3 py-0.5 bg-input-bg rounded-xl inline-flex flex-col justify-start items-start">
             <div className="justify-center text-verde-musgo text-xs font-normal">{Category1}</div>
           </div>
-          <div className="self-stretch px-3 py-0.5 bg-input-bg rounded-xl inline-flex flex-col justify-start items-start">
-            <div className="justify-center text-verde-musgo text-xs font-normal">{Category2}</div>
-          </div>
+          {Category2 && (
+            <div className="self-stretch px-3 py-0.5 bg-input-bg rounded-xl inline-flex flex-col justify-start items-start">
+              <div className="justify-center text-verde-musgo text-xs font-normal">{Category2}</div>
+            </div>
+          )}
         </div>
 
         <div className="self-stretch flex flex-col justify-start items-start gap-1">

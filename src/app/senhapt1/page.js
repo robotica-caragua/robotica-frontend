@@ -59,13 +59,12 @@ export default function SenhaPage() {
           Cancelar
         </Link>
 
-        <button
-          type="submit"
-          className="w-45 h-12 rounded-xl bg-verde-limao border-b-8 border-verde-escuro font-bold text-verde-escuro hover:brightness-50 duration-75 cursor-pointer"
+        <Link
+          href="/login"
+          className="flex items-center justify-center w-45 h-12 rounded-xl bg-verde-limao border-b-8 border-verde-escuro font-bold text-verde-escuro hover:brightness-50 duration-75 cursor-pointer"
         >
-          {' '}
           Enviar
-        </button>
+        </Link>
       </div>
 
       <p className="text-xl font-medium text-verde-musgo flex justify-center m-10">
