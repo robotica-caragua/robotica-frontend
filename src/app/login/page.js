@@ -1,11 +1,36 @@
+'use client'
+
+import { useState } from 'react'
 import { Button } from '@/components/Button'
 import { Header } from '@/components/Header'
+import { login } from '@/lib/api'
 import Image from 'next/image'
 import Link from 'next/link'
 import boblogin from '@/assets/boblogin.png'
 import google from '@/assets/google.png'
 
 export default function LoginPage() {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  async function handleSubmit(event) {
+    event.preventDefault()
+    setError('')
+    setIsSubmitting(true)
+
+    try {
+      const result = await login({ email, password })
+      window.localStorage.setItem('accessToken', result.accessToken)
+      window.location.assign('/admin/admin')
+    } catch (requestError) {
+      setError(requestError.message)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   return (
     <>
       <Header />
@@ -22,7 +47,7 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <form className="flex flex-col">
+            <form className="flex flex-col" onSubmit={handleSubmit}>
               <label
                 htmlFor="email-field"
                 className="mt-22 mb-2 text-xl text-verde-escuro font-medium"
@@ -34,6 +59,9 @@ export default function LoginPage() {
                 type="email"
                 id="email-field"
                 placeholder="exemplo@gmail.com"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                required
               />
               <label
                 htmlFor="password-field"
@@ -46,6 +74,9 @@ export default function LoginPage() {
                 type="password"
                 id="password-field"
                 placeholder="Digite sua senha..."
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                required
               />
               <Link
                 href="/forgot-password"
@@ -54,7 +85,12 @@ export default function LoginPage() {
                 Esqueceu sua senha?
               </Link>
 
-              <Button>Entrar</Button>
+              {error && (
+                <p className="mt-4 text-sm text-red-700" role="alert">
+                  {error}
+                </p>
+              )}
+              <Button>{isSubmitting ? 'Entrando...' : 'Entrar'}</Button>
             </form>
 
             <div className="flex items-center gap-4 w-92 mt-8">
