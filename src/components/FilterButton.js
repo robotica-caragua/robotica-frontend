@@ -3,12 +3,9 @@ export function FilterButton({ children, isActive, onClick }) {
     <button
       onClick={onClick}
       type="button"
-      className={`rounded-3xl py-2 px-5 font-bold text-base transition-colors cursor-pointer select-none
-        ${
-          isActive
-            ? 'bg-verde-oliva text-verde-escuro'
-            : 'bg-verde-pastel text-verde-musgo hover:bg-verde-oliva hover:text-white'
-        }`}
+      className={`rounded-full py-1 px-6 font-semibold text-base text-verde-escuro transition-colors cursor-pointer select-none ${
+        isActive ? 'bg-verde-limao' : 'bg-verde-pastel hover:bg-verde-oliva'
+      }`}
     >
       {children}
     </button>
