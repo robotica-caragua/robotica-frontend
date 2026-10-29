@@ -17,14 +17,14 @@ export function Footer() {
         </Link>
       </div>
 
-      <div className="w-full justify-center items-center text-center mb-14">
-        <p className="text-verde-escuro font-medium text-lg">
+      <div className="w-full justify-center items-center text-center mb-8 md:mb-14 px-4">
+        <p className="text-verde-escuro font-medium text-base sm:text-lg">
           Conectando educação, sustentabilidade e tecnologia.
         </p>
       </div>
 
-      <nav className="flex items-center justify-center mt-4 h-10 px-6">
-        <ul className="flex items-center gap-6 list-none m-0 p-0 font-medium text-verde-escuro text-lg">
+      <nav className="flex items-center justify-center mt-4 min-h-10 py-2 px-4 sm:px-6">
+        <ul className="flex flex-wrap items-center justify-center gap-3 sm:gap-6 list-none m-0 p-0 font-medium text-verde-escuro text-base sm:text-lg">
           <li>
             {' '}
             <Link

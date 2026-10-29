@@ -7,68 +7,79 @@ import {
   MdArrowForward,
   MdClose,
   MdFilterList,
-  MdInfoOutline,
-  MdOutlineNotifications,
-  MdOutlineSettings,
-  MdPerson
+  MdInfoOutline
 } from 'react-icons/md'
 import { IoSearchSharp } from 'react-icons/io5'
 import { IoIosArrowDown } from 'react-icons/io'
 import { AdminSidebar } from '@/components/AdminSidebar'
-
-const equipesIniciais = [
-  {
-    id: 1,
-    name: 'Cibernéticos A',
-    school: 'EMEF Prof. Luiz Ribeiro Muniz',
-    students: 'Ana, Bruno, Carlos',
-    grade: '8º Ano',
-    active: true
-  },
-  {
-    id: 2,
-    name: 'Cibernéticos A',
-    school: 'EMEF Prof. Luiz Ribeiro Muniz',
-    students: 'Daniela, Eduardo, Fernanda',
-    grade: '9º Ano',
-    active: true
-  },
-  {
-    id: 3,
-    name: 'Cibernéticos A',
-    school: 'EMEF Prof. Luiz Ribeiro Muniz',
-    students: 'Gabriel, Helena, Igor',
-    grade: '7º Ano',
-    active: true
-  },
-  {
-    id: 4,
-    name: 'Cibernéticos A',
-    school: 'EMEF Prof. Luiz Ribeiro Muniz',
-    students: 'Julia, Lucas, Mariana',
-    grade: '8º Ano',
-    active: true
-  }
-]
+import { ModalConfirmacao } from '@/components/ModalConfirmacao'
+import { apiAuth, apiEscolas, apiProjetos, apiUsuarios, obterToken } from '@/services/api'
 
 export default function GestaoGruposPage() {
-  const [equipes, setEquipes] = useState(equipesIniciais)
+  const [equipes, setEquipes] = useState([])
+  const [escolaPadrao, setEscolaPadrao] = useState('Rede Municipal de Caraguatatuba')
+  const [escolaPadraoId, setEscolaPadraoId] = useState(null)
+  const [carregando, setCarregando] = useState(true)
   const [busca, setBusca] = useState('')
   const [modalAberto, setModalAberto] = useState(false)
+  const [idEdicao, setIdEdicao] = useState(null)
   const [nomeEquipe, setNomeEquipe] = useState('')
   const [alunos, setAlunos] = useState('')
   const [serie, setSerie] = useState('')
+  const [modalConfirmacao, setModalConfirmacao] = useState({
+    aberto: false,
+    tipo: 'sucesso',
+    mensagemErro: ''
+  })
 
   useEffect(() => {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL
-    if (!apiUrl) return
+    let ativo = true
 
-    fetch(`${apiUrl}/equipes`)
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (Array.isArray(data)) setEquipes(data)
+    Promise.all([
+      obterToken() ? apiAuth.me().catch(() => null) : Promise.resolve(null),
+      apiEscolas.listar().catch(() => []),
+      apiProjetos.listar().catch(() => [])
+    ])
+      .then(async ([user, listaEscolas, listaProjetos]) => {
+        if (!ativo) return
+
+        let escNome = listaEscolas?.[0]?.name || 'Rede Municipal de Caraguatatuba'
+        let escId = listaEscolas?.[0]?.id || null
+
+        if (user?.schoolId) {
+          escId = user.schoolId
+          const encontrada = listaEscolas.find((e) => e.id === user.schoolId)
+          if (encontrada?.name) {
+            escNome = encontrada.name
+          } else if (user.id) {
+            const escUsuario = await apiUsuarios.buscarEscolaDoUsuario(user.id).catch(() => null)
+            if (escUsuario?.name) escNome = escUsuario.name
+          }
+        }
+
+        if (!ativo) return
+        setEscolaPadrao(escNome)
+        setEscolaPadraoId(escId)
+
+        const equipesMapeadas = (Array.isArray(listaProjetos) ? listaProjetos : []).map((proj) => ({
+          id: proj.id,
+          name: proj.name,
+          school: proj.school?.name || escNome,
+          schoolId: proj.schoolId || escId,
+          students: proj.description || '',
+          grade: '8º Ano',
+          active: true
+        }))
+
+        setEquipes(equipesMapeadas)
       })
-      .catch(() => {})
+      .finally(() => {
+        if (ativo) setCarregando(false)
+      })
+
+    return () => {
+      ativo = false
+    }
   }, [])
 
   const equipesFiltradas = equipes.filter(
@@ -77,56 +88,96 @@ export default function GestaoGruposPage() {
       equipe.students?.toLowerCase().includes(busca.toLowerCase())
   )
 
-  function handleCriarEquipe(e) {
+  async function handleSalvarEquipe(e) {
     e.preventDefault()
-    if (!nomeEquipe.trim()) return
-
-    const novaEquipe = {
-      id: Date.now(),
-      name: nomeEquipe,
-      school: 'EMEF Prof. Luiz Ribeiro Muniz',
-      students: alunos,
-      grade: serie,
-      active: true
+    if (!nomeEquipe.trim()) {
+      setModalConfirmacao({ aberto: true, tipo: 'erro', mensagemErro: '' })
+      return
     }
 
-    setEquipes((prev) => [...prev, novaEquipe])
-    setNomeEquipe('')
-    setAlunos('')
-    setSerie('')
-    setModalAberto(false)
+    const descricaoEquipe = [alunos.trim(), serie].filter(Boolean).join(' • ')
+
+    try {
+      if (idEdicao && escolaPadraoId) {
+        const atualizado = await apiProjetos.atualizar(idEdicao, {
+          name: nomeEquipe.trim(),
+          description: descricaoEquipe || 'Equipe de Robótica',
+          schoolId: escolaPadraoId
+        })
+        setEquipes((prev) =>
+          prev.map((eq) =>
+            eq.id === idEdicao
+              ? {
+                  ...eq,
+                  name: atualizado?.name || nomeEquipe.trim(),
+                  students: alunos.trim(),
+                  grade: serie || eq.grade
+                }
+              : eq
+          )
+        )
+      } else if (escolaPadraoId) {
+        const criado = await apiProjetos.criar({
+          name: nomeEquipe.trim(),
+          description: descricaoEquipe || 'Equipe de Robótica',
+          schoolId: escolaPadraoId
+        })
+        setEquipes((prev) => [
+          ...prev,
+          {
+            id: criado?.id || Date.now(),
+            name: criado?.name || nomeEquipe.trim(),
+            school: criado?.school?.name || escolaPadrao,
+            schoolId: criado?.schoolId || escolaPadraoId,
+            students: alunos.trim(),
+            grade: serie || '8º Ano',
+            active: true
+          }
+        ])
+      } else {
+        throw new Error('Faça login e selecione uma escola vinculada para cadastrar a equipe.')
+      }
+
+      setIdEdicao(null)
+      setNomeEquipe('')
+      setAlunos('')
+      setSerie('')
+      setModalAberto(false)
+      setModalConfirmacao({ aberto: true, tipo: 'sucesso', mensagemErro: '' })
+    } catch (err) {
+      setModalAberto(false)
+      setModalConfirmacao({
+        aberto: true,
+        tipo: 'erro',
+        mensagemErro: err?.message || ''
+      })
+    }
   }
 
   const totalFormatado = String(equipes.length).padStart(2, '0')
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex flex-col lg:flex-row min-h-screen">
       <AdminSidebar variant="professor" />
 
-      <div className="flex flex-1 flex-col px-10 pb-16">
-        {/* Topo */}
-        <div className="flex h-16 items-center justify-end gap-4 text-verde-escuro">
-          <div className="relative">
-            <MdOutlineNotifications size={22} />
-            <span className="absolute top-0.5 right-0.5 h-2 w-2 rounded-full bg-vermelho" />
-          </div>
-          <MdOutlineSettings size={22} />
-          <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-verde-musgo bg-verde-escuro text-verde-pastel">
-            <MdPerson size={24} />
-          </div>
-        </div>
-
-        <main className="mx-auto flex w-full max-w-4xl flex-col gap-6 pt-10">
+      <div className="flex flex-1 flex-col px-4 sm:px-6 lg:px-10 pb-16">
+        <main className="mx-auto flex w-full max-w-4xl flex-col gap-6 pt-8 lg:pt-12">
           {/* Cabeçalho */}
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
               <p className="text-xl font-bold text-verde-musgo">{totalFormatado}</p>
-              <h1 className="text-4xl font-bold text-verde-escuro">Equipes Ativas</h1>
+              <h1 className="text-3xl sm:text-4xl font-bold text-verde-escuro">Equipes Ativas</h1>
             </div>
 
             <button
               type="button"
-              onClick={() => setModalAberto(true)}
+              onClick={() => {
+                setIdEdicao(null)
+                setNomeEquipe('')
+                setAlunos('')
+                setSerie('')
+                setModalAberto(true)
+              }}
               className="flex items-center gap-3 rounded-lg bg-verde-musgo px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:brightness-90 cursor-pointer"
             >
               <MdAdd size={18} />
@@ -157,58 +208,75 @@ export default function GestaoGruposPage() {
           </div>
 
           {/* Grade de Equipes */}
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {equipesFiltradas.map((equipe) => (
-              <div
-                key={equipe.id}
-                className="flex flex-col rounded-2xl border border-verde-musgo bg-white p-5"
-              >
-                <span className="inline-flex w-fit items-center gap-1.5 rounded-md bg-verde-oliva px-2.5 py-1 text-[10px] font-bold uppercase text-white">
-                  <span className="h-1.5 w-1.5 rounded-full bg-white" />
-                  Equipe Ativa
-                </span>
+          {carregando ? (
+            <p className="py-10 text-center text-verde-musgo font-medium">Carregando equipes...</p>
+          ) : (
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {equipesFiltradas.map((equipe) => (
+                <div
+                  key={equipe.id}
+                  className="flex flex-col rounded-2xl border border-verde-musgo bg-white p-5"
+                >
+                  <span className="inline-flex w-fit items-center gap-1.5 rounded-md bg-verde-oliva px-2.5 py-1 text-[10px] font-bold uppercase text-white">
+                    <span className="h-1.5 w-1.5 rounded-full bg-white" />
+                    Equipe Ativa
+                  </span>
 
-                <div className="mt-4 flex items-center justify-between">
-                  <h3 className="text-lg font-bold text-verde-escuro">{equipe.name}</h3>
-                  <MdInfoOutline size={20} className="text-verde-escuro" />
+                  <div className="mt-4 flex items-center justify-between">
+                    <h3 className="text-lg font-bold text-verde-escuro">{equipe.name}</h3>
+                    <MdInfoOutline size={20} className="text-verde-escuro" />
+                  </div>
+
+                  <div className="mt-3 mb-6 border-l-2 border-verde-musgo pl-3">
+                    <p className="max-w-[11rem] text-xs leading-relaxed text-verde-musgo">
+                      {equipe.school}
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIdEdicao(equipe.id)
+                      setNomeEquipe(equipe.name)
+                      setAlunos(equipe.students || '')
+                      setSerie(equipe.grade || '')
+                      setModalAberto(true)
+                    }}
+                    className="mx-auto mt-auto flex items-center justify-center gap-2 rounded-lg border border-b-3 border-verde-musgo bg-white px-5 py-2 text-xs font-bold text-verde-escuro hover:bg-verde-pastel cursor-pointer"
+                  >
+                    Editar Equipe
+                    <MdArrowForward size={15} />
+                  </button>
                 </div>
+              ))}
 
-                <div className="mt-3 mb-6 border-l-2 border-verde-musgo pl-3">
-                  <p className="max-w-[11rem] text-xs leading-relaxed text-verde-musgo">
-                    {equipe.school}
-                  </p>
-                </div>
-
+              {/* Card tracejado Criar Nova Equipe */}
+              <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-verde-musgo bg-white/40 p-5 text-center">
+                <MdAddCircleOutline size={36} className="text-verde-escuro" />
+                <h3 className="mt-2 text-base font-bold text-verde-escuro">Criar Nova Equipe</h3>
+                <p className="mt-1 mb-4 max-w-[13rem] text-xs leading-relaxed text-verde-musgo">
+                  Organize seus alunos em times de trabalho para desenvolver novos projetos.
+                </p>
                 <button
                   type="button"
-                  className="mx-auto mt-auto flex items-center justify-center gap-2 rounded-lg border border-b-3 border-verde-musgo bg-white px-5 py-2 text-xs font-bold text-verde-escuro hover:bg-verde-pastel cursor-pointer"
+                  onClick={() => {
+                    setIdEdicao(null)
+                    setNomeEquipe('')
+                    setAlunos('')
+                    setSerie('')
+                    setModalAberto(true)
+                  }}
+                  className="rounded-lg border-b-3 border-verde-escuro bg-verde-limao px-5 py-2 text-xs font-bold text-verde-escuro hover:brightness-95 cursor-pointer"
                 >
-                  Editar Equipe
-                  <MdArrowForward size={15} />
+                  Adicionar Equipe
                 </button>
               </div>
-            ))}
-
-            {/* Card tracejado Criar Nova Equipe */}
-            <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-verde-musgo bg-white/40 p-5 text-center">
-              <MdAddCircleOutline size={36} className="text-verde-escuro" />
-              <h3 className="mt-2 text-base font-bold text-verde-escuro">Criar Nova Equipe</h3>
-              <p className="mt-1 mb-4 max-w-[13rem] text-xs leading-relaxed text-verde-musgo">
-                Organize seus alunos em times de trabalho para desenvolver novos projetos.
-              </p>
-              <button
-                type="button"
-                onClick={() => setModalAberto(true)}
-                className="rounded-lg border-b-3 border-verde-escuro bg-verde-limao px-5 py-2 text-xs font-bold text-verde-escuro hover:brightness-95 cursor-pointer"
-              >
-                Adicionar Equipe
-              </button>
             </div>
-          </div>
+          )}
         </main>
       </div>
 
-      {/* Modal Nova Equipe */}
+      {/* Modal Nova/Editar Equipe */}
       {modalAberto && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <div className="relative w-full max-w-xl rounded-[36px] border border-verde-musgo bg-white p-10 shadow-xl">
@@ -222,10 +290,11 @@ export default function GestaoGruposPage() {
             </button>
 
             <h2 className="text-3xl font-bold text-verde-escuro">
-              Nova <span className="text-verde-musgo">Equipe!</span>
+              {idEdicao ? 'Editar ' : 'Nova '}
+              <span className="text-verde-musgo">Equipe!</span>
             </h2>
 
-            <form onSubmit={handleCriarEquipe} className="mt-6 flex flex-col gap-5">
+            <form onSubmit={handleSalvarEquipe} className="mt-6 flex flex-col gap-5">
               <div>
                 <label className="mb-1.5 block text-base font-medium text-verde-escuro">
                   Nome da equipe
@@ -277,12 +346,35 @@ export default function GestaoGruposPage() {
                 type="submit"
                 className="mx-auto mt-3 rounded-xl border-b-4 border-verde-escuro bg-verde-limao px-6 py-2.5 text-sm font-bold text-verde-escuro hover:brightness-95 cursor-pointer"
               >
-                Adicionar Equipe
+                {idEdicao ? 'Salvar Alterações' : 'Adicionar Equipe'}
               </button>
             </form>
           </div>
         </div>
       )}
+
+      <ModalConfirmacao
+        aberto={modalConfirmacao.aberto}
+        tipo={modalConfirmacao.tipo}
+        titulo={
+          modalConfirmacao.tipo === 'sucesso' ? 'Equipe salva com' : 'Não foi possível salvar'
+        }
+        destaque={modalConfirmacao.tipo === 'sucesso' ? 'sucesso!' : 'a equipe!'}
+        mensagem={
+          modalConfirmacao.tipo === 'sucesso'
+            ? 'A equipe foi registrada no servidor. Agora você já pode vincular novos projetos!'
+            : modalConfirmacao.mensagemErro ||
+              'Verifique se todos os campos foram preenchidos corretamente e tente salvar mais uma vez.'
+        }
+        textoBotaoSucesso="Voltar para Equipes"
+        onConfirmar={() =>
+          setModalConfirmacao({ aberto: false, tipo: 'sucesso', mensagemErro: '' })
+        }
+        onCancelar={() => setModalConfirmacao({ aberto: false, tipo: 'sucesso', mensagemErro: '' })}
+        onTentarNovamente={() =>
+          setModalConfirmacao({ aberto: false, tipo: 'sucesso', mensagemErro: '' })
+        }
+      />
     </div>
   )
 }

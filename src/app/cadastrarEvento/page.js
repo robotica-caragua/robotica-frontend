@@ -1,9 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { SideBarAdmin } from '@/components/SideBarAdmin'
 import { ModalConfirmacao } from '@/components/ModalConfirmacao'
+import { apiEscolas, apiProjetos } from '@/services/api'
 import { IoClose, IoArrowForward } from 'react-icons/io5'
 import {
   MdInfoOutline,
@@ -36,12 +38,49 @@ const estadoInicial = {
   inscricoes: 'abertas'
 }
 
-export default function CadastrarEvento() {
+function CadastrarEventoConteudo() {
+  const searchParams = useSearchParams()
+  const idEdicao = searchParams.get('id')
+
   const [form, setForm] = useState(estadoInicial)
+  const [escolas, setEscolas] = useState([])
   const [banner, setBanner] = useState(null)
   const [bannerPreview, setBannerPreview] = useState('')
   const [erroBanner, setErroBanner] = useState('')
   const [modal, setModal] = useState(null) // 'sucesso' | 'erro' | null
+  const [mensagemErroApi, setMensagemErroApi] = useState('')
+
+  useEffect(() => {
+    let ativo = true
+
+    apiEscolas
+      .listar()
+      .then((lista) => {
+        if (!ativo || !Array.isArray(lista)) return
+        setEscolas(lista)
+      })
+      .catch(() => {})
+
+    if (idEdicao) {
+      apiProjetos
+        .buscarPorId(idEdicao)
+        .then((proj) => {
+          if (!ativo || !proj) return
+          setForm((prev) => ({
+            ...prev,
+            nome: proj.name || '',
+            descricao: proj.description || '',
+            local: proj.school?.name || '',
+            data: (proj.createdAt || '').slice(0, 10)
+          }))
+        })
+        .catch(() => {})
+    }
+
+    return () => {
+      ativo = false
+    }
+  }, [idEdicao])
 
   const atualizar = (campo) => (e) => setForm({ ...form, [campo]: e.target.value })
 
@@ -75,31 +114,70 @@ export default function CadastrarEvento() {
     setErroBanner('')
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     const valido = form.nome.trim() && form.data && form.local.trim()
 
     if (!valido) {
+      setMensagemErroApi('')
       setModal('erro')
       return
     }
 
-    // TODO: integrar com a API de eventos (enviar `form` e `banner`)
-    setModal('sucesso')
-    limparFormulario()
+    const escEncontrada = escolas.find(
+      (s) => s.name.toLowerCase() === form.local.trim().toLowerCase()
+    )
+    const schoolId = escEncontrada?.id || escolas[0]?.id
+
+    if (!schoolId) {
+      setMensagemErroApi('Cadastre ao menos uma escola antes de registrar eventos.')
+      setModal('erro')
+      return
+    }
+
+    const descricaoCompleta = [
+      form.descricao.trim(),
+      `Data: ${form.data}`,
+      form.horario ? `Horário: ${form.horario}` : '',
+      `Local: ${form.local.trim()}`
+    ]
+      .filter(Boolean)
+      .join(' | ')
+
+    try {
+      if (idEdicao) {
+        await apiProjetos.atualizar(idEdicao, {
+          name: form.nome.trim(),
+          description: descricaoCompleta,
+          schoolId
+        })
+      } else {
+        await apiProjetos.criar({
+          name: form.nome.trim(),
+          description: descricaoCompleta,
+          schoolId
+        })
+      }
+      setMensagemErroApi('')
+      setModal('sucesso')
+      if (!idEdicao) limparFormulario()
+    } catch (err) {
+      setMensagemErroApi(err?.message || '')
+      setModal('erro')
+    }
   }
 
   return (
-    <div className="flex min-h-screen bg-background relative">
+    <div className="flex flex-col lg:flex-row min-h-screen bg-background relative">
       <SideBarAdmin />
 
       <div className="flex-1 flex flex-col">
-        <main className="w-[75%] mx-auto py-12 px-8 flex flex-col gap-8">
+        <main className="w-full max-w-5xl mx-auto py-8 lg:py-12 px-4 sm:px-8 flex flex-col gap-8">
           <section className="flex flex-col gap-2">
-            <h1 className="text-verde-escuro text-5xl font-bold leading-tight">
-              Criar Novo Evento
+            <h1 className="text-verde-escuro text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight">
+              {idEdicao ? 'Editar Evento' : 'Criar Novo Evento'}
             </h1>
-            <p className="text-verde-musgo text-lg">
+            <p className="text-verde-musgo text-base sm:text-lg">
               Preencha os detalhes para agendar uma nova feira, mostra ou torneio de robótica na
               rede.
             </p>
@@ -299,7 +377,7 @@ export default function CadastrarEvento() {
                 type="submit"
                 className="px-6 py-3 bg-verde-musgo hover:bg-white hover:text-verde-musgo border border-verde-musgo text-white text-sm font-bold uppercase tracking-widest rounded-lg flex items-center gap-3 cursor-pointer transition"
               >
-                Publicar Evento
+                {idEdicao ? 'Salvar Alterações' : 'Publicar Evento'}
                 <IoArrowForward size={20} />
               </button>
             </div>
@@ -309,17 +387,32 @@ export default function CadastrarEvento() {
 
       <ModalConfirmacao
         tipo={modal}
-        tituloPrincipal={modal === 'sucesso' ? 'Evento criado com' : 'Não foi possível criar'}
+        tituloPrincipal={
+          modal === 'sucesso'
+            ? idEdicao
+              ? 'Evento atualizado com'
+              : 'Evento criado com'
+            : 'Não foi possível salvar'
+        }
         tituloDestaque={modal === 'sucesso' ? 'sucesso!' : 'o evento!'}
         mensagem={
           modal === 'sucesso'
-            ? 'O novo evento foi registrado e já está visível para toda a rede escolar!'
-            : 'Verifique se todos os campos foram preenchidos corretamente e tente salvar mais uma vez.'
+            ? 'O evento foi registrado e já está visível para toda a rede escolar!'
+            : mensagemErroApi ||
+              'Verifique se todos os campos foram preenchidos corretamente e tente salvar mais uma vez.'
         }
         textoBotaoVoltar="Voltar para Eventos"
         hrefVoltar="/gestaoEventos"
         onTentarNovamente={() => setModal(null)}
       />
     </div>
+  )
+}
+
+export default function CadastrarEvento() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-background" />}>
+      <CadastrarEventoConteudo />
+    </Suspense>
   )
 }

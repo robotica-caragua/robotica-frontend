@@ -10,13 +10,20 @@ import {
   MdOutlineEdit,
   MdOutlineAccountBalance,
   MdOutlineLink,
-  MdLockOutline,
-  MdOutlineNotifications,
-  MdOutlineSettings,
-  MdPerson
+  MdLockOutline
 } from 'react-icons/md'
 import { IoCheckmarkCircle, IoRadioButtonOffOutline } from 'react-icons/io5'
 import { AdminSidebar } from '@/components/AdminSidebar'
+import { ModalConfirmacao } from '@/components/ModalConfirmacao'
+import {
+  apiAuth,
+  apiEscolas,
+  apiProjetos,
+  apiTutoriais,
+  apiUsuarios,
+  obterToken,
+  obterUsuario
+} from '@/services/api'
 
 const RequisitoItem = ({ atendido, texto }) => (
   <div
@@ -36,41 +43,33 @@ const RequisitoItem = ({ atendido, texto }) => (
   </div>
 )
 
-const perfilInicial = {
-  impacto: {
-    tutoriais: 3,
-    equipes: 4,
-    eventos: 2
-  },
-  pessoal: {
-    nome: 'Robson Nascimento',
-    email: 'robson.nascimento@gmail.com',
-    telefone: '(12) 98765-4321',
-    matricula: '73915',
-    cpf: '135.792.468-00',
-    nascimento: '14/08/1985'
-  },
-  vinculos: [
-    {
-      id: 1,
-      escola: 'EMEF Prof. Luiz Ribeiro Muniz',
-      endereco: 'R. Analândia, 355 - Martim de Sá, Caraguatatuba - SP, 11662-320',
-      ativo: true
+function criarPerfilInicial(usuarioSalvo) {
+  return {
+    id: usuarioSalvo?.id || null,
+    role: usuarioSalvo?.role || 'TEACHER',
+    impacto: {
+      tutoriais: 0,
+      equipes: 0,
+      eventos: 0
     },
-    {
-      id: 2,
-      escola: 'CIEFI Profª Edna Maria Nogueira Ferraz',
-      endereco: 'R. Benedito Fortunato, 0 - Porto Novo, Caraguatatuba - SP, 11668-005',
-      ativo: false
-    }
-  ]
+    pessoal: {
+      nome: usuarioSalvo?.name || '',
+      email: usuarioSalvo?.email || '',
+      telefone: '',
+      matricula: usuarioSalvo?.id ? `#${String(usuarioSalvo.id).padStart(5, '0')}` : '',
+      cpf: '',
+      nascimento: ''
+    },
+    vinculos: []
+  }
 }
 
 export default function PerfilPage() {
-  const [perfil, setPerfil] = useState(perfilInicial)
+  const [perfil, setPerfil] = useState(() => criarPerfilInicial(obterUsuario()))
   const [editando, setEditando] = useState(false)
   const [mostrarSenha, setMostrarSenha] = useState(false)
   const [senha, setSenha] = useState('')
+  const [modal, setModal] = useState({ aberto: false, tipo: 'sucesso', mensagemErro: '' })
 
   const validacoes = {
     tamanho: senha.length >= 8,
@@ -80,15 +79,66 @@ export default function PerfilPage() {
   }
 
   useEffect(() => {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL
-    if (!apiUrl) return
+    let ativo = true
 
-    fetch(`${apiUrl}/perfil`)
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (data) setPerfil(data)
-      })
-      .catch(() => {})
+    Promise.all([
+      obterToken() ? apiAuth.me().catch(() => null) : Promise.resolve(null),
+      apiTutoriais.listar().catch(() => []),
+      apiProjetos.listar().catch(() => []),
+      apiEscolas.listar().catch(() => [])
+    ]).then(async ([user, listaTutoriais, listaProjetos, listaEscolas]) => {
+      if (!ativo) return
+
+      let vinculos = []
+      if (user?.id) {
+        const escDoUsuario = await apiUsuarios.buscarEscolaDoUsuario(user.id).catch(() => null)
+        if (escDoUsuario?.name) {
+          vinculos = [
+            {
+              id: escDoUsuario.id || 1,
+              escola: escDoUsuario.name,
+              endereco: escDoUsuario.address || 'Caraguatatuba - SP',
+              ativo: true
+            }
+          ]
+        }
+      }
+
+      if (vinculos.length === 0 && Array.isArray(listaEscolas) && listaEscolas.length > 0) {
+        vinculos = listaEscolas.map((esc, idx) => ({
+          id: esc.id,
+          escola: esc.name,
+          endereco: esc.address || 'Caraguatatuba - SP',
+          ativo: idx === 0
+        }))
+      }
+
+      if (!ativo) return
+
+      setPerfil((prev) => ({
+        ...prev,
+        id: user?.id || prev.id,
+        role: user?.role || prev.role,
+        impacto: {
+          tutoriais: Array.isArray(listaTutoriais) ? listaTutoriais.length : 0,
+          equipes: Array.isArray(listaProjetos) ? listaProjetos.length : 0,
+          eventos: vinculos.length
+        },
+        pessoal: {
+          ...prev.pessoal,
+          nome: user?.name || prev.pessoal.nome,
+          email: user?.email || prev.pessoal.email,
+          matricula: user?.id
+            ? `#${String(user.id).padStart(5, '0')}`
+            : prev.pessoal.matricula || '-'
+        },
+        vinculos
+      }))
+    })
+
+    return () => {
+      ativo = false
+    }
   }, [])
 
   const cardsImpacto = [
@@ -98,12 +148,12 @@ export default function PerfilPage() {
       icon: MdOutlineRocketLaunch
     },
     {
-      label: 'Equipes Orientadas',
+      label: 'Projetos / Equipes',
       value: String(perfil.impacto.equipes).padStart(2, '0'),
       icon: MdOutlinePrecisionManufacturing
     },
     {
-      label: 'Eventos Participados',
+      label: 'Escolas Vinculadas',
       value: String(perfil.impacto.eventos).padStart(2, '0'),
       icon: MdOutlineEventAvailable
     }
@@ -128,27 +178,49 @@ export default function PerfilPage() {
     }))
   }
 
+  async function alternarEdicao() {
+    if (!editando) {
+      setEditando(true)
+      return
+    }
+
+    if (!perfil.id || !obterToken()) {
+      setModal({
+        aberto: true,
+        tipo: 'erro',
+        mensagemErro: 'Faça login para atualizar suas informações no servidor.'
+      })
+      return
+    }
+
+    try {
+      await apiUsuarios.atualizar(perfil.id, {
+        name: perfil.pessoal.nome,
+        email: perfil.pessoal.email,
+        ...(senha.length >= 6 ? { password: senha } : {})
+      })
+      setEditando(false)
+      setModal({ aberto: true, tipo: 'sucesso', mensagemErro: '' })
+    } catch (err) {
+      setModal({
+        aberto: true,
+        tipo: 'erro',
+        mensagemErro: err?.message || 'Não foi possível atualizar os dados do perfil.'
+      })
+    }
+  }
+
   return (
-    <div className="flex min-h-screen">
+    <div className="flex flex-col lg:flex-row min-h-screen">
       <AdminSidebar variant="professor" />
 
-      <div className="flex flex-1 flex-col px-10 pb-16">
-        {/* Topo */}
-        <div className="flex h-16 items-center justify-end gap-4 text-verde-escuro">
-          <div className="relative">
-            <MdOutlineNotifications size={22} />
-            <span className="absolute top-0.5 right-0.5 h-2 w-2 rounded-full bg-vermelho" />
-          </div>
-          <MdOutlineSettings size={22} />
-          <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-verde-musgo bg-verde-escuro text-verde-pastel">
-            <MdPerson size={24} />
-          </div>
-        </div>
-
-        <main className="mx-auto flex w-full max-w-4xl flex-col gap-6 pt-10">
+      <div className="flex flex-1 flex-col px-4 sm:px-6 lg:px-10 pb-16">
+        <main className="mx-auto flex w-full max-w-4xl flex-col gap-6 pt-8 lg:pt-12">
           {/* Cabeçalho */}
           <div>
-            <h1 className="text-4xl font-bold text-verde-escuro">Configurações de Perfil</h1>
+            <h1 className="text-3xl sm:text-4xl font-bold text-verde-escuro">
+              Configurações de Perfil
+            </h1>
             <p className="mt-1 text-sm text-verde-musgo">
               Gerencie a identidade da sua conta, vínculos escolares e preferências de segurança.
             </p>
@@ -189,7 +261,7 @@ export default function PerfilPage() {
 
               <button
                 type="button"
-                onClick={() => setEditando((prev) => !prev)}
+                onClick={alternarEdicao}
                 className="flex items-center gap-1.5 text-xs font-bold text-verde-musgo hover:underline cursor-pointer"
               >
                 <MdOutlineEdit size={16} />
@@ -209,7 +281,7 @@ export default function PerfilPage() {
                       className="mt-1 w-full rounded-lg border border-verde-musgo bg-input-bg px-3 py-1.5 text-sm text-verde-escuro focus:outline-none"
                     />
                   ) : (
-                    <p className="mt-1 text-sm text-verde-escuro">{perfil.pessoal[key]}</p>
+                    <p className="mt-1 text-sm text-verde-escuro">{perfil.pessoal[key] || '-'}</p>
                   )}
                 </div>
               ))}
@@ -224,28 +296,34 @@ export default function PerfilPage() {
             </div>
 
             <div className="flex flex-col gap-3">
-              {perfil.vinculos.map((vinculo) => (
-                <div
-                  key={vinculo.id}
-                  className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-verde-musgo/20 bg-input-bg px-5 py-4"
-                >
-                  <div>
-                    <h3 className="text-sm font-bold text-verde-escuro">{vinculo.escola}</h3>
-                    <p className="mt-0.5 text-xs text-verde-musgo">{vinculo.endereco}</p>
-                  </div>
-
-                  <span
-                    className={`rounded-full px-3 py-1 text-xs font-bold
-                      ${
-                        vinculo.ativo
-                          ? 'bg-verde-oliva text-verde-escuro'
-                          : 'bg-verde-escuro/10 text-verde-escuro/70'
-                      }`}
+              {perfil.vinculos.length > 0 ? (
+                perfil.vinculos.map((vinculo) => (
+                  <div
+                    key={vinculo.id}
+                    className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-verde-musgo/20 bg-input-bg px-5 py-4"
                   >
-                    {vinculo.ativo ? 'Ativo' : 'Inativo'}
-                  </span>
-                </div>
-              ))}
+                    <div>
+                      <h3 className="text-sm font-bold text-verde-escuro">{vinculo.escola}</h3>
+                      <p className="mt-0.5 text-xs text-verde-musgo">{vinculo.endereco}</p>
+                    </div>
+
+                    <span
+                      className={`rounded-full px-3 py-1 text-xs font-bold
+                        ${
+                          vinculo.ativo
+                            ? 'bg-verde-oliva text-verde-escuro'
+                            : 'bg-verde-escuro/10 text-verde-escuro/70'
+                        }`}
+                    >
+                      {vinculo.ativo ? 'Ativo' : 'Inativo'}
+                    </span>
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-verde-musgo py-2">
+                  Nenhum vínculo escolar encontrado para esta conta.
+                </p>
+              )}
 
               <button
                 type="button"
@@ -269,7 +347,7 @@ export default function PerfilPage() {
             <div className="flex flex-col md:flex-row gap-6 items-start w-full justify-center">
               <div className="flex flex-col gap-2 max-w-lg flex-1 w-full">
                 <label className="text-verde-musgo text-sm font-bold uppercase tracking-wide px-1">
-                  Senha temporária
+                  Nova senha
                 </label>
 
                 <div className="relative">
@@ -353,7 +431,12 @@ export default function PerfilPage() {
                 </div>
 
                 <label className="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" className="sr-only peer" />
+                  <input
+                    type="checkbox"
+                    checked={perfil.role === 'ADMIN'}
+                    readOnly
+                    className="sr-only peer"
+                  />
                   <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-verde-oliva"></div>
                 </label>
               </div>
@@ -361,6 +444,22 @@ export default function PerfilPage() {
           </section>
         </main>
       </div>
+
+      <ModalConfirmacao
+        aberto={modal.aberto}
+        tipo={modal.tipo}
+        titulo={modal.tipo === 'sucesso' ? 'Perfil atualizado com' : 'Não foi possível atualizar'}
+        destaque={modal.tipo === 'sucesso' ? 'sucesso!' : 'o perfil!'}
+        mensagem={
+          modal.tipo === 'sucesso'
+            ? 'Suas informações pessoais foram salvas no servidor.'
+            : modal.mensagemErro || 'Verifique os dados informados e tente novamente.'
+        }
+        textoBotaoSucesso="Continuar no Perfil"
+        onConfirmar={() => setModal({ aberto: false, tipo: 'sucesso', mensagemErro: '' })}
+        onCancelar={() => setModal({ aberto: false, tipo: 'sucesso', mensagemErro: '' })}
+        onTentarNovamente={() => setModal({ aberto: false, tipo: 'sucesso', mensagemErro: '' })}
+      />
     </div>
   )
 }

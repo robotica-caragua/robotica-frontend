@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { SideBarAdmin } from '@/components/SideBarAdmin'
 import { ModalConfirmacao } from '@/components/ModalConfirmacao'
+import { apiEscolas } from '@/services/api'
 import { IoClose, IoArrowForward, IoChevronDown } from 'react-icons/io5'
 import { FaBuilding, FaMapMarkerAlt, FaAddressBook } from 'react-icons/fa'
 
@@ -20,12 +21,13 @@ export default function CadastrarEscola() {
     statusPolo: 'ativo'
   })
   const [modal, setModal] = useState(null) // 'sucesso' | 'erro' | null
+  const [mensagemErroApi, setMensagemErroApi] = useState('')
 
   const atualizar = (campo) => (e) => {
     setForm((prev) => ({ ...prev, [campo]: e.target.value }))
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     const valido =
       form.nomeEscola.trim() &&
@@ -37,29 +39,40 @@ export default function CadastrarEscola() {
       form.email.trim()
 
     if (!valido) {
+      setMensagemErroApi('')
       setModal('erro')
       return
     }
 
-    // TODO: integrar com a API de escolas
-    setModal('sucesso')
+    const enderecoCompleto = `${form.endereco.trim()} - ${form.bairro.trim()}, Caraguatatuba - SP (${form.regiao.toUpperCase()})`
+
+    try {
+      await apiEscolas.criar({
+        name: form.nomeEscola.trim(),
+        address: enderecoCompleto
+      })
+      setMensagemErroApi('')
+      setModal('sucesso')
+    } catch (err) {
+      setMensagemErroApi(err?.message || '')
+      setModal('erro')
+    }
   }
 
   return (
-    <div className="flex min-h-screen bg-background relative">
+    <div className="flex flex-col lg:flex-row min-h-screen bg-background relative">
       {/* MENU LATERAL (SIDEBAR) */}
       <SideBarAdmin />
 
       {/* ÁREA DIREITA (Conteúdo) */}
       <main className="flex-1 flex flex-col">
-        {/* CONTEÚDO PRINCIPAL (Mesma largura e espaçamento do Cadastrar Professor) */}
-        <div className="w-[75%] mx-auto py-12 px-8 flex flex-col gap-10">
+        <div className="w-full max-w-5xl mx-auto py-8 lg:py-12 px-4 sm:px-8 flex flex-col gap-10">
           {/* CABEÇALHO DA PÁGINA */}
           <section className="flex flex-col gap-2 items-center text-center">
-            <h2 className="text-verde-escuro text-5xl font-bold leading-tight">
+            <h2 className="text-verde-escuro text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight">
               Cadastrar Nova Escola
             </h2>
-            <p className="text-verde-musgo text-xl font-normal">
+            <p className="text-verde-musgo text-base sm:text-lg lg:text-xl font-normal">
               Registre uma nova unidade escolar para que ela possa receber equipes e professores no
               circuito de robótica.
             </p>
@@ -68,7 +81,7 @@ export default function CadastrarEscola() {
           {/* FORMULÁRIO DE CADASTRO */}
           <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-8 w-full">
             {/* SEÇÃO: INFORMAÇÕES DA UNIDADE */}
-            <div className="w-full p-8 bg-white rounded-3xl shadow-sm border border-verde-musgo border-opacity-30 flex flex-col gap-8">
+            <div className="w-full p-5 sm:p-8 bg-white rounded-3xl shadow-sm border border-verde-musgo border-opacity-30 flex flex-col gap-8">
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 bg-verde-pastel rounded-lg flex justify-center items-center text-verde-musgo">
                   <FaBuilding size={18} />
@@ -295,7 +308,7 @@ export default function CadastrarEscola() {
             {/* BOTÕES DE AÇÃO DO FORMULÁRIO */}
             <div className="flex justify-between items-center pt-4">
               <Link
-                href="/gestaoUsuarios"
+                href="/escolas"
                 className="flex items-center gap-2 px-8 py-4 rounded-lg text-verde-escuro font-bold uppercase hover:bg-input-bg transition cursor-pointer"
               >
                 <IoClose size={24} /> Cancelar
@@ -322,10 +335,11 @@ export default function CadastrarEscola() {
         mensagem={
           modal === 'sucesso'
             ? 'A nova unidade escolar foi registrada. Agora você já pode vincular professores e equipes!'
-            : 'Verifique se todos os campos foram preenchidos corretamente e tente salvar mais uma vez.'
+            : mensagemErroApi ||
+              'Verifique se todos os campos foram preenchidos corretamente e tente salvar mais uma vez.'
         }
-        textoBotaoVoltar="Voltar para o Painel"
-        hrefVoltar="/gestaoUsuarios"
+        textoBotaoVoltar="Voltar para Escolas"
+        hrefVoltar="/escolas"
         onTentarNovamente={() => setModal(null)}
       />
     </div>

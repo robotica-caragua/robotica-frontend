@@ -1,9 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { SideBarAdmin } from '@/components/SideBarAdmin'
 import { ModalConfirmacao } from '@/components/ModalConfirmacao'
+import { apiEscolas, apiUsuarios } from '@/services/api'
 import {
   IoClose,
   IoArrowForward,
@@ -29,17 +31,52 @@ const RequisitoItem = ({ atendido, texto }) => (
   </div>
 )
 
-export default function CadastrarUsuario() {
+function CadastrarUsuarioConteudo() {
+  const searchParams = useSearchParams()
+  const idEdicao = searchParams.get('id')
+
   const [mostrarSenha, setMostrarSenha] = useState(false)
+  const [escolas, setEscolas] = useState([])
   const [nome, setNome] = useState('')
   const [matricula, setMatricula] = useState('')
   const [escola, setEscola] = useState('')
+  const [ehAdmin, setEhAdmin] = useState(false)
   const [senha, setSenha] = useState('')
   const [cpf, setCpf] = useState('')
   const [telefone, setTelefone] = useState('')
   const [email, setEmail] = useState('')
   const [erroEmail, setErroEmail] = useState('')
   const [modal, setModal] = useState(null) // 'sucesso' | 'erro' | null
+  const [mensagemErroApi, setMensagemErroApi] = useState('')
+
+  useEffect(() => {
+    let ativo = true
+    apiEscolas
+      .listar()
+      .then((lista) => {
+        if (!ativo || !Array.isArray(lista)) return
+        setEscolas(lista)
+      })
+      .catch(() => {})
+
+    if (idEdicao) {
+      apiUsuarios
+        .buscarPorId(idEdicao)
+        .then((user) => {
+          if (!ativo || !user) return
+          setNome(user.name || '')
+          setEmail(user.email || '')
+          setMatricula(String(user.id).padStart(5, '0'))
+          setEhAdmin(user.role === 'ADMIN')
+          if (user.schoolId) setEscola(String(user.schoolId))
+        })
+        .catch(() => {})
+    }
+
+    return () => {
+      ativo = false
+    }
+  }, [idEdicao])
 
   const validacoes = {
     tamanho: senha.length >= 8,
@@ -83,43 +120,67 @@ export default function CadastrarUsuario() {
     setTelefone(valor.substring(0, 19))
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    const valido =
-      nome.trim() &&
-      matricula.trim() &&
-      regexEmail.test(email) &&
-      cpf.length === 14 &&
-      escola &&
-      senhaValida
+    const valido = idEdicao
+      ? nome.trim() && regexEmail.test(email) && (!senha || senhaValida)
+      : nome.trim() &&
+        matricula.trim() &&
+        regexEmail.test(email) &&
+        cpf.length === 14 &&
+        escola &&
+        senhaValida
 
     if (!valido) {
+      setMensagemErroApi('')
       setModal('erro')
       return
     }
 
-    // TODO: integrar com a API de usuários
-    setModal('sucesso')
+    try {
+      if (idEdicao) {
+        await apiUsuarios.atualizar(idEdicao, {
+          name: nome.trim(),
+          email: email.trim().toLowerCase(),
+          role: ehAdmin ? 'ADMIN' : 'TEACHER',
+          ...(escola ? { schoolId: Number(escola) } : {}),
+          ...(senha ? { password: senha } : {})
+        })
+      } else {
+        await apiUsuarios.criar({
+          name: nome.trim(),
+          email: email.trim().toLowerCase(),
+          password: senha,
+          role: ehAdmin ? 'ADMIN' : 'TEACHER',
+          schoolId: Number(escola)
+        })
+      }
+      setMensagemErroApi('')
+      setModal('sucesso')
+    } catch (err) {
+      setMensagemErroApi(err?.message || '')
+      setModal('erro')
+    }
   }
 
   return (
-    <div className="flex min-h-screen bg-background relative">
+    <div className="flex flex-col lg:flex-row min-h-screen bg-background relative">
       <SideBarAdmin />
 
       <main className="flex-1 flex flex-col">
-        <div className="w-[75%] mx-auto py-12 px-8 flex flex-col gap-10">
-          <section className="flex flex-col gap-2 items-center">
-            <h2 className="text-verde-escuro text-5xl font-bold leading-tight">
-              Cadastrar Novo Professor
+        <div className="w-full max-w-5xl mx-auto py-8 lg:py-12 px-4 sm:px-8 flex flex-col gap-10">
+          <section className="flex flex-col gap-2 items-center text-center">
+            <h2 className="text-verde-escuro text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight">
+              {idEdicao ? 'Editar Professor' : 'Cadastrar Novo Professor'}
             </h2>
-            <p className="text-verde-musgo text-xl font-normal">
-              Configure as credenciais e acessos do novo docente no sistema.
+            <p className="text-verde-musgo text-base sm:text-lg lg:text-xl font-normal">
+              Configure as credenciais e acessos do docente no sistema.
             </p>
           </section>
 
           <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-8 w-full">
-            <div className="w-full p-8 bg-white rounded-3xl shadow-sm border border-verde-musgo border-opacity-30 flex flex-col gap-8">
+            <div className="w-full p-5 sm:p-8 bg-white rounded-3xl shadow-sm border border-verde-musgo border-opacity-30 flex flex-col gap-8">
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 bg-verde-pastel rounded-lg flex justify-center items-center text-verde-musgo">
                   <FaRegUser size={18} />
@@ -208,10 +269,11 @@ export default function CadastrarUsuario() {
                     <option value="" disabled>
                       Selecione a unidade onde o professor lecionará as oficinas...
                     </option>
-                    <option value="1">EMEF Prof. Luiz Silvar do Prado</option>
-                    <option value="2">EMEF Profª Maria Aparecida De Carvalho</option>
-                    <option value="3">EMEF Profª Maria Thereza de Souza Castro</option>
-                    <option value="4">EMEF Prof. Luiz Ribeiro Muniz</option>
+                    {escolas.map((esc) => (
+                      <option key={esc.id} value={String(esc.id)}>
+                        {esc.name}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -312,7 +374,12 @@ export default function CadastrarUsuario() {
                   </div>
 
                   <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" className="sr-only peer" />
+                    <input
+                      type="checkbox"
+                      checked={ehAdmin}
+                      onChange={(e) => setEhAdmin(e.target.checked)}
+                      className="sr-only peer"
+                    />
                     <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-verde-oliva"></div>
                   </label>
                 </div>
@@ -331,7 +398,7 @@ export default function CadastrarUsuario() {
                 type="submit"
                 className="px-6 py-4 bg-verde-musgo hover:bg-white hover:text-verde-musgo hover:border hover:border-verde-musgo text-white text-base font-bold uppercase tracking-widest rounded-lg flex items-center gap-4 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Cadastrar Professor
+                {idEdicao ? 'Salvar Alterações' : 'Cadastrar Professor'}
                 <IoArrowForward size={28} />
               </button>
             </div>
@@ -342,18 +409,31 @@ export default function CadastrarUsuario() {
       <ModalConfirmacao
         tipo={modal}
         tituloPrincipal={
-          modal === 'sucesso' ? 'Professor cadastrado com' : 'Não foi possível cadastrar'
+          modal === 'sucesso'
+            ? idEdicao
+              ? 'Professor atualizado com'
+              : 'Professor cadastrado com'
+            : 'Não foi possível salvar'
         }
         tituloDestaque={modal === 'sucesso' ? 'sucesso!' : 'o professor!'}
         mensagem={
           modal === 'sucesso'
-            ? 'O novo professor foi registrado. As credenciais temporárias já podem ser utilizadas no primeiro acesso!'
-            : 'Verifique se todos os campos e requisitos da senha foram preenchidos corretamente e tente salvar mais uma vez.'
+            ? 'Os dados do professor foram registrados no servidor!'
+            : mensagemErroApi ||
+              'Verifique se todos os campos e requisitos da senha foram preenchidos corretamente e tente salvar mais uma vez.'
         }
         textoBotaoVoltar="Voltar para Usuários"
         hrefVoltar="/gestaoUsuarios"
         onTentarNovamente={() => setModal(null)}
       />
     </div>
+  )
+}
+
+export default function CadastrarUsuario() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-background" />}>
+      <CadastrarUsuarioConteudo />
+    </Suspense>
   )
 }

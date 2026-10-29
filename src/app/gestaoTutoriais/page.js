@@ -1,12 +1,14 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { SideBarProfessor } from '@/components/SideBarProfessor'
 import { correspondeBusca, opcoesUnicas } from '@/utils/filtros'
-import { tutoriaisProfessorPadrao as tutoriaisIniciais } from '@/utils/tutoriaisProfessor'
+import { apiCategorias, apiEscolas, apiTutoriais, mapearTutorialDaApi } from '@/services/api'
+import semaforo from '@/assets/semaforo.png'
+import containerImg from '@/assets/container.png'
 import { IoSearchOutline, IoAddOutline } from 'react-icons/io5'
 import {
   MdKeyboardArrowDown,
@@ -17,16 +19,58 @@ import {
 } from 'react-icons/md'
 
 const opcoesNivel = ['Iniciante', 'Intermediário', 'Avançado']
-const opcoesCategoria = opcoesUnicas(tutoriaisIniciais, 'categoria')
-const opcoesEscola = opcoesUnicas(tutoriaisIniciais, 'escola')
 
 export default function GestaoTutoriais() {
   const router = useRouter()
-  const [tutoriais, setTutoriais] = useState(tutoriaisIniciais)
+  const [tutoriais, setTutoriais] = useState([])
+  const [categoriasApi, setCategoriasApi] = useState([])
+  const [escolasApi, setEscolasApi] = useState([])
+  const [carregando, setCarregando] = useState(true)
   const [busca, setBusca] = useState('')
   const [nivel, setNivel] = useState('')
   const [categoria, setCategoria] = useState('')
   const [escola, setEscola] = useState('')
+
+  useEffect(() => {
+    let ativo = true
+
+    Promise.all([
+      apiTutoriais.listar().catch(() => []),
+      apiCategorias.listar().catch(() => []),
+      apiEscolas.listar().catch(() => [])
+    ])
+      .then(([listaDaApi, listaCategorias, listaEscolas]) => {
+        if (!ativo) return
+        setTutoriais(
+          (Array.isArray(listaDaApi) ? listaDaApi : []).map((item, idx) =>
+            mapearTutorialDaApi(item, idx % 2 === 0 ? containerImg : semaforo)
+          )
+        )
+        setCategoriasApi(
+          Array.isArray(listaCategorias) ? listaCategorias.map((c) => c.name).filter(Boolean) : []
+        )
+        setEscolasApi(
+          Array.isArray(listaEscolas) ? listaEscolas.map((s) => s.name).filter(Boolean) : []
+        )
+      })
+      .finally(() => {
+        if (ativo) setCarregando(false)
+      })
+
+    return () => {
+      ativo = false
+    }
+  }, [])
+
+  const opcoesCategoria = useMemo(() => {
+    const unicas = new Set([...categoriasApi, ...opcoesUnicas(tutoriais, 'categoria')])
+    return Array.from(unicas).sort((a, b) => a.localeCompare(b, 'pt-BR'))
+  }, [categoriasApi, tutoriais])
+
+  const opcoesEscola = useMemo(() => {
+    const unicas = new Set([...escolasApi, ...opcoesUnicas(tutoriais, 'escola')])
+    return Array.from(unicas).sort((a, b) => a.localeCompare(b, 'pt-BR'))
+  }, [escolasApi, tutoriais])
 
   const tutoriaisFiltrados = useMemo(
     () =>
@@ -41,23 +85,25 @@ export default function GestaoTutoriais() {
   )
 
   const alternarVisibilidade = (id) => {
-    // TODO: integrar com a API
     setTutoriais((prev) => prev.map((t) => (t.id === id ? { ...t, visivel: !t.visivel } : t)))
   }
 
-  const excluirTutorial = (tutorial) => {
-    if (window.confirm(`Deseja realmente excluir o tutorial "${tutorial.titulo}"?`)) {
-      // TODO: integrar com a API
+  const excluirTutorial = async (tutorial) => {
+    if (!window.confirm(`Deseja realmente excluir o tutorial "${tutorial.titulo}"?`)) return
+    try {
+      await apiTutoriais.excluir(tutorial.id)
       setTutoriais((prev) => prev.filter((t) => t.id !== tutorial.id))
+    } catch (err) {
+      window.alert(err?.message || 'Não foi possível excluir o tutorial.')
     }
   }
 
   return (
-    <div className="flex min-h-screen bg-background relative">
+    <div className="flex flex-col lg:flex-row min-h-screen bg-background relative">
       <SideBarProfessor />
 
       <main className="flex-1 flex flex-col">
-        <div className="w-[85%] max-w-[900px] mx-auto py-10 px-4 flex flex-col gap-10">
+        <div className="w-[92%] sm:w-[85%] max-w-[900px] mx-auto py-8 lg:py-10 px-2 sm:px-4 flex flex-col gap-8 lg:gap-10">
           {/* Busca superior */}
           <div className="relative w-full max-w-[350px]">
             <IoSearchOutline
@@ -77,8 +123,10 @@ export default function GestaoTutoriais() {
           {/* Cabeçalho da página */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
             <section className="flex flex-col gap-2 max-w-[647px]">
-              <h1 className="text-verde-escuro text-5xl font-bold leading-tight">Meus Tutoriais</h1>
-              <p className="text-verde-musgo text-xl font-normal">
+              <h1 className="text-verde-escuro text-3xl sm:text-5xl font-bold leading-tight">
+                Meus Tutoriais
+              </h1>
+              <p className="text-verde-musgo text-base sm:text-xl font-normal">
                 Gerencie os seus Tutoriais. Publique novas ideias, continue rascunhos ou remova
                 projetos antigos.
               </p>
@@ -86,7 +134,7 @@ export default function GestaoTutoriais() {
 
             <Link
               href="/cadastrarTutorial"
-              className="shrink-0 px-6 py-3 bg-[#4C6700] hover:bg-white hover:text-verde-musgo border border-verde-musgo text-white text-xl font-bold rounded-lg shadow-sm flex items-center gap-3 transition"
+              className="shrink-0 px-5 sm:px-6 py-2.5 sm:py-3 bg-[#4C6700] hover:bg-white hover:text-verde-musgo border border-verde-musgo text-white text-base sm:text-xl font-bold rounded-lg shadow-sm flex items-center gap-2 sm:gap-3 transition"
             >
               <IoAddOutline size={22} />
               Nova Publicação
@@ -185,7 +233,11 @@ export default function GestaoTutoriais() {
           </div>
 
           {/* Grade de vídeos / tutoriais */}
-          {tutoriaisFiltrados.length > 0 ? (
+          {carregando ? (
+            <p className="py-10 text-center text-verde-musgo font-medium">
+              Carregando tutoriais...
+            </p>
+          ) : tutoriaisFiltrados.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-7 gap-y-12">
               {tutoriaisFiltrados.map((tutorial) => {
                 const ehRascunho = tutorial.status === 'rascunho'
@@ -284,7 +336,7 @@ export default function GestaoTutoriais() {
             </div>
           ) : (
             <p className="py-10 text-center text-verde-musgo font-medium">
-              Nenhum tutorial encontrado com os filtros atuais.
+              Nenhum tutorial encontrado no momento.
             </p>
           )}
         </div>
