@@ -130,14 +130,33 @@ function ConteudoEditarProjeto() {
     }
   }
 
-  async function handleExcluir() {
-    if (!idProjeto) return
-    if (!window.confirm('Deseja realmente excluir esta publicação?')) return
+  function handleExcluir() {
+    setModal({
+      aberto: true,
+      tipo: 'confirmacao',
+      titulo: 'Excluir Projeto?',
+      mensagem: 'Deseja realmente remover esta publicação de projeto da rede?'
+    });
+  }
+
+  async function handleConfirmarExclusao() {
+    if (!idProjeto) return;
     try {
-      await apiProjetos.excluir(idProjeto)
-      router.push('/projetos')
+      await apiProjetos.excluir(idProjeto);
+      setModal({
+        aberto: true,
+        tipo: 'sucesso',
+        titulo: 'Projeto excluído com sucesso!',
+        mensagem: 'O projeto foi removido do catálogo.',
+        redirecionar: true
+      });
     } catch (err) {
-      window.alert(err?.message || 'Não foi possível excluir o projeto.')
+      setModal({
+        aberto: true,
+        tipo: 'erro',
+        titulo: 'Erro ao excluir projeto',
+        mensagem: err?.message || 'Não foi possível excluir o projeto.'
+      });
     }
   }
 
@@ -146,10 +165,10 @@ function ConteudoEditarProjeto() {
       <AdminSidebar variant="professor" />
 
       <div className="flex flex-1 flex-col px-4 sm:px-6 lg:px-10 pb-16">
-        <main className="mx-auto flex w-full max-w-4xl flex-col gap-6 pt-8 lg:pt-12">
+        <main className="mx-auto flex w-full max-w-6xl flex-col gap-6 pt-8 lg:pt-12">
           {/* Cabeçalho */}
           <div>
-            <h1 className="text-3xl sm:text-4xl font-bold text-verde-escuro">Editar Projeto</h1>
+            <h1 className="text-2xl font-bold text-verde-escuro">Editar Projeto</h1>
             <p className="mt-1 text-sm text-verde-musgo">
               Atualize as informações, descrição ou mídias do projeto da sua turma.
             </p>
@@ -340,7 +359,8 @@ function ConteudoEditarProjeto() {
               'Verifique se todos os campos foram preenchidos corretamente e tente salvar mais uma vez.'
         }
         textoBotaoSucesso="Voltar para Projetos"
-        onConfirmar={() => {
+        textoConfirmar={modal.tipo === 'confirmacao' ? 'Excluir' : undefined}
+        onConfirmar={modal.tipo === 'confirmacao' ? handleConfirmarExclusao : () => {
           setModal({ aberto: false, tipo: 'sucesso', mensagemErro: '' })
           router.push('/projetos')
         }}

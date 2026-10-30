@@ -161,12 +161,12 @@ export default function GestaoGruposPage() {
       <AdminSidebar variant="professor" />
 
       <div className="flex flex-1 flex-col px-4 sm:px-6 lg:px-10 pb-16">
-        <main className="mx-auto flex w-full max-w-4xl flex-col gap-6 pt-8 lg:pt-12">
+        <main className="mx-auto flex w-full max-w-6xl flex-col gap-6 pt-8 lg:pt-12">
           {/* Cabeçalho */}
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
               <p className="text-xl font-bold text-verde-musgo">{totalFormatado}</p>
-              <h1 className="text-3xl sm:text-4xl font-bold text-verde-escuro">Equipes Ativas</h1>
+              <h1 className="text-2xl font-bold text-verde-escuro">Equipes Ativas</h1>
             </div>
 
             <button
@@ -289,7 +289,7 @@ export default function GestaoGruposPage() {
               <MdClose size={24} />
             </button>
 
-            <h2 className="text-3xl font-bold text-verde-escuro">
+            <h2 className="text-2xl font-bold text-verde-escuro">
               {idEdicao ? 'Editar ' : 'Nova '}
               <span className="text-verde-musgo">Equipe!</span>
             </h2>

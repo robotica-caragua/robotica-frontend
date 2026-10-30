@@ -171,7 +171,7 @@ function CadastrarUsuarioConteudo() {
       <main className="flex-1 flex flex-col">
         <div className="w-full max-w-5xl mx-auto py-8 lg:py-12 px-4 sm:px-8 flex flex-col gap-10">
           <section className="flex flex-col gap-2 items-center text-center">
-            <h2 className="text-verde-escuro text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight">
+            <h2 className="text-verde-escuro text-2xl font-bold leading-tight">
               {idEdicao ? 'Editar Professor' : 'Cadastrar Novo Professor'}
             </h2>
             <p className="text-verde-musgo text-base sm:text-lg lg:text-xl font-normal">
@@ -386,20 +386,20 @@ function CadastrarUsuarioConteudo() {
               </div>
             </div>
 
-            <div className="flex justify-between items-center pt-4">
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-4">
               <Link
                 href="/gestaoUsuarios"
-                className="flex items-center gap-2 px-8 py-4 rounded-lg text-verde-escuro font-bold uppercase hover:bg-input-bg transition cursor-pointer"
+                className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl text-verde-escuro font-bold uppercase hover:bg-input-bg transition cursor-pointer text-sm"
               >
-                <IoClose size={24} /> Cancelar
+                <IoClose size={20} /> Cancelar
               </Link>
 
               <button
                 type="submit"
-                className="px-6 py-4 bg-verde-musgo hover:bg-white hover:text-verde-musgo hover:border hover:border-verde-musgo text-white text-base font-bold uppercase tracking-widest rounded-lg flex items-center gap-4 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full sm:w-auto px-6 py-3.5 bg-verde-musgo hover:bg-white hover:text-verde-musgo hover:border hover:border-verde-musgo text-white text-sm sm:text-base font-bold uppercase tracking-wider rounded-xl flex items-center justify-center gap-3 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-xs"
               >
                 {idEdicao ? 'Salvar Alterações' : 'Cadastrar Professor'}
-                <IoArrowForward size={28} />
+                <IoArrowForward size={22} />
               </button>
             </div>
           </form>

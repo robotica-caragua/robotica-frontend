@@ -1,11 +1,10 @@
 'use client'
 
 import Link from 'next/link'
-import { IoCheckboxOutline, IoAlertCircleOutline } from 'react-icons/io5'
 
 export function ModalConfirmacao({
   aberto,
-  tipo,
+  tipo = 'sucesso',
   titulo,
   tituloPrincipal,
   destaque,
@@ -13,6 +12,8 @@ export function ModalConfirmacao({
   mensagem,
   textoBotaoSucesso,
   textoBotaoVoltar = 'Voltar',
+  textoConfirmar,
+  textoCancelar = 'Cancelar',
   hrefVoltar = '/',
   onConfirmar,
   onCancelar,
@@ -21,76 +22,155 @@ export function ModalConfirmacao({
   if (aberto === false) return null
   if (aberto === undefined && !tipo) return null
 
-  const tipoFinal = tipo || 'sucesso'
-  const ehSucesso = tipoFinal === 'sucesso'
-  const principal =
-    tituloPrincipal ||
+  const ehSucesso = tipo === 'sucesso'
+  const ehConfirmacao = tipo === 'confirmacao' || tipo === 'excluir'
+  const ehErro = tipo === 'erro' || tipo === 'negativa'
+
+  const tituloFormatado =
     titulo ||
-    (ehSucesso ? 'Operação realizada com' : 'Não foi possível concluir')
-  const textoDestaque = tituloDestaque || destaque || (ehSucesso ? 'sucesso!' : 'a ação!')
-  const textoSucesso = textoBotaoSucesso || textoBotaoVoltar
+    (tituloPrincipal && (tituloDestaque || destaque)
+      ? `${tituloPrincipal} ${tituloDestaque || destaque}`
+      : tituloPrincipal) ||
+    (ehSucesso
+      ? 'Operação realizada com sucesso!'
+      : ehConfirmacao
+        ? 'Confirmar ação'
+        : 'Não foi possível concluir')
+
+  const textoBotaoPrincipal =
+    textoConfirmar || textoBotaoSucesso || textoBotaoVoltar || (ehSucesso ? 'Continuar' : 'Entendido')
 
   return (
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-verde-escuro/40 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4"
     >
-      <div className="w-full max-w-[676px] rounded-3xl sm:rounded-[40px] border border-verde-musgo bg-white p-6 sm:px-8 sm:py-12 shadow-xl flex flex-col items-center gap-4 text-center">
+      <div className="w-full max-w-lg rounded-3xl bg-white p-7 sm:p-10 shadow-2xl flex flex-col items-center gap-4 text-center border border-stone-100">
+        {/* Ícone no topo conforme protótipo */}
         {ehSucesso ? (
-          <IoCheckboxOutline size={80} className="text-black sm:size-24" />
+          <div className="flex items-center justify-center w-20 h-20 rounded-2xl border-4 border-black text-black mb-1">
+            <svg
+              className="w-10 h-10"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="3.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          </div>
+        ) : ehConfirmacao ? (
+          <div className="flex items-center justify-center w-20 h-20 rounded-2xl border-4 border-verde-musgo text-verde-musgo mb-1">
+            <svg
+              className="w-10 h-10"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+          </div>
         ) : (
-          <IoAlertCircleOutline size={80} className="text-black sm:size-24" />
+          <div className="flex items-center justify-center w-20 h-20 rounded-2xl border-4 border-vermelho text-vermelho mb-1">
+            <svg
+              className="w-10 h-10"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </div>
         )}
 
-        <h2 className="text-verde-escuro text-2xl sm:text-3xl font-bold">
-          {principal} <span className="text-verde-musgo">{textoDestaque}</span>
+        {/* Título Principal */}
+        <h2 className="text-verde-escuro text-2xl sm:text-3xl font-extrabold tracking-tight">
+          {tituloFormatado}
         </h2>
 
-        <p className="text-verde-musgo text-base sm:text-xl font-medium max-w-lg">{mensagem}</p>
+        {/* Mensagem descritiva */}
+        {mensagem && (
+          <p className="text-stone-700 text-sm sm:text-base font-medium max-w-md leading-relaxed">
+            {mensagem}
+          </p>
+        )}
 
-        {ehSucesso ? (
+        {/* Botões de Ação */}
+        {ehConfirmacao ? (
+          <div className="mt-4 flex flex-col sm:flex-row items-center justify-center gap-3 w-full max-w-sm">
+            <button
+              type="button"
+              onClick={onCancelar}
+              className="w-full sm:flex-1 py-3 px-6 bg-white hover:bg-stone-50 border-2 border-stone-300 text-stone-700 text-base font-bold rounded-xl transition cursor-pointer"
+            >
+              {textoCancelar}
+            </button>
+            <button
+              type="button"
+              onClick={onConfirmar}
+              className="w-full sm:flex-1 py-3 px-6 bg-verde-musgo hover:bg-white hover:text-verde-musgo border-2 border-verde-musgo text-white text-base font-bold rounded-xl shadow-xs transition cursor-pointer"
+            >
+              {textoBotaoPrincipal}
+            </button>
+          </div>
+        ) : ehSucesso ? (
           onConfirmar ? (
             <button
               type="button"
               onClick={onConfirmar}
-              className="mt-4 w-full sm:w-auto sm:min-w-[250px] px-8 py-3 bg-verde-musgo hover:opacity-90 text-branco-esverdeado text-lg sm:text-xl font-bold rounded-[10px] shadow-xs cursor-pointer transition"
+              className="mt-4 w-full sm:w-auto sm:min-w-[220px] px-8 py-3.5 bg-verde-musgo hover:bg-white hover:text-verde-musgo border-2 border-verde-musgo text-white text-base sm:text-lg font-bold rounded-xl shadow-xs cursor-pointer transition"
             >
-              {textoSucesso}
+              {textoBotaoPrincipal}
             </button>
           ) : (
             <Link
               href={hrefVoltar}
-              className="mt-4 w-full sm:w-auto sm:min-w-[250px] px-8 py-3 bg-verde-musgo hover:opacity-90 text-branco-esverdeado text-lg sm:text-xl font-bold rounded-[10px] shadow-xs transition"
+              className="mt-4 w-full sm:w-auto sm:min-w-[220px] px-8 py-3.5 bg-verde-musgo hover:bg-white hover:text-verde-musgo border-2 border-verde-musgo text-white text-base sm:text-lg font-bold rounded-xl shadow-xs transition text-center"
             >
-              {textoSucesso}
+              {textoBotaoPrincipal}
             </Link>
           )
         ) : (
-          <div className="mt-4 flex flex-col sm:flex-row justify-center gap-3 sm:gap-5 w-full max-w-[520px]">
-            {onCancelar ? (
+          <div className="mt-4 flex flex-col sm:flex-row justify-center gap-3 w-full max-w-sm">
+            {onCancelar && (
               <button
                 type="button"
                 onClick={onCancelar}
-                className="flex-1 py-3 bg-white hover:bg-input-bg border border-verde-musgo border-b-4 text-verde-musgo text-lg sm:text-xl font-bold rounded-[10px] cursor-pointer transition"
+                className="w-full sm:flex-1 py-3 px-6 bg-white hover:bg-stone-50 border-2 border-stone-300 text-stone-700 text-base font-bold rounded-xl cursor-pointer transition"
               >
-                Cancelar
+                Fechar
               </button>
-            ) : (
-              <Link
-                href={hrefVoltar}
-                className="flex-1 py-3 bg-white hover:bg-input-bg border border-verde-musgo border-b-4 text-verde-musgo text-lg sm:text-xl font-bold rounded-[10px] transition text-center"
-              >
-                Cancelar
-              </Link>
             )}
-            <button
-              type="button"
-              onClick={onTentarNovamente}
-              className="flex-1 py-3 bg-verde-musgo hover:opacity-90 text-branco-esverdeado text-lg sm:text-xl font-bold rounded-[10px] shadow-xs cursor-pointer transition"
-            >
-              Tentar Novamente
-            </button>
+            {onTentarNovamente && (
+              <button
+                type="button"
+                onClick={onTentarNovamente}
+                className="w-full sm:flex-1 py-3 px-6 bg-verde-musgo hover:bg-white hover:text-verde-musgo border-2 border-verde-musgo text-white text-base font-bold rounded-xl shadow-xs cursor-pointer transition"
+              >
+                Tentar Novamente
+              </button>
+            )}
+            {!onTentarNovamente && !onCancelar && (
+              <button
+                type="button"
+                onClick={onConfirmar}
+                className="w-full sm:w-auto sm:min-w-[200px] py-3 px-6 bg-verde-musgo hover:bg-white hover:text-verde-musgo border-2 border-verde-musgo text-white text-base font-bold rounded-xl shadow-xs cursor-pointer transition"
+              >
+                Entendido
+              </button>
+            )}
           </div>
         )}
       </div>

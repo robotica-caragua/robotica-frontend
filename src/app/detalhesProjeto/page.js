@@ -10,8 +10,6 @@ import { Footer } from '@/components/Footer'
 import {
   MdArrowBack,
   MdPhotoLibrary,
-  MdChevronLeft,
-  MdChevronRight,
   MdInsertDriveFile,
   MdLocationOn,
   MdArrowForward
@@ -77,19 +75,19 @@ function DetalhesProjetoConteudo() {
 
   if (carregando) {
     return (
-      <main className="w-full min-h-screen bg-[#FFFDF5] py-16 px-4 flex items-center justify-center">
-        <p className="text-verde-musgo text-xl font-medium">Carregando detalhes do projeto...</p>
+      <main className="w-full min-h-[60vh] py-16 px-4 flex items-center justify-center">
+        <p className="text-verde-musgo text-base sm:text-lg font-medium">Carregando detalhes do projeto...</p>
       </main>
     )
   }
 
   if (!projeto) {
     return (
-      <main className="w-full min-h-screen bg-[#FFFDF5] py-16 px-4 flex flex-col items-center justify-center gap-6">
-        <p className="text-verde-musgo text-xl font-medium">Projeto não encontrado.</p>
+      <main className="w-full min-h-[60vh] py-16 px-4 flex flex-col items-center justify-center gap-4">
+        <p className="text-verde-musgo text-base sm:text-lg font-medium">Projeto não encontrado.</p>
         <Link
           href="/projetos"
-          className="px-6 py-3 bg-verde-musgo text-white font-bold rounded-lg hover:opacity-90 transition"
+          className="px-5 py-2.5 bg-verde-musgo text-white text-sm font-bold rounded-xl hover:bg-verde-escuro transition"
         >
           Voltar para Projetos
         </Link>
@@ -98,176 +96,150 @@ function DetalhesProjetoConteudo() {
   }
 
   return (
-    <main className="w-full min-h-screen bg-[#FFFDF5] py-16 px-4 flex flex-col items-center justify-start">
-      <div className="w-full max-w-300 flex flex-col gap-10">
+    <main className="w-full min-h-screen bg-branco-esverdeado/20 py-8 sm:py-12 px-4 flex flex-col items-center justify-start">
+      <div className="w-full max-w-5xl flex flex-col gap-8">
         {/* botão voltar */}
-        <div className="self-start mt-4 md:-ml-12">
+        <div className="self-start">
           <Link
             href="/projetos"
-            className="text-[#002A15] hover:opacity-80 transition-opacity text-4xl md:text-5xl flex items-center cursor-pointer"
+            className="text-verde-escuro hover:text-verde-musgo transition-colors font-bold text-xs sm:text-sm flex items-center gap-2 cursor-pointer bg-white border border-stone-200 px-3.5 py-2 rounded-xl shadow-xs"
           >
-            <MdArrowBack />
+            <MdArrowBack size={18} />
+            <span>Voltar para Projetos</span>
           </Link>
         </div>
 
         {/* cabeçalho do Projeto */}
         <div className="flex flex-col gap-3">
-          <h1 className="text-[#002A15] text-2xl sm:text-4xl lg:text-5xl font-bold font-sans leading-tight">
+          <h1 className="text-verde-escuro text-2xl font-extrabold font-sans leading-tight">
             {projeto.titulo}
           </h1>
 
           {/* tags */}
-          <div className="pl-4 sm:pl-6 border-l-4 border-lime-400 flex flex-wrap items-center gap-x-4 sm:gap-x-6 gap-y-2 text-verde-musgo font-sans text-sm sm:text-base">
+          <div className="pl-3.5 border-l-4 border-verde-limao flex flex-wrap items-center gap-x-4 sm:gap-x-6 gap-y-1.5 text-verde-musgo font-sans text-xs sm:text-sm">
             <div>
-              <strong className="text-[#002A15]">Orientador:</strong> {projeto.orientador}
+              <strong className="text-verde-escuro">Orientador:</strong> {projeto.orientador}
             </div>
-            <span className="hidden md:inline text-verde-musgo">|</span>
+            <span className="hidden md:inline text-stone-300">|</span>
             <div>
-              <strong className="text-[#002A15]">Escola:</strong> {projeto.escola}
+              <strong className="text-verde-escuro">Escola:</strong> {projeto.escola}
             </div>
-            <span className="hidden md:inline text-verde-musgo">|</span>
+            <span className="hidden md:inline text-stone-300">|</span>
             <div>
-              <strong className="text-[#002A15]">Data da Publicação:</strong>{' '}
+              <strong className="text-verde-escuro">Data da Publicação:</strong>{' '}
               {projeto.dataPublicacao}
             </div>
           </div>
         </div>
 
-        <div className="w-full flex flex-col lg:flex-row gap-8 justify-between items-start">
+        <div className="w-full flex flex-col lg:flex-row gap-6 sm:gap-8 justify-between items-start">
           {/* galeria do projeto */}
-          <div className="w-full max-w-200 flex flex-col gap-6">
-            <div className="flex items-center gap-3">
-              <div className="p-1 bg-[#E8F5D6] rounded-lg flex items-center justify-center">
-                <MdPhotoLibrary className="text-xl text-verde-musgo" />
+          <div className="w-full flex-1 flex flex-col gap-3">
+            <div className="flex items-center gap-2.5">
+              <div className="p-1.5 bg-[#E8F5D6] rounded-lg flex items-center justify-center">
+                <MdPhotoLibrary className="text-lg text-verde-musgo" />
               </div>
-              <h2 className="text-[#002A15] text-2xl font-semibold font-sans leading-8">
+              <h2 className="text-verde-escuro text-lg sm:text-xl font-bold font-sans">
                 Galeria do Projeto
               </h2>
             </div>
 
-            {/* carrossel */}
-            <div className="w-full flex flex-col items-center gap-4 relative">
-              <div className="w-full relative flex items-center justify-center px-10 sm:px-14">
-                <button
-                  type="button"
-                  className="w-10 h-10 absolute left-0 top-[50%] -translate-y-1/2 bg-[#E8F5D6] hover:opacity-90 text-verde-musgo rounded-full flex justify-center items-center cursor-pointer transition-opacity text-xl focus:outline-none z-10"
-                >
-                  <MdChevronLeft />
-                </button>
-
-                <div className="w-full max-w-162 h-56 sm:h-80 md:h-96 bg-white rounded-3xl overflow-hidden shadow-sm border border-stone-100 flex-1">
-                  <Image
-                    className="w-full h-full object-cover"
-                    src="https://t4.ftcdn.net/jpg/01/63/58/21/360_F_163582149_7XleuAaTQJ7LYZMCCLyo2sJjiZTgv0As.jpg"
-                    alt={`${projeto.titulo} Protótipo`}
-                    width={648}
-                    height={384}
-                  />
-                </div>
-
-                <button
-                  type="button"
-                  className="w-10 h-10 absolute right-0 top-[50%] -translate-y-1/2 bg-[#E8F5D6] hover:opacity-90 text-verde-musgo rounded-full flex justify-center items-center cursor-pointer transition-opacity text-xl focus:outline-none z-10"
-                >
-                  <MdChevronRight />
-                </button>
-              </div>
-
-              <div className="flex justify-center items-center gap-1 mt-2 w-full max-w-162">
-                <div className="w-2 h-2 bg-lime-400 rounded-full" />
-                <div className="w-2 h-2 bg-stone-300/30 rounded-full" />
-                <div className="w-2 h-2 bg-stone-300/30 rounded-full" />
-                <div className="w-2 h-2 bg-stone-300/30 rounded-full" />
-              </div>
+            <div className="w-full h-64 sm:h-80 md:h-96 bg-white rounded-2xl overflow-hidden shadow-xs border border-stone-200">
+              <Image
+                className="w-full h-full object-cover"
+                src="https://t4.ftcdn.net/jpg/01/63/58/21/360_F_163582149_7XleuAaTQJ7LYZMCCLyo2sJjiZTgv0As.jpg"
+                alt={`${projeto.titulo} Protótipo`}
+                width={648}
+                height={384}
+                priority
+              />
             </div>
           </div>
 
           {/* tecnologias e equipe */}
-          <div className="w-full lg:w-96 bg-white border border-stone-300 rounded-lg p-6 flex flex-col gap-5 shadow-sm font-sans">
-            <div className="flex flex-col gap-2.5">
-              <h3 className="text-[#002A15] text-2xl font-semibold leading-8">Categorias</h3>
-              <div className="py-5 border-b border-verde-musgo flex flex-col">
-                <div className="flex flex-wrap gap-2">
-                  {projeto.categorias.map((cat) => (
-                    <span
-                      key={cat}
-                      className="px-3 py-1 bg-[#E8F5D6] text-verde-musgo text-xs font-normal rounded-xl"
-                    >
-                      {cat}
-                    </span>
-                  ))}
-                </div>
+          <div className="w-full lg:w-80 bg-white border border-stone-200 rounded-2xl p-6 flex flex-col gap-5 shadow-xs font-sans">
+            <div className="flex flex-col gap-2">
+              <h3 className="text-verde-escuro text-base font-bold uppercase tracking-wider">Categorias</h3>
+              <div className="pt-1 pb-3 border-b border-stone-100 flex flex-wrap gap-1.5">
+                {projeto.categorias.map((cat) => (
+                  <span
+                    key={cat}
+                    className="px-2.5 py-1 bg-[#E8F5D6] text-verde-musgo text-xs font-semibold rounded-lg"
+                  >
+                    {cat}
+                  </span>
+                ))}
               </div>
             </div>
 
-            <div className="flex flex-col gap-5">
-              <h3 className="text-[#002A15] text-2xl font-semibold leading-8 py-1.25">Unidade</h3>
+            <div className="flex flex-col gap-3">
+              <h3 className="text-verde-escuro text-base font-bold uppercase tracking-wider">Unidade Escolar</h3>
 
-              <div className="flex flex-col gap-1.25">
-                <span className="text-verde-musgo text-base font-medium uppercase tracking-wide">
+              <div className="flex flex-col gap-1">
+                <span className="text-verde-musgo text-[11px] font-bold uppercase tracking-wider">
                   ESCOLA VINCULADA
                 </span>
-                <span className="text-[#002A15] text-base font-bold">{projeto.escola}</span>
+                <span className="text-verde-escuro text-sm font-bold">{projeto.escola}</span>
               </div>
 
-              <div className="flex flex-col gap-2 pt-2">
-                <span className="text-verde-musgo text-base font-medium uppercase tracking-wide">
+              <div className="flex flex-col gap-1 pt-2 border-t border-stone-100">
+                <span className="text-verde-musgo text-[11px] font-bold uppercase tracking-wider">
                   ENDEREÇO
                 </span>
-                <span className="text-[#002A15] text-sm font-medium">{projeto.enderecoEscola}</span>
+                <span className="text-stone-600 text-xs sm:text-sm font-medium">{projeto.enderecoEscola}</span>
               </div>
             </div>
           </div>
         </div>
 
         {/* sobre o projeto */}
-        <div className="w-full bg-white rounded-3xl border border-verde-musgo p-6 sm:p-8 md:p-10 flex flex-col gap-6 font-sans">
-          <div className="flex items-center gap-3">
-            <div className="p-1 bg-[#E8F5D6] rounded-lg flex items-center justify-center">
-              <MdInsertDriveFile className="text-xl text-verde-musgo" />
+        <div className="w-full bg-white rounded-2xl border border-stone-200 p-6 sm:p-8 flex flex-col gap-3 font-sans shadow-xs">
+          <div className="flex items-center gap-2.5">
+            <div className="p-1.5 bg-[#E8F5D6] rounded-lg flex items-center justify-center">
+              <MdInsertDriveFile className="text-lg text-verde-musgo" />
             </div>
-            <h2 className="text-[#002A15] text-2xl font-semibold leading-8">Sobre o Projeto</h2>
+            <h2 className="text-verde-escuro text-lg sm:text-xl font-bold">Sobre o Projeto</h2>
           </div>
-          <p className="text-verde-musgo text-base sm:text-lg md:text-xl font-normal leading-relaxed text-justify pb-4">
+          <p className="text-stone-700 text-sm sm:text-base font-normal leading-relaxed text-justify">
             {projeto.descricao}
           </p>
         </div>
 
         {/* unidade escolar */}
-        <div className="w-full bg-white rounded-3xl border border-verde-musgo p-6 sm:p-8 flex flex-col gap-6 font-sans">
-          <div className="flex flex-col gap-4">
-            <h2 className="text-verde-musgo text-2xl sm:text-3xl font-medium leading-9 uppercase">
+        <div className="w-full bg-white rounded-2xl border border-stone-200 p-6 sm:p-8 flex flex-col gap-4 font-sans shadow-xs">
+          <div className="flex flex-col gap-2">
+            <h2 className="text-verde-escuro text-lg sm:text-xl font-bold uppercase tracking-wide">
               {projeto.escola}
             </h2>
-            <div className="flex items-center gap-2 text-verde-musgo text-base sm:text-lg font-normal leading-6">
-              <MdLocationOn className="text-xl" />
+            <div className="flex items-center gap-2 text-verde-musgo text-xs sm:text-sm font-medium">
+              <MdLocationOn className="text-base shrink-0" />
               <span>{projeto.enderecoEscola}</span>
             </div>
-            <p className="text-[#002A15] text-lg sm:text-2xl font-normal leading-relaxed mt-2">
+            <p className="text-stone-600 text-sm sm:text-base leading-relaxed mt-1">
               Referência regional em robótica educacional inclusiva. Nossa escola desenvolve
               projetos que integram tecnologia e consciência ambiental desde os anos iniciais.
             </p>
           </div>
 
-          <div className="flex flex-col gap-4 pt-4 border-t border-stone-100">
-            <h3 className="text-[#002A15] text-base font-semibold uppercase tracking-wider">
+          <div className="flex flex-col gap-3 pt-4 border-t border-stone-100">
+            <h3 className="text-verde-escuro text-xs sm:text-sm font-bold uppercase tracking-wider">
               OUTROS PROJETOS DA UNIDADE
             </h3>
 
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-2">
               {outrosProjetos.length > 0 ? (
                 outrosProjetos.map((outro) => (
                   <Link
                     key={outro.id}
                     href={`/detalhesProjeto?id=${outro.id}`}
-                    className="w-full p-4 bg-[#E8F5D6] rounded-xl flex justify-between items-center hover:opacity-90 transition-opacity cursor-pointer"
+                    className="w-full p-3.5 bg-input-bg rounded-xl flex justify-between items-center hover:bg-verde-pastel/50 transition-colors cursor-pointer text-xs sm:text-sm font-semibold text-verde-escuro"
                   >
-                    <span className="text-verde-musgo text-lg font-medium">{outro.titulo}</span>
-                    <MdArrowForward className="text-[#002A15]" />
+                    <span>{outro.titulo}</span>
+                    <MdArrowForward className="text-verde-musgo" size={18} />
                   </Link>
                 ))
               ) : (
-                <p className="text-verde-musgo text-base">
+                <p className="text-stone-500 text-xs sm:text-sm">
                   Nenhum outro projeto cadastrado para esta unidade.
                 </p>
               )}

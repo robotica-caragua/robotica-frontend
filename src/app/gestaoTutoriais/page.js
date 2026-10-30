@@ -5,6 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { SideBarProfessor } from '@/components/SideBarProfessor'
+import { ModalConfirmacao } from '@/components/ModalConfirmacao'
 import { correspondeBusca, opcoesUnicas } from '@/utils/filtros'
 import { apiCategorias, apiEscolas, apiTutoriais, mapearTutorialDaApi } from '@/services/api'
 import semaforo from '@/assets/semaforo.png'
@@ -26,6 +27,7 @@ export default function GestaoTutoriais() {
   const [categoriasApi, setCategoriasApi] = useState([])
   const [escolasApi, setEscolasApi] = useState([])
   const [carregando, setCarregando] = useState(true)
+  const [modal, setModal] = useState({ aberto: false, tipo: 'confirmacao', titulo: '', mensagem: '', tutorialParaExcluir: null })
   const [busca, setBusca] = useState('')
   const [nivel, setNivel] = useState('')
   const [categoria, setCategoria] = useState('')
@@ -88,22 +90,46 @@ export default function GestaoTutoriais() {
     setTutoriais((prev) => prev.map((t) => (t.id === id ? { ...t, visivel: !t.visivel } : t)))
   }
 
-  const excluirTutorial = async (tutorial) => {
-    if (!window.confirm(`Deseja realmente excluir o tutorial "${tutorial.titulo}"?`)) return
+  const excluirTutorial = (tutorial) => {
+    setModal({
+      aberto: true,
+      tipo: 'confirmacao',
+      titulo: 'Excluir Tutorial?',
+      mensagem: `Deseja realmente remover o tutorial "${tutorial.titulo}"?`,
+      tutorialParaExcluir: tutorial
+    });
+  };
+
+  const handleConfirmarExclusaoTutorial = async () => {
+    if (!modal.tutorialParaExcluir) return;
+    const tut = modal.tutorialParaExcluir;
     try {
-      await apiTutoriais.excluir(tutorial.id)
-      setTutoriais((prev) => prev.filter((t) => t.id !== tutorial.id))
+      await apiTutoriais.excluir(tut.id);
+      setTutoriais((prev) => prev.filter((item) => item.id !== tut.id));
+      setModal({
+        aberto: true,
+        tipo: 'sucesso',
+        titulo: 'Tutorial excluído com sucesso!',
+        mensagem: `O tutorial "${tut.titulo}" foi removido do catálogo.`,
+        tutorialParaExcluir: null
+      });
     } catch (err) {
-      window.alert(err?.message || 'Não foi possível excluir o tutorial.')
+      setModal({
+        aberto: true,
+        tipo: 'erro',
+        titulo: 'Erro ao excluir tutorial',
+        mensagem: err?.message || 'Não foi possível excluir o tutorial.',
+        tutorialParaExcluir: null
+      });
     }
-  }
+  };
 
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-background relative">
       <SideBarProfessor />
 
       <main className="flex-1 flex flex-col">
-        <div className="w-[92%] sm:w-[85%] max-w-[900px] mx-auto py-8 lg:py-10 px-2 sm:px-4 flex flex-col gap-8 lg:gap-10">
+        <div className="w-full max-w-6xl mx-auto py-8 sm:py-10 px-4 sm:px-6 lg:px-8 flex flex-col gap-6 sm:gap-8">
           {/* Busca superior */}
           <div className="relative w-full max-w-[350px]">
             <IoSearchOutline
@@ -123,10 +149,10 @@ export default function GestaoTutoriais() {
           {/* Cabeçalho da página */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
             <section className="flex flex-col gap-2 max-w-[647px]">
-              <h1 className="text-verde-escuro text-3xl sm:text-5xl font-bold leading-tight">
+              <h1 className="text-verde-escuro text-3xl sm:text-4xl font-bold leading-tight">
                 Meus Tutoriais
               </h1>
-              <p className="text-verde-musgo text-base sm:text-xl font-normal">
+              <p className="text-verde-musgo text-sm sm:text-base font-normal">
                 Gerencie os seus Tutoriais. Publique novas ideias, continue rascunhos ou remova
                 projetos antigos.
               </p>
@@ -134,7 +160,7 @@ export default function GestaoTutoriais() {
 
             <Link
               href="/cadastrarTutorial"
-              className="shrink-0 px-5 sm:px-6 py-2.5 sm:py-3 bg-[#4C6700] hover:bg-white hover:text-verde-musgo border border-verde-musgo text-white text-base sm:text-xl font-bold rounded-lg shadow-sm flex items-center gap-2 sm:gap-3 transition"
+              className="shrink-0 px-5 py-2.5 bg-verde-musgo hover:bg-white hover:text-verde-musgo border-2 border-verde-musgo text-white text-sm font-bold rounded-xl shadow-xs flex items-center gap-2 transition cursor-pointer"
             >
               <IoAddOutline size={22} />
               Nova Publicação
@@ -244,7 +270,7 @@ export default function GestaoTutoriais() {
                 return (
                   <article
                     key={tutorial.id}
-                    className={`w-full max-w-[280px] mx-auto bg-white rounded-3xl shadow-sm overflow-hidden flex flex-col transition ${
+                    className={`w-full max-w-[320px] mx-auto bg-white rounded-2xl border border-stone-200 shadow-xs overflow-hidden flex flex-col hover:shadow-lg hover:-translate-y-1 transition-all duration-300 ${
                       !tutorial.visivel ? 'opacity-60' : ''
                     }`}
                   >
@@ -273,7 +299,7 @@ export default function GestaoTutoriais() {
                         </span>
                       )}
 
-                      <h2 className="text-verde-escuro text-2xl font-bold leading-snug line-clamp-2 min-h-[60px]">
+                      <h2 className="text-verde-escuro text-base font-bold leading-snug line-clamp-2 min-h-[44px]">
                         {tutorial.titulo}
                       </h2>
 
@@ -341,6 +367,19 @@ export default function GestaoTutoriais() {
           )}
         </div>
       </main>
+
+      {modal.aberto && (
+        <ModalConfirmacao
+          aberto={modal.aberto}
+          tipo={modal.tipo}
+          titulo={modal.titulo}
+          mensagem={modal.mensagem}
+          textoConfirmar="Excluir"
+          textoCancelar="Cancelar"
+          onConfirmar={modal.tipo === 'confirmacao' ? handleConfirmarExclusaoTutorial : () => setModal((prev) => ({ ...prev, aberto: false }))}
+          onCancelar={() => setModal((prev) => ({ ...prev, aberto: false }))}
+        />
+      )}
     </div>
   )
 }

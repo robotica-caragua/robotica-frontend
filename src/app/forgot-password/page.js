@@ -39,8 +39,8 @@ export default function ForgotPassword() {
       <Header />
       <main className="px-4 py-8 max-w-4xl mx-auto">
         <div className="flex flex-col sm:flex-row justify-center items-center gap-2 mt-6 sm:mt-12 text-center">
-          <h1 className="font-bold text-3xl sm:text-4xl text-verde-escuro">ESQUECEU SUA SENHA?</h1>
-          <span className="font-bold text-3xl sm:text-4xl text-verde-musgo">
+          <h1 className="font-bold text-2xl text-verde-escuro">ESQUECEU SUA SENHA?</h1>
+          <span className="font-bold text-2xl text-verde-musgo">
             RECUPERE SEU ACESSO!
           </span>
         </div>

@@ -65,11 +65,11 @@ function SenhaConteudo() {
 
   return (
     <form onSubmit={handleConfirmar} className="px-4 py-8 max-w-4xl mx-auto">
-      <h1 className="flex justify-center font-bold text-3xl sm:text-4xl mt-6 sm:mt-12 text-center">
+      <h1 className="flex justify-center font-bold text-2xl mt-6 sm:mt-12 text-center">
         ESTAMOS QUASE LÁ,
       </h1>
 
-      <h1 className="flex justify-center font-bold text-3xl sm:text-4xl text-verde-musgo text-center">
+      <h1 className="flex justify-center font-bold text-2xl text-verde-musgo text-center">
         VERIFIQUE O SEU E-MAIL!
       </h1>
       <div className="flex justify-center mt-6 sm:mt-10">

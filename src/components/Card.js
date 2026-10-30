@@ -8,13 +8,12 @@ import { IoIosHeart, IoIosHeartEmpty } from 'react-icons/io'
 import { MdArrowForward } from 'react-icons/md'
 
 export function Card({
-  children,
   imageUrl = containerImage,
   level = 'Iniciante',
-  author = 'Profª Edna Maria Nogueira Ferraz',
+  author = 'Escola Municipal BioBot',
   title = 'Braço Robótico de Papelão',
-  description = 'Um braço robótico funcional construído inteiramente com materiais recicláveis e…',
-  likes = 124,
+  description = 'Aprenda a ler um sensor e controlar os motores de um robô.',
+  likes = 0,
   linkUrl = '/detalhesTutorial'
 }) {
   const [curtido, setCurtido] = useState(false)
@@ -26,42 +25,45 @@ export function Card({
   }
 
   return (
-    <article className="w-full max-w-[312px] rounded-[10px] border border-[#C4C9AC] bg-white flex flex-col overflow-hidden">
-      <div className="relative h-[180px] w-full overflow-hidden">
-        <div className="absolute top-3 left-3 bg-verde-musgo text-white text-[10px] font-medium px-2.5 py-1 rounded-full z-10">
+    <article className="w-full rounded-2xl border border-stone-200 bg-white flex flex-col overflow-hidden shadow-xs hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
+      <div className="relative h-[180px] w-full overflow-hidden bg-stone-100">
+        <div className="absolute top-3 left-3 bg-verde-musgo text-white text-[10px] font-bold px-2.5 py-1 rounded-full z-10 uppercase tracking-wider">
           {level}
         </div>
-        <Image src={imageUrl} alt={title} fill className="object-cover" />
+        <Image src={imageUrl || containerImage} alt={title} fill className="object-cover" />
       </div>
 
-      <div className="p-[19px] flex flex-col gap-[11px] flex-1">
-        {children}
-        <p className="text-xs text-verde-musgo font-medium uppercase truncate">{author}</p>
-        <h3 className="text-lg font-semibold text-verde-escuro uppercase leading-tight truncate">
+      <div className="p-4 sm:p-5 flex flex-col gap-2 flex-1">
+        <p className="text-xs text-verde-musgo font-bold uppercase tracking-wider truncate">
+          {author}
+        </p>
+        <h3 className="text-base sm:text-lg font-bold text-verde-escuro uppercase leading-tight truncate">
           {title}
         </h3>
-        <p className="text-sm text-verde-escuro font-normal line-clamp-2">{description}</p>
+        <p className="text-xs sm:text-sm text-stone-500 font-normal line-clamp-2">
+          {description}
+        </p>
 
-        <div className="mt-auto pt-2.5 border-t border-[#C3CAAD] flex items-center justify-between">
+        <div className="mt-auto pt-3 border-t border-stone-200 flex items-center justify-between">
           <button
             type="button"
             onClick={alternarCurtida}
-            className="flex items-center gap-1 text-[#434933] hover:opacity-80 transition cursor-pointer"
+            className="flex items-center gap-1.5 text-stone-500 hover:text-verde-musgo transition cursor-pointer"
           >
             {curtido ? (
               <IoIosHeart className="text-verde-musgo text-base" />
             ) : (
-              <IoIosHeartEmpty className="text-[#434933] text-base" />
+              <IoIosHeartEmpty className="text-stone-500 text-base" />
             )}
             <span className="text-xs font-normal">{totalCurtidas} curtidas</span>
           </button>
 
           <Link
             href={linkUrl}
-            className="flex items-center gap-1 text-sm text-[#4C6700] font-bold hover:underline"
+            className="flex items-center gap-1 text-xs sm:text-sm font-bold text-verde-musgo hover:text-verde-escuro transition cursor-pointer"
           >
-            Ver Detalhes
-            <MdArrowForward size={16} />
+            <span>Ver Detalhes</span>
+            <MdArrowForward size={14} />
           </Link>
         </div>
       </div>
