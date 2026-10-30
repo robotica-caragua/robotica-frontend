@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   MdOutlineArticle,
@@ -12,13 +12,12 @@ import {
   MdOutlineImage,
   MdOutlineAddAPhoto,
   MdClose,
-  MdArrowForward,
-  MdOutlineNotifications,
-  MdOutlineSettings,
-  MdPerson
+  MdArrowForward
 } from 'react-icons/md'
 import { IoIosArrowDown } from 'react-icons/io'
 import { AdminSidebar } from '@/components/AdminSidebar'
+import { ModalConfirmacao } from '@/components/ModalConfirmacao'
+import { apiCategorias, apiEscolas, apiProjetos } from '@/services/api'
 
 export default function NovoProjetoPage() {
   const router = useRouter()
@@ -27,52 +26,108 @@ export default function NovoProjetoPage() {
   const [escola, setEscola] = useState('')
   const [descricao, setDescricao] = useState('')
   const [arquivos, setArquivos] = useState([])
+  const [categoriasLista, setCategoriasLista] = useState([])
+  const [escolasLista, setEscolasLista] = useState([])
+  const [enviando, setEnviando] = useState(false)
+  const [modal, setModal] = useState({ aberto: false, tipo: 'sucesso', mensagemErro: '' })
+
+  useEffect(() => {
+    let ativo = true
+
+    apiCategorias
+      .listar()
+      .then((cats) => {
+        if (ativo && Array.isArray(cats)) {
+          setCategoriasLista(cats.map((c) => c.name).filter(Boolean))
+        }
+      })
+      .catch(() => {})
+
+    apiEscolas
+      .listar()
+      .then((escs) => {
+        if (ativo && Array.isArray(escs)) {
+          setEscolasLista(escs)
+        }
+      })
+      .catch(() => {})
+
+    return () => {
+      ativo = false
+    }
+  }, [])
 
   function handleArquivos(e) {
     const lista = Array.from(e.target.files || [])
     setArquivos(lista)
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault()
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL
-    if (apiUrl) {
-      fetch(`${apiUrl}/projetos`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nome, categoria, escola, descricao })
-      }).catch(() => {})
+    if (!nome.trim() || !escola || !descricao.trim()) {
+      setModal({ aberto: true, tipo: 'erro', mensagemErro: '' })
+      return
     }
-    router.push('/projetos')
+
+    const escEncontrada = escolasLista.find((item) => item.name === escola)
+    const schoolId = escEncontrada?.id || escolasLista[0]?.id
+
+    if (!schoolId) {
+      setModal({
+        aberto: true,
+        tipo: 'erro',
+        mensagemErro: 'Selecione uma escola válida cadastrada no sistema.'
+      })
+      return
+    }
+
+    setEnviando(true)
+    try {
+      const criado = await apiProjetos.criar({
+        name: nome.trim(),
+        description: descricao.trim(),
+        schoolId
+      })
+      if (arquivos.length > 0 && criado?.id) {
+        try {
+          const reader = new FileReader()
+          reader.onload = (ev) => {
+            if (ev.target?.result) {
+              window.localStorage.setItem(`foto_projeto_${criado.id}`, ev.target.result)
+            }
+          }
+          reader.readAsDataURL(arquivos[0])
+        } catch {}
+      }
+      setModal({ aberto: true, tipo: 'sucesso', mensagemErro: '' })
+    } catch (err) {
+      setModal({
+        aberto: true,
+        tipo: 'erro',
+        mensagemErro:
+          err?.message ||
+          'Verifique se todos os campos foram preenchidos corretamente e tente salvar mais uma vez.'
+      })
+    } finally {
+      setEnviando(false)
+    }
   }
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex flex-col lg:flex-row min-h-screen">
       <AdminSidebar variant="professor" />
 
-      <div className="flex flex-1 flex-col px-10 pb-16">
-        {/* Topo */}
-        <div className="flex h-16 items-center justify-end gap-4 text-verde-escuro">
-          <div className="relative">
-            <MdOutlineNotifications size={22} />
-            <span className="absolute top-0.5 right-0.5 h-2 w-2 rounded-full bg-vermelho" />
-          </div>
-          <MdOutlineSettings size={22} />
-          <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-verde-musgo bg-verde-escuro text-verde-pastel">
-            <MdPerson size={24} />
-          </div>
-        </div>
-
-        <main className="mx-auto flex w-full max-w-4xl flex-col gap-6 pt-10">
+      <div className="flex flex-1 flex-col px-4 sm:px-6 lg:px-10 pb-16">
+        <main className="mx-auto flex w-full max-w-4xl flex-col gap-6 pt-8 lg:pt-12">
           {/* Cabeçalho */}
           <div>
-            <h1 className="text-4xl font-bold text-verde-escuro">Criar Novo Projeto</h1>
+            <h1 className="text-3xl sm:text-4xl font-bold text-verde-escuro">Criar Novo Projeto</h1>
             <p className="mt-1 text-sm text-verde-musgo">
-              Transforme o trabalho da sua turma em um tutorial para toda a nossa rede.
+              Transforme o trabalho da sua turma em um projeto para toda a nossa rede.
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+          <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-6">
             {/* Informações Básicas */}
             <section className="flex flex-col gap-5 rounded-2xl border border-verde-musgo bg-white p-7">
               <div className="flex items-center gap-2 text-verde-escuro">
@@ -81,7 +136,7 @@ export default function NovoProjetoPage() {
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-medium text-verde-escuro">Nome do tutorial</label>
+                <label className="text-xs font-medium text-verde-escuro">Nome do projeto</label>
                 <input
                   type="text"
                   value={nome}
@@ -101,9 +156,11 @@ export default function NovoProjetoPage() {
                     className="w-full appearance-none rounded-lg border border-verde-musgo bg-input-bg px-4 py-3 pr-10 text-sm text-verde-musgo focus:outline-none cursor-pointer"
                   >
                     <option value="">Selecione o tema principal...</option>
-                    <option value="Maker / Reciclagem">Maker / Reciclagem</option>
-                    <option value="Eletrônica">Eletrônica</option>
-                    <option value="Mecânica">Mecânica</option>
+                    {categoriasLista.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
                   </select>
                   <IoIosArrowDown className="pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 text-lg text-verde-musgo" />
                 </div>
@@ -120,18 +177,11 @@ export default function NovoProjetoPage() {
                     <option value="">
                       Selecione a unidade onde o professor lecionará as oficinas.
                     </option>
-                    <option value="EMEF Prof. Luiz Ribeiro Muniz">
-                      EMEF Prof. Luiz Ribeiro Muniz
-                    </option>
-                    <option value="EMEF Prof. Luiz Silvar do Prado">
-                      EMEF Prof. Luiz Silvar do Prado
-                    </option>
-                    <option value="EMEF Profª Maria Aparecida De Carvalho">
-                      EMEF Profª Maria Aparecida De Carvalho
-                    </option>
-                    <option value="EMEF Profª Maria Thereza de Souza Castro">
-                      EMEF Profª Maria Thereza de Souza Castro
-                    </option>
+                    {escolasLista.map((esc) => (
+                      <option key={esc.id || esc.name} value={esc.name}>
+                        {esc.name}
+                      </option>
+                    ))}
                   </select>
                   <IoIosArrowDown className="pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 text-lg text-verde-musgo" />
                 </div>
@@ -224,15 +274,39 @@ export default function NovoProjetoPage() {
 
               <button
                 type="submit"
-                className="flex items-center gap-3 rounded-md bg-verde-musgo px-6 py-3 text-xs font-bold uppercase text-white hover:brightness-90 cursor-pointer"
+                disabled={enviando}
+                className="flex items-center gap-3 rounded-md bg-verde-musgo px-6 py-3 text-xs font-bold uppercase text-white hover:brightness-90 cursor-pointer disabled:opacity-60"
               >
-                Publicar Projeto
+                {enviando ? 'Publicando...' : 'Publicar Projeto'}
                 <MdArrowForward size={16} />
               </button>
             </div>
           </form>
         </main>
       </div>
+
+      <ModalConfirmacao
+        aberto={modal.aberto}
+        tipo={modal.tipo}
+        titulo={modal.tipo === 'sucesso' ? 'Projeto publicado com' : 'Não foi possível publicar'}
+        destaque={modal.tipo === 'sucesso' ? 'sucesso!' : 'o projeto!'}
+        mensagem={
+          modal.tipo === 'sucesso'
+            ? 'O novo projeto foi registrado e já está disponível no catálogo da rede.'
+            : modal.mensagemErro ||
+              'Verifique se todos os campos foram preenchidos corretamente e tente salvar mais uma vez.'
+        }
+        textoBotaoSucesso="Voltar para Projetos"
+        onConfirmar={() => {
+          setModal({ aberto: false, tipo: 'sucesso', mensagemErro: '' })
+          router.push('/projetos')
+        }}
+        onCancelar={() => {
+          setModal({ aberto: false, tipo: 'sucesso', mensagemErro: '' })
+          router.push('/projetos')
+        }}
+        onTentarNovamente={() => setModal({ aberto: false, tipo: 'sucesso', mensagemErro: '' })}
+      />
     </div>
   )
 }

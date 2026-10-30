@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -8,6 +8,17 @@ import { SideBarProfessor } from '@/components/SideBarProfessor'
 import { correspondeBusca } from '@/utils/filtros'
 import semaforo from '@/assets/semaforo.png'
 import containerImg from '@/assets/container.png'
+import {
+  apiAuth,
+  apiEscolas,
+  apiProjetos,
+  apiTutoriais,
+  apiUsuarios,
+  mapearProjetoDaApi,
+  mapearTutorialDaApi,
+  obterToken,
+  obterUsuario
+} from '@/services/api'
 import { IoSearchOutline, IoAddOutline, IoArrowForward, IoOpenOutline } from 'react-icons/io5'
 import {
   MdOutlineLocationOn,
@@ -21,49 +32,86 @@ import {
   MdOutlineCampaign
 } from 'react-icons/md'
 
-// TODO: substituir pelos dados da API quando estiver disponível
-const publicacoesIniciais = [
-  {
-    id: 1,
-    titulo: 'Semáforo Inteligente com Arduino',
-    status: 'rascunho',
-    infoData: 'Salvo há 2 dias',
-    imagem: semaforo,
-    visivel: true
-  },
-  {
-    id: 2,
-    titulo: 'Braço Robótico Hidráulico de Papelão',
-    status: 'publicado',
-    infoData: 'Atualizado em 15/05/2026',
-    imagem: containerImg,
-    visivel: true
-  },
-  {
-    id: 3,
-    titulo: 'Horta Automatizada com Sensor de Umidade',
-    status: 'publicado',
-    infoData: 'Atualizado em 10/05/2026',
-    imagem: containerImg,
-    visivel: true
-  },
-  {
-    id: 4,
-    titulo: 'Estação Meteorológica Escolar IoT',
-    status: 'publicado',
-    infoData: 'Atualizado em 02/05/2026',
-    imagem: semaforo,
-    visivel: true
-  }
-]
-
 export default function PainelProfessor() {
   const router = useRouter()
   const [busca, setBusca] = useState('')
-  const [publicacoes, setPublicacoes] = useState(publicacoesIniciais)
+  const [publicacoes, setPublicacoes] = useState([])
+  const [carregando, setCarregando] = useState(true)
+  const [nomeProfessor, setNomeProfessor] = useState(() => obterUsuario()?.name || 'Professor(a)')
+  const [nomeEscola, setNomeEscola] = useState('Rede Municipal de Caraguatatuba')
+
+  useEffect(() => {
+    let ativo = true
+
+    if (obterToken()) {
+      apiAuth
+        .me()
+        .then((user) => {
+          if (!ativo || !user) return
+          if (user.name) setNomeProfessor(user.name)
+          if (user.id) {
+            apiUsuarios
+              .buscarEscolaDoUsuario(user.id)
+              .then((esc) => {
+                if (ativo && esc?.name) setNomeEscola(esc.name)
+              })
+              .catch(() => {})
+          }
+        })
+        .catch(() => {})
+    }
+
+    Promise.all([
+      apiTutoriais.listar().catch(() => []),
+      apiProjetos.listar().catch(() => []),
+      apiEscolas.listar().catch(() => [])
+    ])
+      .then(([listaTutoriais, listaProjetos, listaEscolas]) => {
+        if (!ativo) return
+
+        const tuts = (Array.isArray(listaTutoriais) ? listaTutoriais : []).map((item, idx) => ({
+          ...mapearTutorialDaApi(item, idx % 2 === 0 ? semaforo : containerImg),
+          tipoRecurso: 'tutorial',
+          chaveUnica: `tutorial-${item.id}`
+        }))
+
+        const idsTutoriais = new Set(tuts.map((t) => t.titulo))
+        const projs = (Array.isArray(listaProjetos) ? listaProjetos : [])
+          .filter((p) => !idsTutoriais.has(p.name))
+          .map((item, idx) => ({
+            ...mapearProjetoDaApi(item),
+            status: 'publicado',
+            imagem: idx % 2 === 0 ? containerImg : semaforo,
+            visivel: true,
+            tipoRecurso: 'projeto',
+            chaveUnica: `projeto-${item.id}`
+          }))
+
+        const combinados = [...tuts, ...projs]
+        setPublicacoes(combinados)
+
+        const primeiraEscola =
+          listaTutoriais?.[0]?.school?.name ||
+          listaProjetos?.[0]?.school?.name ||
+          listaEscolas?.[0]?.name
+        if (primeiraEscola) {
+          setNomeEscola((atual) =>
+            atual === 'Rede Municipal de Caraguatatuba' ? primeiraEscola : atual
+          )
+        }
+      })
+      .finally(() => {
+        if (ativo) setCarregando(false)
+      })
+
+    return () => {
+      ativo = false
+    }
+  }, [])
 
   const totalPublicados = publicacoes.filter((p) => p.status === 'publicado').length
   const totalRascunhos = publicacoes.filter((p) => p.status === 'rascunho').length
+  const totalVisualizacoes = publicacoes.reduce((acc, p) => acc + (p.visualizacoes || 0), 0)
 
   const publicacoesFiltradas = useMemo(
     () =>
@@ -71,24 +119,40 @@ export default function PainelProfessor() {
     [busca, publicacoes]
   )
 
-  const alternarVisibilidade = (id) => {
-    // TODO: integrar com a API
-    setPublicacoes((prev) => prev.map((p) => (p.id === id ? { ...p, visivel: !p.visivel } : p)))
+  const alternarVisibilidade = (chaveUnica) => {
+    setPublicacoes((prev) =>
+      prev.map((p) => (p.chaveUnica === chaveUnica ? { ...p, visivel: !p.visivel } : p))
+    )
   }
 
-  const excluirPublicacao = (pub) => {
-    if (window.confirm(`Deseja realmente excluir "${pub.titulo}"?`)) {
-      // TODO: integrar com a API
-      setPublicacoes((prev) => prev.filter((p) => p.id !== pub.id))
+  const excluirPublicacao = async (pub) => {
+    if (!window.confirm(`Deseja realmente excluir "${pub.titulo}"?`)) return
+    try {
+      if (pub.tipoRecurso === 'projeto') {
+        await apiProjetos.excluir(pub.id)
+      } else {
+        await apiTutoriais.excluir(pub.id)
+      }
+      setPublicacoes((prev) => prev.filter((p) => p.chaveUnica !== pub.chaveUnica))
+    } catch (err) {
+      window.alert(err?.message || 'Não foi possível excluir a publicação.')
+    }
+  }
+
+  const editarPublicacao = (pub) => {
+    if (pub.tipoRecurso === 'projeto') {
+      router.push(`/editarProjeto?id=${pub.id}`)
+    } else {
+      router.push(`/editarTutorial?id=${pub.id}`)
     }
   }
 
   return (
-    <div className="flex min-h-screen bg-background relative">
+    <div className="flex flex-col lg:flex-row min-h-screen bg-background relative">
       <SideBarProfessor />
 
       <main className="flex-1 flex flex-col">
-        <div className="w-[85%] max-w-[900px] mx-auto py-10 px-4 flex flex-col gap-10">
+        <div className="w-[92%] sm:w-[85%] max-w-[900px] mx-auto py-8 lg:py-10 px-2 sm:px-4 flex flex-col gap-8 lg:gap-10">
           {/* Busca superior */}
           <div className="relative w-full max-w-[350px]">
             <IoSearchOutline
@@ -107,17 +171,17 @@ export default function PainelProfessor() {
 
           {/* Saudação e botão Nova Publicação */}
           <section className="flex flex-col gap-3">
-            <h1 className="text-verde-escuro text-5xl font-bold leading-tight">
-              Olá, Prof. Robson Nascimento!
+            <h1 className="text-verde-escuro text-3xl sm:text-5xl font-bold leading-tight">
+              Olá, {nomeProfessor}!
             </h1>
-            <div className="flex items-center gap-2 text-verde-musgo font-bold text-xl">
+            <div className="flex items-center gap-2 text-verde-musgo font-bold text-lg sm:text-xl">
               <MdOutlineLocationOn size={22} />
-              <span>EMEF Prof. Luiz Ribeiro Muniz</span>
+              <span>{nomeEscola}</span>
             </div>
             <div className="flex justify-end pt-1">
               <Link
                 href="/cadastrarTutorial"
-                className="px-6 py-3 bg-verde-musgo hover:bg-white hover:text-verde-musgo border border-verde-musgo text-white text-lg font-bold rounded-lg shadow-sm flex items-center gap-3 transition"
+                className="px-5 sm:px-6 py-2.5 sm:py-3 bg-verde-musgo hover:bg-white hover:text-verde-musgo border border-verde-musgo text-white text-base sm:text-lg font-bold rounded-lg shadow-sm flex items-center gap-2 sm:gap-3 transition"
               >
                 <IoAddOutline size={22} />
                 Nova Publicação
@@ -151,18 +215,22 @@ export default function PainelProfessor() {
               <div className="flex size-9 items-center justify-center rounded-lg bg-verde-pastel text-verde-musgo">
                 <MdOutlineGroups size={20} />
               </div>
-              <span className="pt-2 text-verde-escuro text-2xl font-semibold">145</span>
+              <span className="pt-2 text-verde-escuro text-2xl font-semibold">
+                {String(totalVisualizacoes).padStart(2, '0')}
+              </span>
               <span className="text-verde-musgo text-lg">Visualizações na Rede</span>
             </div>
           </section>
 
           {/* Publicações Recentes */}
           <section className="flex flex-col gap-5">
-            <div className="flex items-center justify-between px-1">
-              <h2 className="text-verde-musgo text-3xl font-semibold">Publicações Recentes</h2>
+            <div className="flex flex-wrap items-center justify-between gap-2 px-1">
+              <h2 className="text-verde-musgo text-2xl sm:text-3xl font-semibold">
+                Publicações Recentes
+              </h2>
               <Link
                 href="/projetos"
-                className="flex items-center gap-1.5 text-verde-musgo hover:text-verde-escuro text-lg font-bold transition"
+                className="flex items-center gap-1.5 text-verde-musgo hover:text-verde-escuro text-base sm:text-lg font-bold transition"
               >
                 Ver todos os projetos
                 <IoArrowForward size={18} />
@@ -170,12 +238,16 @@ export default function PainelProfessor() {
             </div>
 
             <div className="flex flex-col gap-5">
-              {publicacoesFiltradas.length > 0 ? (
+              {carregando ? (
+                <p className="py-8 text-center text-verde-musgo font-medium">
+                  Carregando publicações...
+                </p>
+              ) : publicacoesFiltradas.length > 0 ? (
                 publicacoesFiltradas.map((pub) => {
                   const ehRascunho = pub.status === 'rascunho'
                   return (
                     <article
-                      key={pub.id}
+                      key={pub.chaveUnica}
                       className={`p-5 bg-white/80 rounded-3xl border border-verde-musgo shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 transition ${
                         !pub.visivel ? 'opacity-60' : ''
                       }`}
@@ -213,7 +285,7 @@ export default function PainelProfessor() {
                         <div className="flex items-center gap-3 self-end sm:self-center">
                           <button
                             type="button"
-                            onClick={() => router.push(`/editarTutorial?id=${pub.id}`)}
+                            onClick={() => editarPublicacao(pub)}
                             className="px-5 py-2 bg-white hover:bg-input-bg border border-verde-musgo rounded-xl text-verde-musgo text-sm font-bold transition cursor-pointer"
                           >
                             Continuar Editando
@@ -232,7 +304,7 @@ export default function PainelProfessor() {
                         <div className="flex items-center gap-2 self-end sm:self-center">
                           <button
                             type="button"
-                            onClick={() => router.push(`/editarTutorial?id=${pub.id}`)}
+                            onClick={() => editarPublicacao(pub)}
                             title="Editar"
                             aria-label={`Editar ${pub.titulo}`}
                             className="p-2 text-verde-musgo hover:text-verde-escuro transition cursor-pointer"
@@ -241,7 +313,7 @@ export default function PainelProfessor() {
                           </button>
                           <button
                             type="button"
-                            onClick={() => alternarVisibilidade(pub.id)}
+                            onClick={() => alternarVisibilidade(pub.chaveUnica)}
                             title={pub.visivel ? 'Ocultar publicação' : 'Mostrar publicação'}
                             aria-label={
                               pub.visivel ? `Ocultar ${pub.titulo}` : `Mostrar ${pub.titulo}`
@@ -270,7 +342,9 @@ export default function PainelProfessor() {
                 })
               ) : (
                 <p className="py-8 text-center text-verde-musgo font-medium">
-                  Nenhuma publicação encontrada para &ldquo;{busca}&rdquo;.
+                  {busca
+                    ? `Nenhuma publicação encontrada para "${busca}".`
+                    : 'Nenhuma publicação cadastrada ainda.'}
                 </p>
               )}
             </div>

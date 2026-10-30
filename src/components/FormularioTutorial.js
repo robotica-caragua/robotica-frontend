@@ -1,10 +1,16 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { SideBarProfessor } from '@/components/SideBarProfessor'
 import { ModalConfirmacao } from '@/components/ModalConfirmacao'
+import {
+  apiCategorias,
+  apiEscolas,
+  apiTutoriais,
+  converterNivelParaDificuldade
+} from '@/services/api'
 import { IoClose, IoArrowForward } from 'react-icons/io5'
 import {
   MdInfoOutline,
@@ -12,6 +18,8 @@ import {
   MdOutlineInventory2,
   MdOutlineVideocam,
   MdOutlineVideoCall,
+  MdOutlineImage,
+  MdOutlineAddAPhoto,
   MdKeyboardArrowDown,
   MdFormatBold,
   MdFormatItalic,
@@ -22,26 +30,7 @@ import {
   MdTag
 } from 'react-icons/md'
 
-const opcoesCategoria = [
-  'Eletrônica Básica',
-  'Programação em Blocos (Scratch)',
-  'Arduino e Automação (C++)',
-  'Maker / Reciclagem (Sucata)'
-]
-
 const opcoesNivel = ['Iniciante', 'Intermediário', 'Avançado']
-
-const opcoesEscola = [
-  'EMEF Prof. Luiz Silvar do Prado',
-  'EMEF Profª Maria Aparecida De Carvalho',
-  'EMEF Profª Maria Thereza de Souza Castro',
-  'EMEF Prof. Luiz Ribeiro Muniz'
-]
-
-const materiaisPadrao = [
-  { id: 1, nome: 'Microcontrolador Arduino Uno', selecionado: false },
-  { id: 2, nome: 'Sensor Ultrassônico HC-SR04', selecionado: false }
-]
 
 const SecaoTitulo = ({ icone: Icone, titulo }) => (
   <div className="flex items-center gap-3 text-verde-escuro">
@@ -54,6 +43,9 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
   const router = useRouter()
   const ehEdicao = modo === 'editar'
 
+  const [categorias, setCategorias] = useState([])
+  const [escolas, setEscolas] = useState([])
+
   const [form, setForm] = useState({
     nome: dadosIniciais.titulo || dadosIniciais.nome || '',
     categoria: dadosIniciais.categoria || '',
@@ -63,16 +55,43 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
   })
 
   const [materiais, setMateriais] = useState(
-    dadosIniciais.materiais ? dadosIniciais.materiais.map((m) => ({ ...m })) : materiaisPadrao
+    Array.isArray(dadosIniciais.materiais) ? dadosIniciais.materiais.map((m) => ({ ...m })) : []
   )
   const [novoMaterial, setNovoMaterial] = useState('')
+  const [_imagem, setImagem] = useState(null)
+  const [imagemPreview, setImagemPreview] = useState(dadosIniciais.imagemUrl || '')
   const [video, setVideo] = useState(null)
   const [nomeVideoInicial] = useState(dadosIniciais.nomeVideo || '')
   const [erroVideo, setErroVideo] = useState('')
   const [modal, setModal] = useState(null) // 'sucesso' | 'erro' | null
+  const [mensagemErroApi, setMensagemErroApi] = useState('')
 
   const descricaoRef = useRef(null)
   const videoInputRef = useRef(null)
+  const imagemInputRef = useRef(null)
+
+  useEffect(() => {
+    let ativo = true
+    apiCategorias
+      .listar()
+      .then((lista) => {
+        if (!ativo || !Array.isArray(lista)) return
+        setCategorias(lista)
+      })
+      .catch(() => {})
+
+    apiEscolas
+      .listar()
+      .then((lista) => {
+        if (!ativo || !Array.isArray(lista)) return
+        setEscolas(lista)
+      })
+      .catch(() => {})
+
+    return () => {
+      ativo = false
+    }
+  }, [])
 
   const atualizar = (campo) => (e) => {
     setForm((prev) => ({ ...prev, [campo]: e.target.value }))
@@ -133,12 +152,22 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
     setVideo(arquivo)
   }
 
+  const handleImagem = (arquivo) => {
+    if (!arquivo) return
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      setImagemPreview(e.target?.result || '')
+    }
+    reader.readAsDataURL(arquivo)
+    setImagem(arquivo)
+  }
+
   const handleDropVideo = (e) => {
     e.preventDefault()
     handleVideo(e.dataTransfer.files?.[0])
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     const valido =
       form.nome.trim() &&
@@ -148,35 +177,84 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
       materiais.length > 0
 
     if (!valido) {
+      setMensagemErroApi('')
       setModal('erro')
       return
     }
 
-    // TODO: integrar com a API de tutoriais (enviar `form`, `materiais` e `video`)
-    setModal('sucesso')
+    const catEncontrada = categorias.find((c) => c.name === form.categoria)
+    const escEncontrada = escolas.find((s) => s.name === form.escola)
+    const categoryId = catEncontrada?.id || dadosIniciais.categoryId || categorias[0]?.id
+    const schoolId = escEncontrada?.id || dadosIniciais.schoolId || escolas[0]?.id
+
+    if (!categoryId || !schoolId) {
+      setMensagemErroApi(
+        'Não foi possível identificar a categoria ou a escola selecionada no servidor.'
+      )
+      setModal('erro')
+      return
+    }
+
+    const payload = {
+      title: form.nome.trim(),
+      description: form.descricao.trim(),
+      categoryId,
+      difficulty: converterNivelParaDificuldade(form.nivel),
+      schoolId,
+      materialsNeeded: materiais.map((m) => m.nome.slice(0, 80)),
+      tutorialUrl: dadosIniciais.tutorialUrl
+    }
+
+    try {
+      if (ehEdicao && dadosIniciais.id) {
+        await apiTutoriais.atualizar(dadosIniciais.id, payload)
+        if (imagemPreview) {
+          try {
+            window.localStorage.setItem(`foto_tutorial_${dadosIniciais.id}`, imagemPreview)
+          } catch {}
+        }
+      } else {
+        const criado = await apiTutoriais.criar(payload)
+        if (imagemPreview && criado?.id) {
+          try {
+            window.localStorage.setItem(`foto_tutorial_${criado.id}`, imagemPreview)
+          } catch {}
+        }
+      }
+      setMensagemErroApi('')
+      setModal('sucesso')
+    } catch (err) {
+      setMensagemErroApi(err?.message || '')
+      setModal('erro')
+    }
   }
 
-  const handleExcluirPublicacao = () => {
-    if (window.confirm('Deseja realmente excluir esta publicação?')) {
-      // TODO: integrar com a API de tutoriais
+  const handleExcluirPublicacao = async () => {
+    if (!window.confirm('Deseja realmente excluir esta publicação?')) return
+    try {
+      if (dadosIniciais.id) {
+        await apiTutoriais.excluir(dadosIniciais.id)
+      }
       router.push('/gestaoTutoriais')
+    } catch (err) {
+      window.alert(err?.message || 'Não foi possível excluir esta publicação.')
     }
   }
 
   const rotuloVideo = video?.name || nomeVideoInicial
 
   return (
-    <div className="flex min-h-screen bg-background relative">
+    <div className="flex flex-col lg:flex-row min-h-screen bg-background relative">
       <SideBarProfessor />
 
       <main className="flex-1 flex flex-col">
-        <div className="w-[85%] max-w-[900px] mx-auto py-12 px-4 flex flex-col gap-12">
+        <div className="w-[92%] sm:w-[85%] max-w-[900px] mx-auto py-8 lg:py-12 px-2 sm:px-4 flex flex-col gap-8 lg:gap-12">
           {/* Cabeçalho */}
           <section className="flex flex-col gap-2.5">
-            <h1 className="text-verde-escuro text-5xl font-bold leading-tight">
+            <h1 className="text-verde-escuro text-3xl sm:text-5xl font-bold leading-tight">
               {ehEdicao ? 'Editar Tutorial' : 'Criar Novo Tutorial'}
             </h1>
-            <p className="text-verde-musgo text-xl font-normal">
+            <p className="text-verde-musgo text-base sm:text-xl font-normal">
               {ehEdicao
                 ? 'Atualize as informações, adicione novos passos ou altere os materiais do seu protótipo.'
                 : 'Transforme o trabalho da sua turma em um tutorial para toda a nossa rede.'}
@@ -221,11 +299,15 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
                         <option value="" disabled>
                           Selecione o tema principal...
                         </option>
-                        {opcoesCategoria.map((cat) => (
-                          <option key={cat} value={cat}>
-                            {cat}
+                        {categorias.map((cat) => (
+                          <option key={cat.id ?? cat.name} value={cat.name}>
+                            {cat.name}
                           </option>
                         ))}
+                        {form.categoria &&
+                          !categorias.some((cat) => cat.name === form.categoria) && (
+                            <option value={form.categoria}>{form.categoria}</option>
+                          )}
                       </select>
                       <MdKeyboardArrowDown
                         size={26}
@@ -277,11 +359,14 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
                       <option value="" disabled>
                         Selecione a unidade onde o professor lecionará as oficinas.
                       </option>
-                      {opcoesEscola.map((esc) => (
-                        <option key={esc} value={esc}>
-                          {esc}
+                      {escolas.map((esc) => (
+                        <option key={esc.id ?? esc.name} value={esc.name}>
+                          {esc.name}
                         </option>
                       ))}
+                      {form.escola && !escolas.some((esc) => esc.name === form.escola) && (
+                        <option value={form.escola}>{form.escola}</option>
+                      )}
                     </select>
                     <MdKeyboardArrowDown
                       size={26}
@@ -429,7 +514,63 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
               </div>
             </section>
 
-            {/* 4. Vídeo Tutorial */}
+            {/* 4. Mídia do Projeto (Foto e Vídeo) */}
+            <section className="p-8 md:p-12 bg-white rounded-3xl shadow-sm border border-verde-musgo flex flex-col gap-6">
+              <SecaoTitulo icone={MdOutlineImage} titulo="Foto de Capa do Tutorial" />
+
+              <div
+                onClick={() => imagemInputRef.current?.click()}
+                className="w-full min-h-[220px] bg-input-bg border-2 border-dashed border-verde-musgo rounded-3xl p-6 flex flex-col items-center justify-center gap-4 text-center cursor-pointer hover:bg-verde-pastel/40 transition overflow-hidden"
+              >
+                {imagemPreview ? (
+                  <div className="flex flex-col items-center gap-3">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={imagemPreview}
+                      alt="Capa do tutorial"
+                      className="max-h-52 w-auto object-contain rounded-xl shadow-sm"
+                    />
+                    <span className="text-xs font-bold text-verde-escuro uppercase">
+                      Clique para trocar a imagem
+                    </span>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex size-14 items-center justify-center rounded-full bg-verde-limao text-verde-escuro">
+                      <MdOutlineAddAPhoto size={26} />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <span className="text-verde-escuro text-base font-bold uppercase">
+                        Enviar Imagem do Projeto
+                      </span>
+                      <span className="text-[#434933] text-sm">
+                        Formatos aceitos: JPG, PNG, WEBP.
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        imagemInputRef.current?.click()
+                      }}
+                      className="px-6 py-2 bg-verde-limao hover:bg-verde-oliva rounded-lg text-verde-escuro text-xs font-bold uppercase transition cursor-pointer"
+                    >
+                      Selecionar Imagem
+                    </button>
+                  </>
+                )}
+
+                <input
+                  ref={imagemInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="sr-only"
+                  onChange={(e) => handleImagem(e.target.files?.[0])}
+                />
+              </div>
+            </section>
+
+            {/* 5. Vídeo Tutorial */}
             <section className="p-8 md:p-12 bg-white rounded-3xl shadow-sm border border-verde-musgo flex flex-col gap-6">
               <SecaoTitulo icone={MdOutlineVideocam} titulo="Vídeo Tutorial" />
 
@@ -543,7 +684,8 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
             ? ehEdicao
               ? 'As alterações do tutorial foram registradas e já estão disponíveis para toda a rede!'
               : 'O novo tutorial foi registrado e já está visível para toda a rede escolar!'
-            : 'Verifique se todos os campos foram preenchidos corretamente e tente salvar mais uma vez.'
+            : mensagemErroApi ||
+              'Verifique se todos os campos foram preenchidos corretamente e tente salvar mais uma vez.'
         }
         textoBotaoVoltar="Voltar para Tutoriais"
         hrefVoltar="/gestaoTutoriais"

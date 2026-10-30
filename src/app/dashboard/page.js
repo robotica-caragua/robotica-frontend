@@ -12,59 +12,10 @@ import {
   MdOutlineBuild,
   MdOutlinePrecisionManufacturing,
   MdOutlinePersonAddAlt,
-  MdMoreVert,
-  MdOutlineNotifications,
-  MdOutlineSettings,
-  MdPerson
+  MdMoreVert
 } from 'react-icons/md'
 import { AdminSidebar } from '@/components/AdminSidebar'
-
-const dadosIniciais = {
-  estatisticas: {
-    polosAtivos: 12,
-    professores: 34,
-    equipes: 128,
-    projetos: 85
-  },
-  movimentacoes: [
-    {
-      id: 1,
-      tipo: 'projeto',
-      textoAntes: 'Projeto ',
-      destaque: '"Braço Hidráulico"',
-      textoDepois: ' publicado por Prof. Carlos',
-      subtitulo: '(EMEF Euclydes Ferreira)',
-      tempo: 'HÁ 2 HORAS'
-    },
-    {
-      id: 2,
-      tipo: 'projeto',
-      textoAntes: 'Projeto ',
-      destaque: '"Braço Hidráulico"',
-      textoDepois: ' publicado por Prof. Carlos',
-      subtitulo: '(EMEF Euclydes Ferreira)',
-      tempo: 'HÁ 2 HORAS'
-    },
-    {
-      id: 3,
-      tipo: 'equipe',
-      textoAntes: 'Nova equipe ',
-      destaque: '"Robôs do Tinga"',
-      textoDepois: ' cadastrada com',
-      subtitulo: 'sucesso na rede global.',
-      tempo: 'HÁ 5 HORAS'
-    },
-    {
-      id: 4,
-      tipo: 'usuario',
-      textoAntes: 'Novo usuário criado: Profª Maria (CIEF Edna Maria).',
-      destaque: '',
-      textoDepois: '',
-      subtitulo: 'Acesso liberado ao portal.',
-      tempo: 'ONTEM'
-    }
-  ]
-}
+import { apiEscolas, apiProjetos, apiTutoriais, apiUsuarios } from '@/services/api'
 
 const iconesMovimentacao = {
   projeto: MdOutlineBuild,
@@ -73,79 +24,137 @@ const iconesMovimentacao = {
 }
 
 export default function DashboardPage() {
-  const [dados, setDados] = useState(dadosIniciais)
+  const [estatisticas, setEstatisticas] = useState({
+    polosAtivos: 0,
+    professores: 0,
+    equipes: 0,
+    projetos: 0
+  })
+  const [movimentacoes, setMovimentacoes] = useState([])
+  const [carregando, setCarregando] = useState(true)
 
   useEffect(() => {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL
-    if (!apiUrl) return
+    let ativo = true
 
-    fetch(`${apiUrl}/dashboard`)
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (data) setDados(data)
+    Promise.all([
+      apiEscolas.listar().catch(() => []),
+      apiUsuarios.listar().catch(() => []),
+      apiProjetos.listar().catch(() => []),
+      apiTutoriais.listar().catch(() => [])
+    ])
+      .then(([escolas, usuarios, projetos, tutoriais]) => {
+        if (!ativo) return
+        const listaEscolas = Array.isArray(escolas) ? escolas : []
+        const listaUsuarios = Array.isArray(usuarios) ? usuarios : []
+        const listaProjetos = Array.isArray(projetos) ? projetos : []
+        const listaTutoriais = Array.isArray(tutoriais) ? tutoriais : []
+
+        const gruposUnicos = new Set(listaUsuarios.map((u) => u.roboticsGroupId).filter(Boolean))
+
+        setEstatisticas({
+          polosAtivos: listaEscolas.length,
+          professores: listaUsuarios.length,
+          equipes: gruposUnicos.size || listaProjetos.length,
+          projetos: listaProjetos.length + listaTutoriais.length
+        })
+
+        const itensMovimentacao = [
+          ...listaTutoriais.map((t) => ({
+            id: `tut-${t.id}`,
+            tipo: 'projeto',
+            textoAntes: 'Tutorial ',
+            destaque: `"${t.title}"`,
+            textoDepois: ' publicado na plataforma',
+            subtitulo: t.school?.name ? `(${t.school.name})` : '',
+            dataIso: t.updatedAt || t.createdAt || new Date().toISOString(),
+            tempo: new Date(t.updatedAt || t.createdAt || Date.now()).toLocaleDateString('pt-BR')
+          })),
+          ...listaProjetos.map((p) => ({
+            id: `proj-${p.id}`,
+            tipo: 'projeto',
+            textoAntes: 'Projeto ',
+            destaque: `"${p.name}"`,
+            textoDepois: ' registrado na rede',
+            subtitulo: p.school?.name ? `(${p.school.name})` : '',
+            dataIso: p.updatedAt || p.createdAt || new Date().toISOString(),
+            tempo: new Date(p.updatedAt || p.createdAt || Date.now()).toLocaleDateString('pt-BR')
+          })),
+          ...listaUsuarios.map((u) => ({
+            id: `user-${u.id}`,
+            tipo: 'usuario',
+            textoAntes: `Usuário cadastrado: ${u.name}`,
+            destaque: '',
+            textoDepois: '',
+            subtitulo: u.email || 'Acesso liberado ao portal.',
+            dataIso: u.updatedAt || u.createdAt || new Date().toISOString(),
+            tempo: new Date(u.updatedAt || u.createdAt || Date.now()).toLocaleDateString('pt-BR')
+          }))
+        ]
+          .sort((a, b) => new Date(b.dataIso) - new Date(a.dataIso))
+          .slice(0, 6)
+
+        setMovimentacoes(itensMovimentacao)
       })
-      .catch(() => {})
+      .finally(() => {
+        if (ativo) setCarregando(false)
+      })
+
+    return () => {
+      ativo = false
+    }
   }, [])
 
   const cards = [
     {
       label: 'POLOS ATIVOS',
-      value: dados.estatisticas.polosAtivos,
+      value: estatisticas.polosAtivos,
       icon: MdOutlineLocationOn
     },
     {
       label: 'PROFESSORES',
-      value: dados.estatisticas.professores,
+      value: estatisticas.professores,
       icon: MdOutlineSchool
     },
     {
       label: 'EQUIPES',
-      value: dados.estatisticas.equipes,
+      value: estatisticas.equipes,
       icon: MdOutlineGroups
     },
     {
       label: 'PROJETOS',
-      value: dados.estatisticas.projetos,
+      value: estatisticas.projetos,
       icon: MdOutlineRocketLaunch
     }
   ]
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex flex-col lg:flex-row min-h-screen">
       <AdminSidebar />
 
-      <div className="flex flex-1 flex-col px-10 pb-16">
-        {/* Topo */}
-        <div className="flex h-16 items-center justify-end gap-4 text-verde-escuro">
-          <div className="relative">
-            <MdOutlineNotifications size={22} />
-            <span className="absolute top-0.5 right-0.5 h-2 w-2 rounded-full bg-vermelho" />
-          </div>
-          <MdOutlineSettings size={22} />
-          <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-verde-musgo bg-verde-escuro text-verde-pastel">
-            <MdPerson size={24} />
-          </div>
-        </div>
-
-        <main className="mx-auto flex w-full max-w-4xl flex-col gap-8 pt-10">
+      <div className="flex flex-1 flex-col px-4 sm:px-6 lg:px-10 pb-16">
+        <main className="mx-auto flex w-full max-w-4xl flex-col gap-8 pt-6 sm:pt-12">
           {/* Cabeçalho */}
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <h1 className="text-4xl font-bold text-verde-escuro">Visão Geral da Rede</h1>
-              <p className="mt-1 text-verde-musgo">Acompanhe o engajamento e os números globais.</p>
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-verde-escuro">
+                Visão Geral da Rede
+              </h1>
+              <p className="mt-1 text-sm sm:text-base text-verde-musgo">
+                Acompanhe o engajamento e os números globais.
+              </p>
             </div>
 
             <div className="flex flex-col gap-2.5">
-              <button
-                type="button"
+              <Link
+                href="/cadastrarUsuario"
                 className="flex w-48 items-center justify-center gap-2 rounded-lg bg-verde-musgo px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:brightness-90 cursor-pointer"
               >
                 <MdAdd size={18} />
                 Novo Professor
-              </button>
+              </Link>
 
               <Link
-                href="/escolas"
+                href="/cadastrarEscola"
                 className="flex w-48 items-center justify-center gap-2 rounded-lg border border-b-3 border-verde-musgo bg-white px-5 py-2 text-sm font-semibold text-verde-musgo hover:bg-verde-pastel"
               >
                 <MdOutlineApartment size={18} />
@@ -178,50 +187,62 @@ export default function DashboardPage() {
           <section className="rounded-2xl border border-verde-musgo/60 bg-white py-6">
             <div className="flex items-center justify-between border-b border-verde-escuro/10 px-6 pb-4">
               <h2 className="text-lg font-bold text-verde-escuro">Últimas Movimentações</h2>
-              <button
-                type="button"
+              <Link
+                href="/projetos"
                 className="text-xs font-bold text-verde-musgo hover:underline cursor-pointer"
               >
                 Ver tudo
-              </button>
+              </Link>
             </div>
 
-            <ul className="divide-y divide-verde-escuro/5 px-6">
-              {dados.movimentacoes.map((item) => {
-                const Icone = iconesMovimentacao[item.tipo] || MdOutlineBuild
+            {carregando ? (
+              <p className="px-6 py-8 text-center text-sm text-verde-musgo">
+                Carregando movimentações da rede...
+              </p>
+            ) : movimentacoes.length > 0 ? (
+              <ul className="divide-y divide-verde-escuro/5 px-6">
+                {movimentacoes.map((item) => {
+                  const Icone = iconesMovimentacao[item.tipo] || MdOutlineBuild
 
-                return (
-                  <li key={item.id} className="flex items-center justify-between gap-4 py-5">
-                    <div className="flex items-start gap-4">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-verde-oliva text-verde-escuro">
-                        <Icone size={20} />
+                  return (
+                    <li key={item.id} className="flex items-center justify-between gap-4 py-5">
+                      <div className="flex items-start gap-4">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-verde-oliva text-verde-escuro">
+                          <Icone size={20} />
+                        </div>
+                        <div className="text-sm text-verde-escuro">
+                          <p>
+                            {item.textoAntes}
+                            {item.destaque && (
+                              <span className="font-semibold text-verde-musgo">
+                                {item.destaque}
+                              </span>
+                            )}
+                            {item.textoDepois}
+                          </p>
+                          {item.subtitulo && <p>{item.subtitulo}</p>}
+                          <p className="mt-1 text-[10px] font-bold uppercase text-verde-musgo">
+                            {item.tempo}
+                          </p>
+                        </div>
                       </div>
-                      <div className="text-sm text-verde-escuro">
-                        <p>
-                          {item.textoAntes}
-                          {item.destaque && (
-                            <span className="font-semibold text-verde-musgo">{item.destaque}</span>
-                          )}
-                          {item.textoDepois}
-                        </p>
-                        <p>{item.subtitulo}</p>
-                        <p className="mt-1 text-[10px] font-bold uppercase text-verde-musgo">
-                          {item.tempo}
-                        </p>
-                      </div>
-                    </div>
 
-                    <button
-                      type="button"
-                      aria-label="Mais opções"
-                      className="text-verde-musgo hover:text-verde-escuro cursor-pointer"
-                    >
-                      <MdMoreVert size={20} />
-                    </button>
-                  </li>
-                )
-              })}
-            </ul>
+                      <button
+                        type="button"
+                        aria-label="Mais opções"
+                        className="text-verde-musgo hover:text-verde-escuro cursor-pointer"
+                      >
+                        <MdMoreVert size={20} />
+                      </button>
+                    </li>
+                  )
+                })}
+              </ul>
+            ) : (
+              <p className="px-6 py-8 text-center text-sm text-verde-musgo">
+                Nenhuma movimentação registrada ainda.
+              </p>
+            )}
           </section>
         </main>
       </div>
