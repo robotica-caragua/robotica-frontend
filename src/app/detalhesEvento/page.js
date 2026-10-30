@@ -8,169 +8,197 @@ import Link from 'next/link'
 import { CiCalendar, CiClock2, CiLocationOn } from 'react-icons/ci'
 import { MdArrowBack, MdOutlineFileDownload } from 'react-icons/md'
 import { IoDocumentTextOutline } from 'react-icons/io5'
-import { apiProjetos } from '@/services/api'
+
+const eventosMock = [
+  {
+    id: '1',
+    titulo: 'Torneio Regional FLL',
+    data: '04 de Agosto de 2026',
+    horario: '09:00 AM - 04:00 PM',
+    local: 'Ginásio do Tinga, Caraguatatuba',
+    descricao: [
+      'O Torneio Regional FLL (FIRST LEGO League) chega a Caraguatatuba para reunir as mentes mais brilhantes das nossas escolas parceiras.',
+      'Nesta temporada, estudantes de diversas escolas vão projetar, construir e programar robôs para solucionar missões complexas na arena, além de apresentarem um Projeto de Inovação voltado para a nossa comunidade.',
+      'Venha prestigiar, torcer pelas equipes locais e ver a tecnologia ganhar vida no Ginásio do Tinga!'
+    ],
+    agenda: [
+      { horario: '09:00', titulo: 'Abertura dos Portões e Credenciamento das Equipes' },
+      { horario: '09:30', titulo: 'Cerimônia de Abertura Oficial' },
+      { horario: '10:15', titulo: 'Início dos Rounds de Avaliação' },
+      { horario: '12:00', titulo: 'Intervalo para Almoço' },
+      { horario: '13:30', titulo: 'Desafios na Arena de Robôs' },
+      { horario: '15:30', titulo: 'Solenidade de Premiação e Entrega de Medalhas' },
+      { horario: '16:00', titulo: 'Encerramento do Evento' }
+    ],
+    documentos: [
+      { nome: 'Guia_de_Missões_da_Arena.pdf', tamanho: '2.4 MB' },
+      { nome: 'Manual_das_Equipes', tamanho: '1.8 MB' },
+      { nome: 'Regulamento', tamanho: '950 KB' }
+    ]
+  },
+  {
+    id: '2',
+    titulo: 'Hackathon Sustentável',
+    data: '13 de Agosto de 2026',
+    horario: '08:30 AM - 05:00 PM',
+    local: 'FATEC Caraguatatuba',
+    descricao: [
+      'Uma maratona intensa de inovação e robótica sustentável onde alunos desenvolvem soluções para desafios ambientais reais da região.',
+      'Com o apoio de mentores e professores, as equipes criarão protótipos funcionais com materiais recicláveis e automação de baixo custo.',
+      'Participe e apoie as ideias que constroem o futuro sustentável de Caraguatatuba!'
+    ],
+    agenda: [
+      { horario: '08:30', titulo: 'Check-in e Café de Boas-Vindas' },
+      { horario: '09:00', titulo: 'Divulgação dos Desafios e Formação das Bancadas' },
+      { horario: '09:30', titulo: 'Início da Maratona de Desenvolvimento' },
+      { horario: '12:30', titulo: 'Pausa para Almoço' },
+      { horario: '14:00', titulo: 'Mentoria Técnica e Testes' },
+      { horario: '16:00', titulo: 'Pitch e Apresentação dos Projetos' },
+      { horario: '17:00', titulo: 'Premiação e Encerramento' }
+    ],
+    documentos: [
+      { nome: 'Regulamento_Hackathon.pdf', tamanho: '1.2 MB' },
+      { nome: 'Criterios_de_Avaliacao.pdf', tamanho: '850 KB' }
+    ]
+  },
+  {
+    id: '3',
+    titulo: 'Mostra de Robótica Municipal',
+    data: '25 de Setembro de 2026',
+    horario: '10:00 AM - 03:30 PM',
+    local: 'EMEF Profª Maria Aparecida De Carvalho',
+    descricao: [
+      'Exposição aberta à comunidade com os projetos de robótica criados ao longo do semestre letivo.',
+      'Venha ver de perto braços robóticos, carrinhos seguidores de linha, semáforos inteligentes e muito mais.',
+      'Entrada gratuita e aberta para pais, alunos e toda a comunidade!'
+    ],
+    agenda: [
+      { horario: '10:00', titulo: 'Abertura da Exposição ao Público' },
+      { horario: '11:00', titulo: 'Demonstrações Interativas nas Bancadas' },
+      { horario: '12:30', titulo: 'Intervalo' },
+      { horario: '13:30', titulo: 'Roda de Conversa com Estudantes e Professores' },
+      { horario: '15:30', titulo: 'Encerramento' }
+    ],
+    documentos: [
+      { nome: 'Mapa_dos_Estandes.pdf', tamanho: '3.1 MB' },
+      { nome: 'Programacao_Completa.pdf', tamanho: '600 KB' }
+    ]
+  }
+]
 
 function DetalhesEventoConteudo() {
   const searchParams = useSearchParams()
   const id = searchParams.get('id')
-  const [evento, setEvento] = useState(null)
-  const [carregando, setCarregando] = useState(true)
+  const [evento, setEvento] = useState(eventosMock[0])
 
   useEffect(() => {
-    let ativo = true
-
-    const promessa = id
-      ? apiProjetos.buscarPorId(id)
-      : apiProjetos.listar().then((lista) => lista?.[0] || null)
-
-    promessa
-      .then((proj) => {
-        if (!ativo) return
-        if (proj) {
-          setEvento({
-            titulo: proj.name,
-            data: new Date(proj.createdAt || Date.now()).toLocaleDateString('pt-BR', {
-              day: '2-digit',
-              month: 'long',
-              year: 'numeric'
-            }),
-            horario: '09:00 AM - 04:00 PM',
-            local: proj.school?.name || 'Rede Municipal de Caraguatatuba',
-            descricao: proj.description || ''
-          })
-        } else {
-          setEvento(null)
-        }
-      })
-      .catch(() => {
-        if (ativo) setEvento(null)
-      })
-      .finally(() => {
-        if (ativo) setCarregando(false)
-      })
-
-    return () => {
-      ativo = false
+    if (id) {
+      const encontrado = eventosMock.find((e) => e.id === id) || eventosMock[0]
+      setEvento(encontrado)
     }
   }, [id])
 
-  if (carregando) {
-    return (
-      <main className="grow flex items-center justify-center py-20">
-        <p className="text-verde-musgo text-xl font-medium">Carregando detalhes do evento...</p>
-      </main>
-    )
-  }
-
-  if (!evento) {
-    return (
-      <main className="grow flex flex-col items-center justify-center gap-6 py-20">
-        <p className="text-verde-musgo text-xl font-medium">Evento não encontrado.</p>
-        <Link
-          href="/rede"
-          className="px-6 py-3 bg-verde-musgo text-white font-bold rounded-lg hover:opacity-90 transition"
-        >
-          Voltar para a Rede
-        </Link>
-      </main>
-    )
-  }
-
   return (
-    <main className="grow flex flex-col items-center px-4 sm:px-6">
-      <div className="w-full max-w-5xl flex justify-start mt-6">
-        <Link
-          href="/rede"
-          aria-label="Voltar para Rede"
-          className="text-verde-escuro hover:opacity-80 transition-opacity text-3xl sm:text-4xl flex items-center cursor-pointer"
-        >
-          <MdArrowBack />
-        </Link>
-      </div>
+    <main className="grow flex flex-col items-center py-8 sm:py-12 px-4 sm:px-6 bg-branco-esverdeado/30 min-h-screen">
+      <div className="w-full max-w-4xl flex flex-col gap-8">
+        <div className="self-start">
+          <Link
+            href="/rede"
+            className="text-verde-escuro hover:text-verde-musgo transition-colors font-bold text-xs sm:text-sm flex items-center gap-2 cursor-pointer bg-white border border-stone-200 px-3.5 py-2 rounded-xl shadow-xs"
+          >
+            <MdArrowBack size={18} />
+            <span>Voltar para a Rede</span>
+          </Link>
+        </div>
 
-      <div className="w-full max-w-5xl p-6 sm:p-10 lg:p-14 relative bg-linear-57 from-input-bg to-input-bg rounded-[20px] border-b-8 sm:border-b-10 border-verde-musgo flex flex-col justify-end items-start overflow-hidden mt-4">
-        <div className="w-full h-full left-0 top-0 absolute opacity-10 bg-radial from-verde-limao to-verde-limao/0 to-70% pointer-events-none" />
+        {/* Banner do Evento (como na imagem 3) */}
+        <div className="w-full p-6 sm:p-10 bg-input-bg rounded-2xl border border-verde-musgo/30 border-b-6 border-b-verde-musgo flex flex-col gap-5 shadow-xs">
+          <h1 className="text-verde-escuro text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight leading-tight">
+            {evento.titulo}
+          </h1>
 
-        <div className="self-stretch flex flex-col justify-start items-start gap-6 relative z-10">
-          <div className="self-stretch">
-            <h1 className="text-verde-escuro text-2xl sm:text-4xl lg:text-5xl font-bold">
-              {evento.titulo}
-            </h1>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-4 sm:gap-8">
-            <div className="flex items-center gap-2 text-verde-musgo text-base sm:text-lg">
-              <CiCalendar size={24} className="shrink-0" />
+          <div className="flex flex-wrap items-center gap-4 sm:gap-8 pt-1">
+            <div className="flex items-center gap-2 text-verde-escuro text-xs sm:text-sm font-semibold">
+              <CiCalendar size={20} className="shrink-0 text-verde-musgo" />
               <span>{evento.data}</span>
             </div>
 
-            <div className="flex items-center gap-2 text-verde-musgo text-base sm:text-lg">
-              <CiClock2 size={24} className="shrink-0" />
+            <div className="flex items-center gap-2 text-verde-escuro text-xs sm:text-sm font-semibold">
+              <CiClock2 size={20} className="shrink-0 text-verde-musgo" />
               <span>{evento.horario}</span>
             </div>
 
-            <div className="flex items-center gap-2 text-verde-musgo text-base sm:text-lg">
-              <CiLocationOn size={24} className="shrink-0" />
+            <div className="flex items-center gap-2 text-verde-escuro text-xs sm:text-sm font-semibold">
+              <CiLocationOn size={20} className="shrink-0 text-verde-musgo" />
               <span>{evento.local}</span>
             </div>
           </div>
         </div>
-      </div>
 
-      <div className="w-full max-w-5xl min-h-48 flex flex-col justify-start items-start my-10 sm:my-14">
-        <h2 className="text-verde-musgo text-2xl sm:text-4xl font-semibold">Descrição</h2>
-
-        <div className="self-stretch h-3 border-b border-verde-musgo" />
-
-        <div className="self-stretch py-4 flex flex-col justify-start items-start">
-          <p className="text-verde-escuro text-lg sm:text-2xl leading-relaxed">
-            {evento.descricao}
-          </p>
-        </div>
-      </div>
-
-      <div className="w-full max-w-5xl flex flex-col lg:flex-row justify-between items-start gap-10 mb-20">
-        <div className="w-full lg:w-[60%] flex flex-col items-start gap-6">
-          <div className="self-stretch pb-1 border-b border-verde-musgo flex flex-col justify-start items-start">
-            <h3 className="text-verde-musgo text-2xl sm:text-4xl font-semibold">Agenda</h3>
-          </div>
-          <div className="self-stretch flex flex-col justify-start items-start gap-3">
-            <div className="self-stretch p-4 sm:p-5 bg-white rounded-xl border-l-5 border-r border-t border-b border-verde-musgo flex items-center gap-4 sm:gap-8">
-              <span className="text-verde-musgo text-xl sm:text-2xl font-bold shrink-0">09:00</span>
-              <span className="text-verde-escuro text-base sm:text-xl font-bold">
-                Abertura e Credenciamento das Equipes
-              </span>
-            </div>
-            <div className="self-stretch p-4 sm:p-5 bg-white rounded-xl border-l-5 border-r border-t border-b border-verde-musgo flex items-center gap-4 sm:gap-8">
-              <span className="text-verde-musgo text-xl sm:text-2xl font-bold shrink-0">13:30</span>
-              <span className="text-verde-escuro text-base sm:text-xl font-bold">
-                Apresentação de Protótipos e Avaliações
-              </span>
-            </div>
-            <div className="self-stretch p-4 sm:p-5 bg-white rounded-xl border-l-5 border-r border-t border-b border-verde-musgo flex items-center gap-4 sm:gap-8">
-              <span className="text-verde-musgo text-xl sm:text-2xl font-bold shrink-0">16:00</span>
-              <span className="text-verde-escuro text-base sm:text-xl font-bold">
-                Encerramento do Evento
-              </span>
-            </div>
+        {/* Descrição */}
+        <div className="w-full flex flex-col gap-3">
+          <h2 className="text-verde-escuro text-xl sm:text-2xl font-bold tracking-tight">
+            Descrição
+          </h2>
+          <div className="flex flex-col gap-3 text-stone-700 text-sm sm:text-base leading-relaxed">
+            {Array.isArray(evento.descricao) ? (
+              evento.descricao.map((p, idx) => <p key={idx}>{p}</p>)
+            ) : (
+              <p>{evento.descricao}</p>
+            )}
           </div>
         </div>
 
-        <div className="w-full lg:w-[35%] px-5 py-8 bg-white rounded-xl outline -outline-offset-1 outline-verde-musgo flex flex-col items-start gap-6 mt-0 lg:mt-14">
-          <div className="w-full flex flex-col items-start border-b border-verde-musgo pb-2">
-            <h2 className="text-verde-musgo text-2xl sm:text-3xl font-semibold">Documentação</h2>
+        {/* Agenda e Documentação (duas colunas como na imagem 3) */}
+        <div className="w-full grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+          {/* Agenda */}
+          <div className="lg:col-span-2 flex flex-col gap-4">
+            <h2 className="text-verde-escuro text-xl sm:text-2xl font-bold tracking-tight">
+              Agenda
+            </h2>
+
+            <div className="flex flex-col gap-2.5">
+              {evento.agenda.map((item, idx) => (
+                <div
+                  key={idx}
+                  className="p-3.5 bg-white rounded-xl border border-verde-musgo/40 flex items-center gap-4 shadow-2xs"
+                >
+                  <span className="text-verde-escuro font-bold text-sm sm:text-base shrink-0 w-16">
+                    {item.horario}
+                  </span>
+                  <span className="text-verde-escuro text-xs sm:text-sm font-semibold">
+                    {item.titulo}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
 
-          <div className="w-full flex flex-col gap-4">
-            <button className="w-full px-4 py-3 bg-input-bg rounded-lg flex items-center justify-between hover:bg-verde-limao/20 transition-colors cursor-pointer">
-              <div className="flex items-center gap-3 overflow-hidden">
-                <IoDocumentTextOutline size={26} className="text-verde-escuro shrink-0" />
-                <span className="text-verde-escuro text-base sm:text-lg font-medium truncate">
-                  Regulamento.pdf
-                </span>
-              </div>
-              <MdOutlineFileDownload size={26} className="text-verde-escuro shrink-0" />
-            </button>
+          {/* Documentação */}
+          <div className="w-full p-5 sm:p-6 bg-white rounded-2xl border border-stone-300 flex flex-col gap-4 shadow-2xs">
+            <h3 className="text-verde-escuro text-lg sm:text-xl font-bold tracking-tight">
+              Documentação
+            </h3>
+
+            <div className="flex flex-col gap-2.5">
+              {evento.documentos.map((doc, idx) => (
+                <a
+                  key={idx}
+                  href={`#download-${idx}`}
+                  download={doc.nome}
+                  onClick={(e) => e.preventDefault()}
+                  className="w-full px-3.5 py-2.5 bg-verde-pastel/70 hover:bg-verde-limao/50 rounded-xl flex items-center justify-between transition-colors cursor-pointer border border-verde-musgo/20"
+                >
+                  <div className="flex items-center gap-2 overflow-hidden text-left">
+                    <IoDocumentTextOutline size={18} className="text-verde-musgo shrink-0" />
+                    <span className="text-verde-escuro text-xs sm:text-sm font-semibold truncate">
+                      {doc.nome}
+                    </span>
+                  </div>
+                  <MdOutlineFileDownload size={18} className="text-verde-musgo shrink-0 ml-2" />
+                </a>
+              ))}
+            </div>
           </div>
         </div>
       </div>

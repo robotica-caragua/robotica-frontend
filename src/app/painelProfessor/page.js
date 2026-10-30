@@ -5,6 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { SideBarProfessor } from '@/components/SideBarProfessor'
+import { ModalConfirmacao } from '@/components/ModalConfirmacao'
 import { correspondeBusca } from '@/utils/filtros'
 import semaforo from '@/assets/semaforo.png'
 import containerImg from '@/assets/container.png'
@@ -37,6 +38,7 @@ export default function PainelProfessor() {
   const [busca, setBusca] = useState('')
   const [publicacoes, setPublicacoes] = useState([])
   const [carregando, setCarregando] = useState(true)
+  const [modal, setModal] = useState({ aberto: false, tipo: 'confirmacao', titulo: '', mensagem: '', pubParaExcluir: null })
   const [nomeProfessor, setNomeProfessor] = useState(() => obterUsuario()?.name || 'Professor(a)')
   const [nomeEscola, setNomeEscola] = useState('Rede Municipal de Caraguatatuba')
 
@@ -125,8 +127,19 @@ export default function PainelProfessor() {
     )
   }
 
-  const excluirPublicacao = async (pub) => {
-    if (!window.confirm(`Deseja realmente excluir "${pub.titulo}"?`)) return
+  const excluirPublicacao = (pub) => {
+    setModal({
+      aberto: true,
+      tipo: 'confirmacao',
+      titulo: 'Excluir Publicação?',
+      mensagem: `Deseja realmente remover "${pub.titulo}" da rede?`,
+      pubParaExcluir: pub
+    })
+  }
+
+  const handleConfirmarExclusaoPublicacao = async () => {
+    if (!modal.pubParaExcluir) return
+    const pub = modal.pubParaExcluir
     try {
       if (pub.tipoRecurso === 'projeto') {
         await apiProjetos.excluir(pub.id)
@@ -134,8 +147,21 @@ export default function PainelProfessor() {
         await apiTutoriais.excluir(pub.id)
       }
       setPublicacoes((prev) => prev.filter((p) => p.chaveUnica !== pub.chaveUnica))
+      setModal({
+        aberto: true,
+        tipo: 'sucesso',
+        titulo: 'Publicação excluída com sucesso!',
+        mensagem: `"${pub.titulo}" foi removida com sucesso.`,
+        pubParaExcluir: null
+      })
     } catch (err) {
-      window.alert(err?.message || 'Não foi possível excluir a publicação.')
+      setModal({
+        aberto: true,
+        tipo: 'erro',
+        titulo: 'Erro ao excluir',
+        mensagem: err?.message || 'Não foi possível excluir a publicação.',
+        pubParaExcluir: null
+      })
     }
   }
 
@@ -374,6 +400,19 @@ export default function PainelProfessor() {
           </section>
         </div>
       </main>
+
+      {modal.aberto && (
+        <ModalConfirmacao
+          aberto={modal.aberto}
+          tipo={modal.tipo}
+          titulo={modal.titulo}
+          mensagem={modal.mensagem}
+          textoConfirmar="Excluir"
+          textoCancelar="Cancelar"
+          onConfirmar={modal.tipo === 'confirmacao' ? handleConfirmarExclusaoPublicacao : () => setModal((prev) => ({ ...prev, aberto: false }))}
+          onCancelar={() => setModal((prev) => ({ ...prev, aberto: false }))}
+        />
+      )}
     </div>
   )
 }

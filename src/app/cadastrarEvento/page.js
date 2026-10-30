@@ -174,7 +174,7 @@ function CadastrarEventoConteudo() {
       <div className="flex-1 flex flex-col">
         <main className="w-full max-w-5xl mx-auto py-8 lg:py-12 px-4 sm:px-8 flex flex-col gap-8">
           <section className="flex flex-col gap-2">
-            <h1 className="text-verde-escuro text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight">
+            <h1 className="text-verde-escuro text-2xl font-bold leading-tight">
               {idEdicao ? 'Editar Evento' : 'Criar Novo Evento'}
             </h1>
             <p className="text-verde-musgo text-base sm:text-lg">
@@ -365,17 +365,17 @@ function CadastrarEventoConteudo() {
             </div>
 
             {/* Ações */}
-            <div className="flex justify-between items-center pt-4">
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-4">
               <Link
                 href="/gestaoEventos"
-                className="flex items-center gap-2 px-6 py-3 rounded-lg text-verde-escuro font-bold uppercase text-sm tracking-wide hover:bg-input-bg transition"
+                className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-verde-escuro font-bold uppercase text-sm tracking-wide hover:bg-input-bg transition"
               >
                 <IoClose size={20} /> Cancelar
               </Link>
 
               <button
                 type="submit"
-                className="px-6 py-3 bg-verde-musgo hover:bg-white hover:text-verde-musgo border border-verde-musgo text-white text-sm font-bold uppercase tracking-widest rounded-lg flex items-center gap-3 cursor-pointer transition"
+                className="w-full sm:w-auto px-6 py-3 bg-verde-musgo hover:bg-white hover:text-verde-musgo border border-verde-musgo text-white text-sm font-bold uppercase tracking-wider rounded-xl flex items-center justify-center gap-3 cursor-pointer transition"
               >
                 {idEdicao ? 'Salvar Alterações' : 'Publicar Evento'}
                 <IoArrowForward size={20} />

@@ -118,10 +118,10 @@ export default function NovoProjetoPage() {
       <AdminSidebar variant="professor" />
 
       <div className="flex flex-1 flex-col px-4 sm:px-6 lg:px-10 pb-16">
-        <main className="mx-auto flex w-full max-w-4xl flex-col gap-6 pt-8 lg:pt-12">
+        <main className="mx-auto flex w-full max-w-6xl flex-col gap-6 pt-8 lg:pt-12">
           {/* Cabeçalho */}
           <div>
-            <h1 className="text-3xl sm:text-4xl font-bold text-verde-escuro">Criar Novo Projeto</h1>
+            <h1 className="text-2xl font-bold text-verde-escuro">Criar Novo Projeto</h1>
             <p className="mt-1 text-sm text-verde-musgo">
               Transforme o trabalho da sua turma em um projeto para toda a nossa rede.
             </p>

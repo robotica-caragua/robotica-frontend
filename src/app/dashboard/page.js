@@ -132,11 +132,11 @@ export default function DashboardPage() {
       <AdminSidebar />
 
       <div className="flex flex-1 flex-col px-4 sm:px-6 lg:px-10 pb-16">
-        <main className="mx-auto flex w-full max-w-4xl flex-col gap-8 pt-6 sm:pt-12">
+        <main className="mx-auto flex w-full max-w-6xl flex-col gap-8 pt-6 sm:pt-12">
           {/* Cabeçalho */}
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-verde-escuro">
+              <h1 className="text-2xl font-bold text-verde-escuro">
                 Visão Geral da Rede
               </h1>
               <p className="mt-1 text-sm sm:text-base text-verde-musgo">
@@ -177,7 +177,7 @@ export default function DashboardPage() {
                 <p className="text-[11px] font-bold uppercase tracking-wide text-verde-musgo">
                   {label}
                 </p>
-                <p className="mt-2 mb-4 text-4xl font-bold text-verde-escuro">{value}</p>
+                <p className="mt-2 mb-4 text-2xl font-bold text-verde-escuro">{value}</p>
                 <div className="h-1 w-full rounded-full bg-verde-oliva" />
               </div>
             ))}

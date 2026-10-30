@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { SideBarAdmin } from '@/components/SideBarAdmin'
+import { ModalConfirmacao } from '@/components/ModalConfirmacao'
 import { FilterButton } from '@/components/FilterButton'
 import { CardEventoAdmin } from '@/components/CardEventoAdmin'
 import { apiProjetos } from '@/services/api'
@@ -22,6 +23,7 @@ export default function GestaoEventos() {
   const router = useRouter()
   const [eventos, setEventos] = useState([])
   const [carregando, setCarregando] = useState(true)
+  const [modal, setModal] = useState({ aberto: false, tipo: 'confirmacao', titulo: '', mensagem: '', eventoParaExcluir: null })
   const [filtroStatus, setFiltroStatus] = useState('agendado')
 
   useEffect(() => {
@@ -59,15 +61,39 @@ export default function GestaoEventos() {
 
   const eventosFiltrados = eventos.filter((evento) => evento.status === filtroStatus)
 
-  const excluirEvento = async (evento) => {
-    if (!window.confirm(`Deseja realmente excluir o evento "${evento.titulo}"?`)) return
+  const excluirEvento = (evento) => {
+    setModal({
+      aberto: true,
+      tipo: 'confirmacao',
+      titulo: 'Excluir Evento?',
+      mensagem: `Deseja realmente remover o evento "${evento.titulo}"?`,
+      eventoParaExcluir: evento
+    });
+  };
+
+  const handleConfirmarExclusaoEvento = async () => {
+    if (!modal.eventoParaExcluir) return;
+    const ev = modal.eventoParaExcluir;
     try {
-      await apiProjetos.excluir(evento.id)
-      setEventos((prev) => prev.filter((e) => e.id !== evento.id))
+      await apiProjetos.excluir(ev.id);
+      setEventos((prev) => prev.filter((item) => item.id !== ev.id));
+      setModal({
+        aberto: true,
+        tipo: 'sucesso',
+        titulo: 'Evento excluído com sucesso!',
+        mensagem: `O evento "${ev.titulo}" foi removido.`,
+        eventoParaExcluir: null
+      });
     } catch (err) {
-      window.alert(err?.message || 'Não foi possível excluir o evento.')
+      setModal({
+        aberto: true,
+        tipo: 'erro',
+        titulo: 'Erro ao excluir evento',
+        mensagem: err?.message || 'Não foi possível excluir o evento.',
+        eventoParaExcluir: null
+      });
     }
-  }
+  };
 
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-background relative">
@@ -77,7 +103,7 @@ export default function GestaoEventos() {
         <div className="w-full max-w-6xl mx-auto py-8 lg:py-12 px-4 sm:px-8 flex flex-col gap-8">
           <div className="flex flex-wrap justify-between items-end gap-6">
             <section className="flex flex-col gap-2">
-              <h2 className="text-verde-escuro text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight">
+              <h2 className="text-verde-escuro text-2xl font-bold leading-tight">
                 Gestão de Eventos
               </h2>
               <p className="text-verde-musgo text-base sm:text-lg lg:text-xl font-normal">
@@ -142,6 +168,19 @@ export default function GestaoEventos() {
           )}
         </div>
       </main>
+
+      {modal.aberto && (
+        <ModalConfirmacao
+          aberto={modal.aberto}
+          tipo={modal.tipo}
+          titulo={modal.titulo}
+          mensagem={modal.mensagem}
+          textoConfirmar="Excluir"
+          textoCancelar="Cancelar"
+          onConfirmar={modal.tipo === 'confirmacao' ? handleConfirmarExclusaoEvento : () => setModal((prev) => ({ ...prev, aberto: false }))}
+          onCancelar={() => setModal((prev) => ({ ...prev, aberto: false }))}
+        />
+      )}
     </div>
   )
 }

@@ -7,6 +7,7 @@ import { IoSearchSharp } from 'react-icons/io5'
 import { IoIosArrowDown } from 'react-icons/io'
 import { AdminSidebar } from '@/components/AdminSidebar'
 import { CardEscolaAdmin } from '@/components/CardEscolaAdmin'
+import { ModalConfirmacao } from '@/components/ModalConfirmacao'
 import { apiEscolas, apiProjetos, apiUsuarios } from '@/services/api'
 import { correspondeBusca } from '@/utils/filtros'
 
@@ -37,44 +38,52 @@ export default function GestaoEscolas() {
   const [regiaoSelecionada, setRegiaoSelecionada] = useState('')
   const [statusSelecionado, setStatusSelecionado] = useState('Ativas')
 
-  useEffect(() => {
-    let ativo = true
+  // Estado para os Modais de Confirmação, Sucesso e Erro
+  const [modal, setModal] = useState({
+    aberto: false,
+    tipo: 'confirmacao',
+    titulo: '',
+    mensagem: '',
+    escolaParaExcluir: null
+  })
 
-    Promise.all([
+  const carregarDados = () => {
+    return Promise.all([
       apiEscolas.listar().catch(() => []),
       apiUsuarios.listar().catch(() => []),
       apiProjetos.listar().catch(() => [])
-    ])
-      .then(([listaEscolas, listaUsuarios, listaProjetos]) => {
-        if (!ativo) return
+    ]).then(([listaEscolas, listaUsuarios, listaProjetos]) => {
+      const projsPorEscola = new Map()
+      for (const p of Array.isArray(listaProjetos) ? listaProjetos : []) {
+        const sid = p.schoolId || p.school?.id
+        if (sid) projsPorEscola.set(sid, (projsPorEscola.get(sid) || 0) + 1)
+      }
 
-        const projsPorEscola = new Map()
-        for (const p of Array.isArray(listaProjetos) ? listaProjetos : []) {
-          const sid = p.schoolId || p.school?.id
-          if (sid) projsPorEscola.set(sid, (projsPorEscola.get(sid) || 0) + 1)
-        }
+      setEscolas(
+        (Array.isArray(listaEscolas) ? listaEscolas : []).map((item) => ({
+          id: item.id,
+          name: item.name,
+          address: item.address || '',
+          createdAt: item.createdAt,
+          region: item.address?.toUpperCase().includes('SUL')
+            ? 'Sul'
+            : item.address?.toUpperCase().includes('CENTRO')
+              ? 'Centro'
+              : 'Norte',
+          teams: projsPorEscola.get(item.id) || 0
+        }))
+      )
 
-        setEscolas(
-          (Array.isArray(listaEscolas) ? listaEscolas : []).map((item) => ({
-            id: item.id,
-            name: item.name,
-            address: item.address || '',
-            createdAt: item.createdAt,
-            region: item.address?.toUpperCase().includes('SUL')
-              ? 'Sul'
-              : item.address?.toUpperCase().includes('CENTRO')
-                ? 'Centro'
-                : 'Norte',
-            teams: projsPorEscola.get(item.id) || 0
-          }))
-        )
+      setTotalDocentes(Array.isArray(listaUsuarios) ? listaUsuarios.length : 0)
+      setTotalProjetos(Array.isArray(listaProjetos) ? listaProjetos.length : 0)
+    })
+  }
 
-        setTotalDocentes(Array.isArray(listaUsuarios) ? listaUsuarios.length : 0)
-        setTotalProjetos(Array.isArray(listaProjetos) ? listaProjetos.length : 0)
-      })
-      .finally(() => {
-        if (ativo) setCarregando(false)
-      })
+  useEffect(() => {
+    let ativo = true
+    carregarDados().finally(() => {
+      if (ativo) setCarregando(false)
+    })
 
     return () => {
       ativo = false
@@ -91,13 +100,38 @@ export default function GestaoEscolas() {
     [busca, escolas, regiaoSelecionada]
   )
 
-  const handleExcluirEscola = async (id, nome) => {
-    if (!window.confirm(`Deseja realmente excluir a escola "${nome}"?`)) return
+  const handleAbrirConfirmacaoExcluir = (id, nome) => {
+    setModal({
+      aberto: true,
+      tipo: 'confirmacao',
+      titulo: 'Excluir Escola?',
+      mensagem: `Deseja realmente remover a escola "${nome}" da rede? Todos os vínculos associados serão atualizados.`,
+      escolaParaExcluir: { id, nome }
+    })
+  }
+
+  const handleConfirmarExclusao = async () => {
+    if (!modal.escolaParaExcluir) return
+    const { id, nome } = modal.escolaParaExcluir
+
     try {
       await apiEscolas.excluir(id)
       setEscolas((prev) => prev.filter((e) => e.id !== id))
+      setModal({
+        aberto: true,
+        tipo: 'sucesso',
+        titulo: 'Escola excluída com sucesso!',
+        mensagem: `A unidade "${nome}" foi removida do sistema com sucesso.`,
+        escolaParaExcluir: null
+      })
     } catch (err) {
-      window.alert(err?.message || 'Não foi possível excluir a escola.')
+      setModal({
+        aberto: true,
+        tipo: 'erro',
+        titulo: 'Erro ao excluir escola',
+        mensagem: err?.message || 'Não foi possível excluir a escola. Verifique se o servidor está ativo.',
+        escolaParaExcluir: null
+      })
     }
   }
 
@@ -111,14 +145,14 @@ export default function GestaoEscolas() {
 
   return (
     <div className="flex flex-col lg:flex-row min-h-screen">
-      <AdminSidebar />
+      <AdminSidebar variant="admin" />
 
       <div className="flex flex-1 flex-col px-4 sm:px-6 lg:px-10 pb-16">
-        <main className="mx-auto flex w-full max-w-4xl flex-col gap-6 pt-6 sm:pt-12">
+        <main className="mx-auto flex w-full max-w-6xl flex-col gap-6 pt-6 sm:pt-12">
           {/* Título da página */}
           <div className="mb-2 flex flex-wrap items-center justify-between gap-4">
             <div>
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-verde-escuro">
+              <h1 className="text-2xl font-bold text-verde-escuro">
                 Gestão de Escolas
               </h1>
               <p className="mt-1 max-w-sm text-sm sm:text-base text-verde-musgo">
@@ -139,7 +173,7 @@ export default function GestaoEscolas() {
             {estatisticas.map(({ label, value }) => (
               <div key={label} className="rounded-2xl border border-verde-musgo bg-white px-5 py-5">
                 <p className="text-sm font-medium text-verde-musgo">{label}</p>
-                <p className="mt-2 text-3xl font-bold text-verde-escuro">{value}</p>
+                <p className="mt-2 text-2xl font-bold text-verde-escuro">{value}</p>
               </div>
             ))}
           </div>
@@ -209,7 +243,11 @@ export default function GestaoEscolas() {
           ) : (
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {escolasFiltradas.map((escola) => (
-                <CardEscolaAdmin key={escola.id} {...escola} onExcluir={handleExcluirEscola} />
+                <CardEscolaAdmin
+                  key={escola.id}
+                  {...escola}
+                  onExcluir={handleAbrirConfirmacaoExcluir}
+                />
               ))}
 
               <Link
@@ -223,6 +261,20 @@ export default function GestaoEscolas() {
           )}
         </main>
       </div>
+
+      {/* Modal Interativo Padronizado (Confirmação / Sucesso / Erro) */}
+      {modal.aberto && (
+        <ModalConfirmacao
+          aberto={modal.aberto}
+          tipo={modal.tipo}
+          titulo={modal.titulo}
+          mensagem={modal.mensagem}
+          textoConfirmar="Excluir"
+          textoCancelar="Cancelar"
+          onConfirmar={modal.tipo === 'confirmacao' ? handleConfirmarExclusao : () => setModal((prev) => ({ ...prev, aberto: false }))}
+          onCancelar={() => setModal((prev) => ({ ...prev, aberto: false }))}
+        />
+      )}
     </div>
   )
 }

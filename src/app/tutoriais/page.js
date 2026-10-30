@@ -95,47 +95,49 @@ export default function Tutoriais() {
   const tutoriaisPaginados = paginar(tutoriaisFiltrados, paginaAtual, ITENS_POR_PAGINA)
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-branco-esverdeado/20">
       <Header />
 
-      <main className="grow flex flex-col items-center">
+      <main className="grow flex flex-col items-center py-8 sm:py-12">
         {/* Cabeçalho */}
-        <section className="flex flex-col items-center text-center gap-4 mt-8 px-4">
-          <h1 className="text-2xl sm:text-3xl md:text-[40px] font-bold uppercase text-verde-escuro">
+        <section className="flex flex-col items-center text-center gap-2 mb-3 px-4">
+          <h1 className="font-extrabold text-3xl sm:text-4xl uppercase text-verde-escuro tracking-tight">
             Nossos <span className="text-verde-musgo">Tutoriais!</span>
           </h1>
-          <p className="text-base sm:text-xl md:text-[28px] font-medium text-verde-escuro max-w-5xl leading-snug">
+          <p className="text-sm sm:text-base text-verde-musgo font-medium max-w-2xl mx-auto leading-relaxed">
             Explore tutoriais práticos desenvolvidos pelas escolas do nosso circuito
           </p>
         </section>
 
         {/* Container principal */}
-        <div className="flex flex-col lg:flex-row w-full max-w-[1440px] mx-auto px-6 lg:pl-[47px] lg:pr-[37px] items-start justify-center gap-10 mt-14">
+        <div className="w-full md:w-[85%] lg:w-[75%] mx-auto px-4 flex flex-col lg:flex-row items-start gap-8 mt-6 sm:mt-8">
           {/* Coluna esquerda */}
-          <aside className="flex w-full lg:w-[350px] shrink-0 flex-col">
-            <div className="flex flex-col gap-2.5 w-full">
+          <aside className="w-full lg:w-72 shrink-0 flex flex-col gap-5">
+            <div className="flex flex-col gap-2 w-full">
               <SearchBar
                 value={busca}
                 onChange={comReset(setBusca)}
                 placeholder="Pesquisar por assunto..."
               />
-              <p className="text-[#747A60] text-sm font-semibold">
+              <p className="text-verde-musgo text-xs sm:text-sm font-semibold ml-1">
                 Mostrando {tutoriaisFiltrados.length}{' '}
-                {tutoriaisFiltrados.length === 1 ? 'projeto' : 'projetos'}
+                {tutoriaisFiltrados.length === 1 ? 'tutorial' : 'tutoriais'}
               </p>
             </div>
 
-            <div className="flex flex-col gap-[15px] mt-10">
+            <div className="flex flex-col gap-4">
               <Category value={categoria} onChange={comReset(setCategoria)} options={categorias} />
               <Level value={nivel} onChange={comReset(setNivel)} />
               <School value={escola} onChange={comReset(setEscola)} options={escolas} />
             </div>
 
-            <BobIdea />
+            <div className="hidden lg:block mt-2">
+              <BobIdea />
+            </div>
           </aside>
 
           {/* Coluna direita */}
-          <div className="flex flex-col gap-[21px] flex-1 max-w-[966px] w-full">
+          <section className="flex flex-col flex-1 w-full min-w-0">
             <div className="flex flex-row gap-2.5 flex-wrap">
               {ordenacoes.map(({ valor, texto }) => (
                 <FilterButton
@@ -149,11 +151,11 @@ export default function Tutoriais() {
             </div>
 
             {carregando ? (
-              <p className="mt-12 text-center text-verde-musgo text-lg font-medium">
+              <p className="mt-12 text-center text-verde-musgo text-base sm:text-lg font-medium">
                 Carregando tutoriais...
               </p>
             ) : tutoriaisPaginados.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-[15px] gap-y-10 place-items-center">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full mt-6 justify-items-center sm:justify-items-stretch">
                 {tutoriaisPaginados.map((tutorial) => (
                   <Card
                     key={tutorial.id}
@@ -168,14 +170,18 @@ export default function Tutoriais() {
                 ))}
               </div>
             ) : (
-              <p className="mt-12 text-center text-verde-musgo text-lg font-medium">
+              <p className="mt-12 text-center text-verde-musgo text-base sm:text-lg font-medium">
                 Nenhum tutorial encontrado no momento.
               </p>
             )}
-          </div>
+          </section>
         </div>
 
-        <Page currentPage={paginaAtual} totalPages={totalPaginas} onPageChange={setPaginaAtual} />
+        {totalPaginas > 1 && (
+          <div className="mt-10">
+            <Page currentPage={paginaAtual} totalPages={totalPaginas} onPageChange={setPaginaAtual} />
+          </div>
+        )}
       </main>
 
       <Footer />

@@ -5,6 +5,7 @@ import { SideBarAdmin } from '@/components/SideBarAdmin'
 import Link from 'next/link'
 import { correspondeBusca } from '@/utils/filtros'
 import { apiEscolas, apiUsuarios } from '@/services/api'
+import { ModalConfirmacao } from '@/components/ModalConfirmacao'
 
 import {
   IoSearchOutline,
@@ -24,6 +25,7 @@ export default function GestaoUsuarios() {
   const [filtroStatus, setFiltroStatus] = useState('Todos')
   const [paginaAtual, setPaginaAtual] = useState(1)
   const itensPorPagina = 5
+  const [modal, setModal] = useState({ aberto: false, tipo: "confirmacao", titulo: "", mensagem: "", usuarioParaExcluir: null })
 
   useEffect(() => {
     let ativo = true
@@ -88,15 +90,39 @@ export default function GestaoUsuarios() {
     document.body.removeChild(link)
   }
 
-  const handleExcluirUsuario = async (usuario) => {
-    if (!window.confirm(`Deseja realmente excluir o usuário "${usuario.nome}"?`)) return
+  const handleExcluirUsuario = (usuario) => {
+    setModal({
+      aberto: true,
+      tipo: "confirmacao",
+      titulo: "Excluir Usuário?",
+      mensagem: `Deseja realmente remover o usuário "${usuario.nome}" do portal? Esta ação não pode ser desfeita.`,
+      usuarioParaExcluir: usuario
+    });
+  };
+
+  const handleConfirmarExclusaoUsuario = async () => {
+    if (!modal.usuarioParaExcluir) return;
+    const u = modal.usuarioParaExcluir;
     try {
-      await apiUsuarios.excluir(usuario.id)
-      setUsuarios((prev) => prev.filter((u) => u.id !== usuario.id))
+      await apiUsuarios.excluir(u.id);
+      setUsuarios((prev) => prev.filter((item) => item.id !== u.id));
+      setModal({
+        aberto: true,
+        tipo: "sucesso",
+        titulo: "Usuário excluído com sucesso!",
+        mensagem: `O usuário "${u.nome}" foi removido do sistema.`,
+        usuarioParaExcluir: null
+      });
     } catch (err) {
-      window.alert(err?.message || 'Não foi possível excluir o usuário.')
+      setModal({
+        aberto: true,
+        tipo: "erro",
+        titulo: "Erro ao excluir usuário",
+        mensagem: err?.message || "Não foi possível excluir o usuário.",
+        usuarioParaExcluir: null
+      });
     }
-  }
+  };
 
   const handleFiltroChange = (e) => {
     setFiltroStatus(e.target.value)
@@ -113,10 +139,10 @@ export default function GestaoUsuarios() {
       <SideBarAdmin />
 
       <main className="flex-1 flex flex-col">
-        <div className="w-full max-w-6xl mx-auto py-8 lg:py-12 px-4 sm:px-8 flex flex-col gap-8">
+        <div className="w-full max-w-6xl mx-auto py-8 sm:py-10 px-4 sm:px-6 lg:px-8 flex flex-col gap-6 sm:gap-8">
           <div className="flex flex-wrap justify-between items-end gap-4">
             <section className="flex flex-col gap-2">
-              <h2 className="text-verde-escuro text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight">
+              <h2 className="text-verde-escuro text-2xl font-bold leading-tight">
                 Gestão de Usuários
               </h2>
               <p className="text-verde-musgo text-base sm:text-lg lg:text-xl font-normal">
@@ -134,15 +160,15 @@ export default function GestaoUsuarios() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="p-6 bg-white rounded-3xl border border-verde-musgo border-opacity-30 shadow-sm flex flex-col gap-1">
               <span className="text-verde-musgo text-base font-medium">Total de Usuários</span>
-              <span className="text-verde-escuro text-3xl font-semibold">{totalUsuarios}</span>
+              <span className="text-verde-escuro text-2xl font-semibold">{totalUsuarios}</span>
             </div>
             <div className="p-6 bg-white rounded-3xl border border-verde-musgo border-opacity-30 shadow-sm flex flex-col gap-1">
               <span className="text-verde-musgo text-base font-medium">Professores Ativos</span>
-              <span className="text-verde-escuro text-3xl font-semibold">{totalAtivos}</span>
+              <span className="text-verde-escuro text-2xl font-semibold">{totalAtivos}</span>
             </div>
             <div className="p-6 bg-white rounded-3xl border border-verde-musgo border-opacity-30 shadow-sm flex flex-col gap-1">
               <span className="text-verde-musgo text-base font-medium">Pendentes de Acesso</span>
-              <span className="text-verde-escuro text-3xl font-semibold">{totalPendentes}</span>
+              <span className="text-verde-escuro text-2xl font-semibold">{totalPendentes}</span>
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-4 p-2 bg-white/50 backdrop-blur-sm border border-verde-musgo border-opacity-30 rounded-xl">
@@ -346,6 +372,19 @@ export default function GestaoUsuarios() {
           </div>
         </div>
       </main>
+
+      {modal.aberto && (
+        <ModalConfirmacao
+          aberto={modal.aberto}
+          tipo={modal.tipo}
+          titulo={modal.titulo}
+          mensagem={modal.mensagem}
+          textoConfirmar="Excluir"
+          textoCancelar="Cancelar"
+          onConfirmar={modal.tipo === "confirmacao" ? handleConfirmarExclusaoUsuario : () => setModal((prev) => ({ ...prev, aberto: false }))}
+          onCancelar={() => setModal((prev) => ({ ...prev, aberto: false }))}
+        />
+      )}
     </div>
   )
 }

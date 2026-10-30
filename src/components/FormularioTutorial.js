@@ -248,10 +248,10 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
       <SideBarProfessor />
 
       <main className="flex-1 flex flex-col">
-        <div className="w-[92%] sm:w-[85%] max-w-[900px] mx-auto py-8 lg:py-12 px-2 sm:px-4 flex flex-col gap-8 lg:gap-12">
+        <div className="w-full max-w-5xl mx-auto py-8 sm:py-10 px-4 sm:px-6 lg:px-8 flex flex-col gap-8">
           {/* Cabeçalho */}
           <section className="flex flex-col gap-2.5">
-            <h1 className="text-verde-escuro text-3xl sm:text-5xl font-bold leading-tight">
+            <h1 className="text-verde-escuro text-2xl font-bold leading-tight">
               {ehEdicao ? 'Editar Tutorial' : 'Criar Novo Tutorial'}
             </h1>
             <p className="text-verde-musgo text-base sm:text-xl font-normal">
