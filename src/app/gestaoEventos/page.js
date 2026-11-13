@@ -23,7 +23,13 @@ export default function GestaoEventos() {
   const router = useRouter()
   const [eventos, setEventos] = useState([])
   const [carregando, setCarregando] = useState(true)
-  const [modal, setModal] = useState({ aberto: false, tipo: 'confirmacao', titulo: '', mensagem: '', eventoParaExcluir: null })
+  const [modal, setModal] = useState({
+    aberto: false,
+    tipo: 'confirmacao',
+    titulo: '',
+    mensagem: '',
+    eventoParaExcluir: null
+  })
   const [filtroStatus, setFiltroStatus] = useState('agendado')
 
   useEffect(() => {
@@ -68,22 +74,22 @@ export default function GestaoEventos() {
       titulo: 'Excluir Evento?',
       mensagem: `Deseja realmente remover o evento "${evento.titulo}"?`,
       eventoParaExcluir: evento
-    });
-  };
+    })
+  }
 
   const handleConfirmarExclusaoEvento = async () => {
-    if (!modal.eventoParaExcluir) return;
-    const ev = modal.eventoParaExcluir;
+    if (!modal.eventoParaExcluir) return
+    const ev = modal.eventoParaExcluir
     try {
-      await apiProjetos.excluir(ev.id);
-      setEventos((prev) => prev.filter((item) => item.id !== ev.id));
+      await apiProjetos.excluir(ev.id)
+      setEventos((prev) => prev.filter((item) => item.id !== ev.id))
       setModal({
         aberto: true,
         tipo: 'sucesso',
         titulo: 'Evento excluído com sucesso!',
         mensagem: `O evento "${ev.titulo}" foi removido.`,
         eventoParaExcluir: null
-      });
+      })
     } catch (err) {
       setModal({
         aberto: true,
@@ -91,9 +97,9 @@ export default function GestaoEventos() {
         titulo: 'Erro ao excluir evento',
         mensagem: err?.message || 'Não foi possível excluir o evento.',
         eventoParaExcluir: null
-      });
+      })
     }
-  };
+  }
 
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-background relative">
@@ -177,7 +183,11 @@ export default function GestaoEventos() {
           mensagem={modal.mensagem}
           textoConfirmar="Excluir"
           textoCancelar="Cancelar"
-          onConfirmar={modal.tipo === 'confirmacao' ? handleConfirmarExclusaoEvento : () => setModal((prev) => ({ ...prev, aberto: false }))}
+          onConfirmar={
+            modal.tipo === 'confirmacao'
+              ? handleConfirmarExclusaoEvento
+              : () => setModal((prev) => ({ ...prev, aberto: false }))
+          }
           onCancelar={() => setModal((prev) => ({ ...prev, aberto: false }))}
         />
       )}

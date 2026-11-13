@@ -136,27 +136,27 @@ function ConteudoEditarProjeto() {
       tipo: 'confirmacao',
       titulo: 'Excluir Projeto?',
       mensagem: 'Deseja realmente remover esta publicação de projeto da rede?'
-    });
+    })
   }
 
   async function handleConfirmarExclusao() {
-    if (!idProjeto) return;
+    if (!idProjeto) return
     try {
-      await apiProjetos.excluir(idProjeto);
+      await apiProjetos.excluir(idProjeto)
       setModal({
         aberto: true,
         tipo: 'sucesso',
         titulo: 'Projeto excluído com sucesso!',
         mensagem: 'O projeto foi removido do catálogo.',
         redirecionar: true
-      });
+      })
     } catch (err) {
       setModal({
         aberto: true,
         tipo: 'erro',
         titulo: 'Erro ao excluir projeto',
         mensagem: err?.message || 'Não foi possível excluir o projeto.'
-      });
+      })
     }
   }
 
@@ -360,10 +360,14 @@ function ConteudoEditarProjeto() {
         }
         textoBotaoSucesso="Voltar para Projetos"
         textoConfirmar={modal.tipo === 'confirmacao' ? 'Excluir' : undefined}
-        onConfirmar={modal.tipo === 'confirmacao' ? handleConfirmarExclusao : () => {
-          setModal({ aberto: false, tipo: 'sucesso', mensagemErro: '' })
-          router.push('/projetos')
-        }}
+        onConfirmar={
+          modal.tipo === 'confirmacao'
+            ? handleConfirmarExclusao
+            : () => {
+                setModal({ aberto: false, tipo: 'sucesso', mensagemErro: '' })
+                router.push('/projetos')
+              }
+        }
         onCancelar={() => {
           setModal({ aberto: false, tipo: 'sucesso', mensagemErro: '' })
           router.push('/projetos')

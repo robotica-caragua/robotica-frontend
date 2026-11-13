@@ -179,7 +179,11 @@ export default function Tutoriais() {
 
         {totalPaginas > 1 && (
           <div className="mt-10">
-            <Page currentPage={paginaAtual} totalPages={totalPaginas} onPageChange={setPaginaAtual} />
+            <Page
+              currentPage={paginaAtual}
+              totalPages={totalPaginas}
+              onPageChange={setPaginaAtual}
+            />
           </div>
         )}
       </main>

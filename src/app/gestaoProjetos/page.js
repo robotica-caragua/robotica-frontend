@@ -6,12 +6,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { SideBarProfessor } from '@/components/SideBarProfessor'
 import { ModalConfirmacao } from '@/components/ModalConfirmacao'
-import {
-  apiCategorias,
-  apiEscolas,
-  apiProjetos,
-  mapearProjetoDaApi
-} from '@/services/api'
+import { apiCategorias, apiEscolas, apiProjetos, mapearProjetoDaApi } from '@/services/api'
 import { IoSearchOutline, IoAddOutline } from 'react-icons/io5'
 import {
   MdKeyboardArrowDown,
@@ -63,6 +58,8 @@ export default function GestaoProjetos() {
   }
 
   useEffect(() => {
+    // Carga inicial de dados da API ao montar a página
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     carregarProjetos()
   }, [])
 
@@ -92,9 +89,7 @@ export default function GestaoProjetos() {
   }, [projetos, busca, categoria, escola])
 
   const alternarVisibilidade = (id) => {
-    setProjetos((lista) =>
-      lista.map((p) => (p.id === id ? { ...p, visivel: !p.visivel } : p))
-    )
+    setProjetos((lista) => lista.map((p) => (p.id === id ? { ...p, visivel: !p.visivel } : p)))
   }
 
   const excluirProjeto = (proj) => {
@@ -337,9 +332,15 @@ export default function GestaoProjetos() {
           textoBotaoVoltar="Continuar"
           hrefVoltar="/gestaoProjetos"
           textoConfirmar={modal.tipo === 'confirmacao' ? 'Excluir' : undefined}
-          onConfirmar={modal.tipo === 'confirmacao' ? handleConfirmarExclusaoProjeto : () => setModal({ aberto: false, tipo: null, mensagem: '', titulo: '' })}
+          onConfirmar={
+            modal.tipo === 'confirmacao'
+              ? handleConfirmarExclusaoProjeto
+              : () => setModal({ aberto: false, tipo: null, mensagem: '', titulo: '' })
+          }
           onCancelar={() => setModal({ aberto: false, tipo: null, mensagem: '', titulo: '' })}
-          onTentarNovamente={() => setModal({ aberto: false, tipo: null, mensagem: '', titulo: '' })}
+          onTentarNovamente={() =>
+            setModal({ aberto: false, tipo: null, mensagem: '', titulo: '' })
+          }
         />
       )}
     </div>

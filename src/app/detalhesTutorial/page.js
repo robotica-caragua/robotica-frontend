@@ -84,7 +84,9 @@ function DetalhesTutorialConteudo() {
   if (carregando) {
     return (
       <div className="flex min-h-[60vh] w-full items-center justify-center px-4">
-        <p className="text-verde-musgo text-base sm:text-lg font-medium">Carregando detalhes do tutorial...</p>
+        <p className="text-verde-musgo text-base sm:text-lg font-medium">
+          Carregando detalhes do tutorial...
+        </p>
       </div>
     )
   }
@@ -92,7 +94,9 @@ function DetalhesTutorialConteudo() {
   if (!tutorial) {
     return (
       <div className="flex min-h-[60vh] w-full flex-col items-center justify-center gap-4 px-4">
-        <p className="text-verde-musgo text-base sm:text-lg font-medium">Tutorial não encontrado.</p>
+        <p className="text-verde-musgo text-base sm:text-lg font-medium">
+          Tutorial não encontrado.
+        </p>
         <Link
           href="/tutoriais"
           className="px-5 py-2.5 bg-verde-musgo text-white text-sm font-bold rounded-xl hover:bg-verde-escuro transition"
@@ -123,11 +127,7 @@ function DetalhesTutorialConteudo() {
           </h1>
 
           <div className="w-full aspect-video rounded-xl overflow-hidden bg-black shadow-inner">
-            <video
-              key={tutorial.tutorialUrl}
-              className="w-full h-full object-cover"
-              controls
-            >
+            <video key={tutorial.tutorialUrl} className="w-full h-full object-cover" controls>
               <source src={tutorial.tutorialUrl} type="video/mp4" />
               Seu navegador não suporta a tag de vídeo.
             </video>
@@ -161,9 +161,7 @@ function DetalhesTutorialConteudo() {
                 )
               })
             ) : (
-              <p className="text-stone-500 text-sm">
-                Nenhum material listado para este tutorial.
-              </p>
+              <p className="text-stone-500 text-sm">Nenhum material listado para este tutorial.</p>
             )}
           </div>
         </div>
@@ -179,8 +177,8 @@ function DetalhesTutorialConteudo() {
               <span>{tutorial.enderecoEscola}</span>
             </div>
             <p className="text-stone-600 text-sm leading-relaxed mt-1">
-              Referência regional em robótica educacional inclusiva. Nossa escola desenvolve projetos
-              que integram tecnologia e consciência ambiental desde os anos iniciais.
+              Referência regional em robótica educacional inclusiva. Nossa escola desenvolve
+              projetos que integram tecnologia e consciência ambiental desde os anos iniciais.
             </p>
           </div>
 

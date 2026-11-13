@@ -25,7 +25,13 @@ export default function GestaoUsuarios() {
   const [filtroStatus, setFiltroStatus] = useState('Todos')
   const [paginaAtual, setPaginaAtual] = useState(1)
   const itensPorPagina = 5
-  const [modal, setModal] = useState({ aberto: false, tipo: "confirmacao", titulo: "", mensagem: "", usuarioParaExcluir: null })
+  const [modal, setModal] = useState({
+    aberto: false,
+    tipo: 'confirmacao',
+    titulo: '',
+    mensagem: '',
+    usuarioParaExcluir: null
+  })
 
   useEffect(() => {
     let ativo = true
@@ -93,36 +99,36 @@ export default function GestaoUsuarios() {
   const handleExcluirUsuario = (usuario) => {
     setModal({
       aberto: true,
-      tipo: "confirmacao",
-      titulo: "Excluir Usuário?",
+      tipo: 'confirmacao',
+      titulo: 'Excluir Usuário?',
       mensagem: `Deseja realmente remover o usuário "${usuario.nome}" do portal? Esta ação não pode ser desfeita.`,
       usuarioParaExcluir: usuario
-    });
-  };
+    })
+  }
 
   const handleConfirmarExclusaoUsuario = async () => {
-    if (!modal.usuarioParaExcluir) return;
-    const u = modal.usuarioParaExcluir;
+    if (!modal.usuarioParaExcluir) return
+    const u = modal.usuarioParaExcluir
     try {
-      await apiUsuarios.excluir(u.id);
-      setUsuarios((prev) => prev.filter((item) => item.id !== u.id));
+      await apiUsuarios.excluir(u.id)
+      setUsuarios((prev) => prev.filter((item) => item.id !== u.id))
       setModal({
         aberto: true,
-        tipo: "sucesso",
-        titulo: "Usuário excluído com sucesso!",
+        tipo: 'sucesso',
+        titulo: 'Usuário excluído com sucesso!',
         mensagem: `O usuário "${u.nome}" foi removido do sistema.`,
         usuarioParaExcluir: null
-      });
+      })
     } catch (err) {
       setModal({
         aberto: true,
-        tipo: "erro",
-        titulo: "Erro ao excluir usuário",
-        mensagem: err?.message || "Não foi possível excluir o usuário.",
+        tipo: 'erro',
+        titulo: 'Erro ao excluir usuário',
+        mensagem: err?.message || 'Não foi possível excluir o usuário.',
         usuarioParaExcluir: null
-      });
+      })
     }
-  };
+  }
 
   const handleFiltroChange = (e) => {
     setFiltroStatus(e.target.value)
@@ -381,7 +387,11 @@ export default function GestaoUsuarios() {
           mensagem={modal.mensagem}
           textoConfirmar="Excluir"
           textoCancelar="Cancelar"
-          onConfirmar={modal.tipo === "confirmacao" ? handleConfirmarExclusaoUsuario : () => setModal((prev) => ({ ...prev, aberto: false }))}
+          onConfirmar={
+            modal.tipo === 'confirmacao'
+              ? handleConfirmarExclusaoUsuario
+              : () => setModal((prev) => ({ ...prev, aberto: false }))
+          }
           onCancelar={() => setModal((prev) => ({ ...prev, aberto: false }))}
         />
       )}

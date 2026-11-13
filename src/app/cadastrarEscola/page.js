@@ -345,5 +345,3 @@ export default function CadastrarEscola() {
     </div>
   )
 }
-
-

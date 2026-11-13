@@ -36,12 +36,7 @@ export function CardProjeto({
         <div className="absolute top-3 left-3 bg-verde-musgo text-white text-[10px] font-bold px-2.5 py-1 rounded-full z-10 uppercase tracking-wider">
           {categoriaBadge}
         </div>
-        <Image
-          src={imageUrl || containerImage}
-          alt={title}
-          fill
-          className="object-cover"
-        />
+        <Image src={imageUrl || containerImage} alt={title} fill className="object-cover" />
       </div>
 
       <div className="p-4 sm:p-5 flex flex-col gap-2 flex-1">
@@ -51,9 +46,7 @@ export function CardProjeto({
         <h3 className="text-base sm:text-lg font-bold text-verde-escuro uppercase leading-tight truncate">
           {title}
         </h3>
-        <p className="text-xs sm:text-sm text-stone-500 font-normal line-clamp-2">
-          {description}
-        </p>
+        <p className="text-xs sm:text-sm text-stone-500 font-normal line-clamp-2">{description}</p>
 
         <div className="mt-auto pt-3 border-t border-stone-200 flex items-center justify-between">
           <button

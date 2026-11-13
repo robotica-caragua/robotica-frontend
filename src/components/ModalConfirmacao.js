@@ -38,7 +38,10 @@ export function ModalConfirmacao({
         : 'Não foi possível concluir')
 
   const textoBotaoPrincipal =
-    textoConfirmar || textoBotaoSucesso || textoBotaoVoltar || (ehSucesso ? 'Continuar' : 'Entendido')
+    textoConfirmar ||
+    textoBotaoSucesso ||
+    textoBotaoVoltar ||
+    (ehSucesso ? 'Continuar' : 'Entendido')
 
   return (
     <div

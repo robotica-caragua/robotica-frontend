@@ -413,10 +413,27 @@ export const apiEscolas = {
         }
         if (mapa.size > 0) return Array.from(mapa.values())
         return [
-          { id: 3, name: 'EMEF Profª Maria Aparecida De Carvalho', address: 'R. Seishi Yoshimoto, 120 - Getuba, Caraguatatuba - SP, 11676-403' },
-          { id: 4, name: 'EMEF Prof. Luiz Ribeiro Muniz', address: 'R. Analândia, 355 - Martim de Sá, Caraguatatuba - SP, 11662-320' },
-          { id: 5, name: 'EMEF Prof. Luiz Silvar do Prado', address: 'R. José Pedro de Oliveira Barbosa, 805 - Jardim Casa Branca, Caraguatatuba - SP' },
-          { id: 6, name: 'EMEF Profª Maria Thereza de Souza Castro', address: 'R. Seishi Yoshimoto, 120 - Getuba, Caraguatatuba - SP, 11676-403' }
+          {
+            id: 3,
+            name: 'EMEF Profª Maria Aparecida De Carvalho',
+            address: 'R. Seishi Yoshimoto, 120 - Getuba, Caraguatatuba - SP, 11676-403'
+          },
+          {
+            id: 4,
+            name: 'EMEF Prof. Luiz Ribeiro Muniz',
+            address: 'R. Analândia, 355 - Martim de Sá, Caraguatatuba - SP, 11662-320'
+          },
+          {
+            id: 5,
+            name: 'EMEF Prof. Luiz Silvar do Prado',
+            address:
+              'R. José Pedro de Oliveira Barbosa, 805 - Jardim Casa Branca, Caraguatatuba - SP'
+          },
+          {
+            id: 6,
+            name: 'EMEF Profª Maria Thereza de Souza Castro',
+            address: 'R. Seishi Yoshimoto, 120 - Getuba, Caraguatatuba - SP, 11676-403'
+          }
         ]
       }
       throw err

@@ -284,7 +284,8 @@ export default function HomePage() {
             </InfoItem>
 
             <InfoItem Icon={ImBooks} title="Educação Inclusiva">
-              Portal totalmente acessível para garantir que a tecnologia chegue a todos os estudantes.
+              Portal totalmente acessível para garantir que a tecnologia chegue a todos os
+              estudantes.
             </InfoItem>
           </div>
         </div>

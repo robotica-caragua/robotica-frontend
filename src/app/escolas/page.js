@@ -129,7 +129,8 @@ export default function GestaoEscolas() {
         aberto: true,
         tipo: 'erro',
         titulo: 'Erro ao excluir escola',
-        mensagem: err?.message || 'Não foi possível excluir a escola. Verifique se o servidor está ativo.',
+        mensagem:
+          err?.message || 'Não foi possível excluir a escola. Verifique se o servidor está ativo.',
         escolaParaExcluir: null
       })
     }
@@ -152,9 +153,7 @@ export default function GestaoEscolas() {
           {/* Título da página */}
           <div className="mb-2 flex flex-wrap items-center justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-verde-escuro">
-                Gestão de Escolas
-              </h1>
+              <h1 className="text-2xl font-bold text-verde-escuro">Gestão de Escolas</h1>
               <p className="mt-1 max-w-sm text-sm sm:text-base text-verde-musgo">
                 Administre as unidades da rede conectadas ao sistema.
               </p>
@@ -271,7 +270,11 @@ export default function GestaoEscolas() {
           mensagem={modal.mensagem}
           textoConfirmar="Excluir"
           textoCancelar="Cancelar"
-          onConfirmar={modal.tipo === 'confirmacao' ? handleConfirmarExclusao : () => setModal((prev) => ({ ...prev, aberto: false }))}
+          onConfirmar={
+            modal.tipo === 'confirmacao'
+              ? handleConfirmarExclusao
+              : () => setModal((prev) => ({ ...prev, aberto: false }))
+          }
           onCancelar={() => setModal((prev) => ({ ...prev, aberto: false }))}
         />
       )}

@@ -76,7 +76,9 @@ function DetalhesProjetoConteudo() {
   if (carregando) {
     return (
       <main className="w-full min-h-[60vh] py-16 px-4 flex items-center justify-center">
-        <p className="text-verde-musgo text-base sm:text-lg font-medium">Carregando detalhes do projeto...</p>
+        <p className="text-verde-musgo text-base sm:text-lg font-medium">
+          Carregando detalhes do projeto...
+        </p>
       </main>
     )
   }
@@ -159,7 +161,9 @@ function DetalhesProjetoConteudo() {
           {/* tecnologias e equipe */}
           <div className="w-full lg:w-80 bg-white border border-stone-200 rounded-2xl p-6 flex flex-col gap-5 shadow-xs font-sans">
             <div className="flex flex-col gap-2">
-              <h3 className="text-verde-escuro text-base font-bold uppercase tracking-wider">Categorias</h3>
+              <h3 className="text-verde-escuro text-base font-bold uppercase tracking-wider">
+                Categorias
+              </h3>
               <div className="pt-1 pb-3 border-b border-stone-100 flex flex-wrap gap-1.5">
                 {projeto.categorias.map((cat) => (
                   <span
@@ -173,7 +177,9 @@ function DetalhesProjetoConteudo() {
             </div>
 
             <div className="flex flex-col gap-3">
-              <h3 className="text-verde-escuro text-base font-bold uppercase tracking-wider">Unidade Escolar</h3>
+              <h3 className="text-verde-escuro text-base font-bold uppercase tracking-wider">
+                Unidade Escolar
+              </h3>
 
               <div className="flex flex-col gap-1">
                 <span className="text-verde-musgo text-[11px] font-bold uppercase tracking-wider">
@@ -186,7 +192,9 @@ function DetalhesProjetoConteudo() {
                 <span className="text-verde-musgo text-[11px] font-bold uppercase tracking-wider">
                   ENDEREÇO
                 </span>
-                <span className="text-stone-600 text-xs sm:text-sm font-medium">{projeto.enderecoEscola}</span>
+                <span className="text-stone-600 text-xs sm:text-sm font-medium">
+                  {projeto.enderecoEscola}
+                </span>
               </div>
             </div>
           </div>

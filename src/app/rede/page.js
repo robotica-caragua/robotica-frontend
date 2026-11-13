@@ -123,7 +123,9 @@ export default function Rede() {
         <div className="flex flex-col my-8 md:my-14 w-full md:w-[85%] lg:w-[75%] bg-white border-2 border-verde-musgo rounded-2xl py-6 md:py-8 px-4 md:px-6 gap-6 shadow-xs">
           <div className="flex flex-row items-center gap-3 md:gap-4 text-verde-musgo px-2 md:ml-4">
             <IoRocketOutline size={30} />
-            <h2 className="font-semibold text-xl sm:text-2xl text-verde-musgo">Eventos em Destaque</h2>
+            <h2 className="font-semibold text-xl sm:text-2xl text-verde-musgo">
+              Eventos em Destaque
+            </h2>
           </div>
 
           <div className="flex flex-wrap gap-4 sm:gap-6 justify-center px-2 md:px-4">

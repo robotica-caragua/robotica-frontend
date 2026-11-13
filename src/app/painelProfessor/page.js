@@ -38,7 +38,13 @@ export default function PainelProfessor() {
   const [busca, setBusca] = useState('')
   const [publicacoes, setPublicacoes] = useState([])
   const [carregando, setCarregando] = useState(true)
-  const [modal, setModal] = useState({ aberto: false, tipo: 'confirmacao', titulo: '', mensagem: '', pubParaExcluir: null })
+  const [modal, setModal] = useState({
+    aberto: false,
+    tipo: 'confirmacao',
+    titulo: '',
+    mensagem: '',
+    pubParaExcluir: null
+  })
   const [nomeProfessor, setNomeProfessor] = useState(() => obterUsuario()?.name || 'Professor(a)')
   const [nomeEscola, setNomeEscola] = useState('Rede Municipal de Caraguatatuba')
 
@@ -409,7 +415,11 @@ export default function PainelProfessor() {
           mensagem={modal.mensagem}
           textoConfirmar="Excluir"
           textoCancelar="Cancelar"
-          onConfirmar={modal.tipo === 'confirmacao' ? handleConfirmarExclusaoPublicacao : () => setModal((prev) => ({ ...prev, aberto: false }))}
+          onConfirmar={
+            modal.tipo === 'confirmacao'
+              ? handleConfirmarExclusaoPublicacao
+              : () => setModal((prev) => ({ ...prev, aberto: false }))
+          }
           onCancelar={() => setModal((prev) => ({ ...prev, aberto: false }))}
         />
       )}
