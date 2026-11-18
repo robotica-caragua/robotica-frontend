@@ -57,7 +57,7 @@ export default function ForgotPassword() {
           <div className="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-12 mt-8 sm:mt-10">
             <Link
               href="/login"
-              className="flex items-center justify-center w-40 h-11 gap-2 rounded-xl bg-white border-2 border-verde-musgo font-bold text-verde-musgo text-base hover:brightness-50 duration-75 cursor-pointer"
+              className="flex items-center justify-center w-full max-w-60 sm:w-40 h-11 gap-2 rounded-xl bg-white border-2 border-verde-musgo font-bold text-verde-musgo text-base hover:brightness-50 duration-75 cursor-pointer"
             >
               Cancelar
             </Link>
@@ -65,7 +65,7 @@ export default function ForgotPassword() {
             <button
               type="submit"
               disabled={carregando}
-              className="flex w-40 h-11 items-center justify-center gap-2 rounded-xl bg-verde-limao border-b-6 border-verde-escuro font-bold text-verde-escuro hover:brightness-50 duration-75 cursor-pointer disabled:opacity-60"
+              className="flex w-full max-w-60 sm:w-40 h-11 items-center justify-center gap-2 rounded-xl bg-verde-limao border-b-6 border-verde-escuro font-bold text-verde-escuro hover:brightness-50 duration-75 cursor-pointer disabled:opacity-60"
             >
               <span>{carregando ? 'Enviando...' : 'Enviar'}</span>
             </button>

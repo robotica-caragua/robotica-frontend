@@ -102,8 +102,8 @@ export default function GestaoTutoriais() {
     <div className="flex flex-col lg:flex-row min-h-screen bg-background relative">
       <SideBarProfessor />
 
-      <main className="flex-1 flex flex-col">
-        <div className="w-[92%] sm:w-[85%] max-w-[900px] mx-auto py-8 lg:py-10 px-2 sm:px-4 flex flex-col gap-8 lg:gap-10">
+      <main className="flex-1 flex flex-col min-w-0">
+        <div className="w-[92%] sm:w-[90%] max-w-5xl mx-auto py-8 lg:py-10 px-2 sm:px-4 flex flex-col gap-8 lg:gap-10">
           {/* Busca superior */}
           <div className="relative w-full max-w-[350px]">
             <IoSearchOutline
@@ -238,7 +238,7 @@ export default function GestaoTutoriais() {
               Carregando tutoriais...
             </p>
           ) : tutoriaisFiltrados.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-7 gap-y-12">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-x-7 gap-y-10">
               {tutoriaisFiltrados.map((tutorial) => {
                 const ehRascunho = tutorial.status === 'rascunho'
                 return (

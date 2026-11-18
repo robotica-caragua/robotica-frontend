@@ -9,7 +9,7 @@ export function Page({ currentPage = 1, totalPages = 1, onPageChange }) {
   const irPara = (pagina) => onPageChange?.(Math.min(Math.max(pagina, 1), total))
 
   return (
-    <div className="flex items-center justify-center gap-3 my-16 font-sans select-none">
+    <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 my-10 sm:my-16 px-4 font-sans select-none">
       <button
         type="button"
         onClick={() => irPara(currentPage - 1)}

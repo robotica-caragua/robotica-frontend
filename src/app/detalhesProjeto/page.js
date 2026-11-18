@@ -98,13 +98,14 @@ function DetalhesProjetoConteudo() {
   }
 
   return (
-    <main className="w-full min-h-screen bg-[#FFFDF5] py-16 px-4 flex flex-col items-center justify-start">
-      <div className="w-full max-w-300 flex flex-col gap-10">
+    <main className="w-full min-h-screen bg-[#FFFDF5] py-8 sm:py-16 px-4 sm:px-6 flex flex-col items-center justify-start">
+      <div className="w-full max-w-300 flex flex-col gap-8 sm:gap-10">
         {/* botão voltar */}
-        <div className="self-start mt-4 md:-ml-12">
+        <div className="self-start mt-2">
           <Link
             href="/projetos"
-            className="text-[#002A15] hover:opacity-80 transition-opacity text-4xl md:text-5xl flex items-center cursor-pointer"
+            aria-label="Voltar para Projetos"
+            className="text-[#002A15] hover:opacity-80 transition-opacity text-3xl sm:text-4xl md:text-5xl flex items-center cursor-pointer"
           >
             <MdArrowBack />
           </Link>
@@ -135,7 +136,7 @@ function DetalhesProjetoConteudo() {
 
         <div className="w-full flex flex-col lg:flex-row gap-8 justify-between items-start">
           {/* galeria do projeto */}
-          <div className="w-full max-w-200 flex flex-col gap-6">
+          <div className="w-full lg:flex-1 max-w-200 min-w-0 flex flex-col gap-6">
             <div className="flex items-center gap-3">
               <div className="p-1 bg-[#E8F5D6] rounded-lg flex items-center justify-center">
                 <MdPhotoLibrary className="text-xl text-verde-musgo" />
@@ -183,7 +184,7 @@ function DetalhesProjetoConteudo() {
           </div>
 
           {/* tecnologias e equipe */}
-          <div className="w-full lg:w-96 bg-white border border-stone-300 rounded-lg p-6 flex flex-col gap-5 shadow-sm font-sans">
+          <div className="w-full lg:w-80 xl:w-96 shrink-0 bg-white border border-stone-300 rounded-lg p-6 flex flex-col gap-5 shadow-sm font-sans">
             <div className="flex flex-col gap-2.5">
               <h3 className="text-[#002A15] text-2xl font-semibold leading-8">Categorias</h3>
               <div className="py-5 border-b border-verde-musgo flex flex-col">
@@ -260,10 +261,12 @@ function DetalhesProjetoConteudo() {
                   <Link
                     key={outro.id}
                     href={`/detalhesProjeto?id=${outro.id}`}
-                    className="w-full p-4 bg-[#E8F5D6] rounded-xl flex justify-between items-center hover:opacity-90 transition-opacity cursor-pointer"
+                    className="w-full p-4 bg-[#E8F5D6] rounded-xl flex justify-between items-center gap-3 hover:opacity-90 transition-opacity cursor-pointer"
                   >
-                    <span className="text-verde-musgo text-lg font-medium">{outro.titulo}</span>
-                    <MdArrowForward className="text-[#002A15]" />
+                    <span className="text-verde-musgo text-base sm:text-lg font-medium">
+                      {outro.titulo}
+                    </span>
+                    <MdArrowForward className="text-[#002A15] shrink-0" />
                   </Link>
                 ))
               ) : (

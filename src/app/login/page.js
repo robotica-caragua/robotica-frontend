@@ -48,8 +48,8 @@ export default function LoginPage() {
           </h1>
         </div>
 
-        <div className="mx-auto flex flex-col lg:flex-row items-center justify-center bg-white w-full max-w-5xl rounded-2xl border-2 border-verde-musgo my-6 lg:my-10 p-6 lg:p-0 overflow-hidden">
-          <div className="w-48 sm:w-72 lg:w-[540px] flex justify-center">
+        <div className="mx-auto flex flex-col lg:flex-row items-center justify-center bg-white w-full max-w-5xl rounded-2xl border-2 border-verde-musgo my-6 lg:my-10 p-6 lg:py-8 lg:px-6 overflow-hidden gap-4 lg:gap-8">
+          <div className="w-48 sm:w-72 lg:w-[420px] xl:w-[500px] shrink-0 flex justify-center">
             <Image
               src={boblogin}
               alt="Robô BioBot"
@@ -60,11 +60,11 @@ export default function LoginPage() {
             />
           </div>
 
-          <div className="w-full lg:w-auto lg:flex-1 lg:pr-8 flex flex-col items-center lg:items-start">
+          <div className="w-full lg:w-auto lg:flex-1 lg:pr-4 flex flex-col items-center lg:items-start">
             <form onSubmit={handleSubmit} className="flex flex-col w-full max-w-md">
               <label
                 htmlFor="email-field"
-                className="mt-6 lg:mt-16 mb-2 text-xl text-verde-escuro font-medium"
+                className="mt-2 lg:mt-4 mb-2 text-xl text-verde-escuro font-medium"
               >
                 E-mail
               </label>

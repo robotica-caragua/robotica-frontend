@@ -336,7 +336,7 @@ export default function PerfilPage() {
           </section>
 
           {/* Credenciais */}
-          <section className="p-8 bg-white rounded-3xl shadow-sm border border-verde-musgo border-opacity-10 flex flex-col gap-8">
+          <section className="p-5 sm:p-8 bg-white rounded-3xl shadow-sm border border-verde-musgo border-opacity-10 flex flex-col gap-8">
             <div className="flex items-center gap-4">
               <div className="w-10 h-10 bg-verde-pastel bg-opacity-20 rounded-lg flex justify-center items-center text-verde-musgo">
                 <MdLockOutline size={24} />
@@ -410,7 +410,7 @@ export default function PerfilPage() {
                   <span className="text-verde-escuro text-sm font-bold mb-1">
                     A senha deve conter:
                   </span>
-                  <div className="grid grid-cols-2 gap-y-3 gap-x-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-4">
                     <RequisitoItem atendido={validacoes.tamanho} texto="Mínimo 8 caracteres" />
                     <RequisitoItem atendido={validacoes.maiuscula} texto="1 letra maiúscula" />
                     <RequisitoItem atendido={validacoes.numero} texto="1 número" />

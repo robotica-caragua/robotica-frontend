@@ -262,11 +262,11 @@ export default function NovoProjetoPage() {
             </section>
 
             {/* Ações do rodapé */}
-            <div className="flex items-center justify-between pt-2">
+            <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2">
               <button
                 type="button"
                 onClick={() => router.back()}
-                className="flex items-center gap-1.5 text-xs font-bold uppercase text-verde-musgo hover:text-verde-escuro cursor-pointer"
+                className="flex items-center justify-center gap-1.5 py-2.5 text-xs font-bold uppercase text-verde-musgo hover:text-verde-escuro cursor-pointer"
               >
                 <MdClose size={16} />
                 Cancelar
@@ -275,7 +275,7 @@ export default function NovoProjetoPage() {
               <button
                 type="submit"
                 disabled={enviando}
-                className="flex items-center gap-3 rounded-md bg-verde-musgo px-6 py-3 text-xs font-bold uppercase text-white hover:brightness-90 cursor-pointer disabled:opacity-60"
+                className="flex items-center justify-center gap-3 rounded-md bg-verde-musgo px-6 py-3 text-xs font-bold uppercase text-white hover:brightness-90 cursor-pointer disabled:opacity-60"
               >
                 {enviando ? 'Publicando...' : 'Publicar Projeto'}
                 <MdArrowForward size={16} />

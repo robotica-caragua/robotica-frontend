@@ -176,148 +176,152 @@ export default function GestaoUsuarios() {
             </div>
           </div>
 
-          <div className="bg-white rounded-3xl border border-verde-musgo border-opacity-10 shadow-sm flex flex-col overflow-x-auto">
-            <div className="min-w-[700px]">
-              <div className="grid grid-cols-12 px-8 py-5 bg-input-bg border-b border-verde-musgo border-opacity-20 items-center">
-                <span className="col-span-4 text-verde-musgo text-xs font-bold uppercase tracking-widest">
-                  Nome
-                </span>
-                <span className="col-span-2 text-verde-musgo text-xs font-bold uppercase tracking-widest">
-                  Matrícula
-                </span>
-                <span className="col-span-3 text-verde-musgo text-xs font-bold uppercase tracking-widest">
-                  Escola
-                </span>
-                <span className="col-span-2 text-verde-musgo text-xs font-bold uppercase tracking-widest">
-                  Status
-                </span>
-                <span className="col-span-1 text-verde-musgo text-xs font-bold uppercase tracking-widest text-center">
-                  Ações
-                </span>
-              </div>
+          <div className="bg-white rounded-3xl border border-verde-musgo border-opacity-10 shadow-sm flex flex-col overflow-hidden">
+            <div className="overflow-x-auto">
+              <div className="min-w-[700px]">
+                <div className="grid grid-cols-12 px-8 py-5 bg-input-bg border-b border-verde-musgo border-opacity-20 items-center">
+                  <span className="col-span-4 text-verde-musgo text-xs font-bold uppercase tracking-widest">
+                    Nome
+                  </span>
+                  <span className="col-span-2 text-verde-musgo text-xs font-bold uppercase tracking-widest">
+                    Matrícula
+                  </span>
+                  <span className="col-span-3 text-verde-musgo text-xs font-bold uppercase tracking-widest">
+                    Escola
+                  </span>
+                  <span className="col-span-2 text-verde-musgo text-xs font-bold uppercase tracking-widest">
+                    Status
+                  </span>
+                  <span className="col-span-1 text-verde-musgo text-xs font-bold uppercase tracking-widest text-center">
+                    Ações
+                  </span>
+                </div>
 
-              <div className="flex flex-col min-h-88">
-                {carregando ? (
-                  <div className="flex-1 flex justify-center items-center py-10 text-verde-musgo">
-                    Carregando usuários...
-                  </div>
-                ) : usuariosPaginados.length > 0 ? (
-                  usuariosPaginados.map((usuario) => (
-                    <div
-                      key={usuario.id}
-                      className="grid grid-cols-12 px-8 py-5 items-center border-b border-gray-100 last:border-none hover:bg-gray-50 transition"
-                    >
-                      <div className="col-span-4 flex items-center gap-4">
-                        <div className="w-10 h-10 bg-verde-pastel rounded-full flex justify-center items-center">
-                          <span className="text-verde-escuro text-sm font-bold uppercase">
-                            {usuario.nome
-                              .split(' ')
-                              .map((n) => n[0])
-                              .join('')
-                              .substring(0, 2)}
+                <div className="flex flex-col min-h-88">
+                  {carregando ? (
+                    <div className="flex-1 flex justify-center items-center py-10 text-verde-musgo">
+                      Carregando usuários...
+                    </div>
+                  ) : usuariosPaginados.length > 0 ? (
+                    usuariosPaginados.map((usuario) => (
+                      <div
+                        key={usuario.id}
+                        className="grid grid-cols-12 px-8 py-5 items-center border-b border-gray-100 last:border-none hover:bg-gray-50 transition"
+                      >
+                        <div className="col-span-4 flex items-center gap-4">
+                          <div className="w-10 h-10 bg-verde-pastel rounded-full flex justify-center items-center shrink-0">
+                            <span className="text-verde-escuro text-sm font-bold uppercase">
+                              {usuario.nome
+                                .split(' ')
+                                .map((n) => n[0])
+                                .join('')
+                                .substring(0, 2)}
+                            </span>
+                          </div>
+                          <span className="text-verde-escuro text-base font-bold">
+                            {usuario.nome}
                           </span>
                         </div>
-                        <span className="text-verde-escuro text-base font-bold">
-                          {usuario.nome}
+
+                        <span className="col-span-2 text-verde-escuro font-medium">
+                          {usuario.matricula}
                         </span>
-                      </div>
 
-                      <span className="col-span-2 text-verde-escuro font-medium">
-                        {usuario.matricula}
-                      </span>
-
-                      <span className="col-span-3 text-verde-escuro text-sm">{usuario.escola}</span>
-
-                      <div className="col-span-2 flex items-center gap-2">
-                        <div
-                          className={`w-2 h-2 rounded-full ${
-                            usuario.status === 'Ativo'
-                              ? 'bg-verde-oliva shadow-[0px_0px_8px_0px_rgba(185,246,0,0.60)]'
-                              : usuario.status === 'Pendente'
-                                ? 'bg-yellow-500 shadow-[0px_0px_8px_0px_rgba(234,179,8,0.60)]'
-                                : 'bg-vermelho shadow-[0px_0px_8px_0px_rgba(186,26,26,0.60)]'
-                          }`}
-                        ></div>
-                        <span className="text-verde-escuro text-sm font-semibold">
-                          {usuario.status}
+                        <span className="col-span-3 text-verde-escuro text-sm">
+                          {usuario.escola}
                         </span>
+
+                        <div className="col-span-2 flex items-center gap-2">
+                          <div
+                            className={`w-2 h-2 rounded-full ${
+                              usuario.status === 'Ativo'
+                                ? 'bg-verde-oliva shadow-[0px_0px_8px_0px_rgba(185,246,0,0.60)]'
+                                : usuario.status === 'Pendente'
+                                  ? 'bg-yellow-500 shadow-[0px_0px_8px_0px_rgba(234,179,8,0.60)]'
+                                  : 'bg-vermelho shadow-[0px_0px_8px_0px_rgba(186,26,26,0.60)]'
+                            }`}
+                          ></div>
+                          <span className="text-verde-escuro text-sm font-semibold">
+                            {usuario.status}
+                          </span>
+                        </div>
+
+                        <div className="col-span-1 flex justify-center items-center gap-3">
+                          <Link
+                            href={`/cadastrarUsuario?id=${usuario.id}`}
+                            className="text-verde-musgo hover:text-verde-escuro transition"
+                            title="Editar"
+                          >
+                            <MdOutlineEdit size={20} />
+                          </Link>
+
+                          <Link
+                            href="/forgot-password"
+                            className="text-blue-500 hover:text-blue-700 transition"
+                            title="Redefinir Senha"
+                          >
+                            <MdLockReset size={20} />
+                          </Link>
+
+                          <button
+                            type="button"
+                            onClick={() => handleExcluirUsuario(usuario)}
+                            className="text-vermelho hover:opacity-70 transition cursor-pointer"
+                            title="Excluir Usuário"
+                          >
+                            <MdOutlineDeleteOutline size={20} />
+                          </button>
+                        </div>
                       </div>
-
-                      <div className="col-span-1 flex justify-center items-center gap-3">
-                        <Link
-                          href={`/cadastrarUsuario?id=${usuario.id}`}
-                          className="text-verde-musgo hover:text-verde-escuro transition"
-                          title="Editar"
-                        >
-                          <MdOutlineEdit size={20} />
-                        </Link>
-
-                        <Link
-                          href="/forgot-password"
-                          className="text-blue-500 hover:text-blue-700 transition"
-                          title="Redefinir Senha"
-                        >
-                          <MdLockReset size={20} />
-                        </Link>
-
-                        <button
-                          type="button"
-                          onClick={() => handleExcluirUsuario(usuario)}
-                          className="text-vermelho hover:opacity-70 transition cursor-pointer"
-                          title="Excluir Usuário"
-                        >
-                          <MdOutlineDeleteOutline size={20} />
-                        </button>
-                      </div>
+                    ))
+                  ) : (
+                    <div className="flex-1 flex justify-center items-center py-10 text-verde-musgo">
+                      Nenhum usuário encontrado no momento.
                     </div>
-                  ))
-                ) : (
-                  <div className="flex-1 flex justify-center items-center py-10 text-verde-musgo">
-                    Nenhum usuário encontrado no momento.
-                  </div>
-                )}
-              </div>
-
-              <div className="px-8 py-5 bg-input-bg border-t border-verde-musgo border-opacity-20 flex justify-between items-center">
-                <span className="text-verde-musgo text-sm font-medium">
-                  Mostrando {usuariosFiltrados.length === 0 ? 0 : startIndex + 1}-
-                  {Math.min(startIndex + itensPorPagina, usuariosFiltrados.length)} de{' '}
-                  {usuariosFiltrados.length} usuários
-                </span>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setPaginaAtual((prev) => Math.max(prev - 1, 1))}
-                    disabled={paginaAtual === 1}
-                    className={`p-2 rounded-lg transition ${paginaAtual === 1 ? 'text-verde-musgo opacity-50 cursor-not-allowed' : 'text-verde-escuro hover:bg-verde-pastel'}`}
-                  >
-                    <IoChevronBack size={18} />
-                  </button>
-
-                  {Array.from({ length: totalPaginas }, (_, i) => i + 1).map((pagina) => (
-                    <button
-                      key={pagina}
-                      onClick={() => setPaginaAtual(pagina)}
-                      className={`w-8 h-8 rounded-lg text-sm font-bold flex justify-center items-center transition ${paginaAtual === pagina ? 'bg-verde-musgo text-white' : 'text-verde-escuro hover:bg-verde-pastel'}`}
-                    >
-                      {pagina}
-                    </button>
-                  ))}
-
-                  <button
-                    onClick={() => setPaginaAtual((prev) => Math.min(prev + 1, totalPaginas))}
-                    disabled={paginaAtual === totalPaginas || totalPaginas === 0}
-                    className={`p-2 rounded-lg transition ${paginaAtual === totalPaginas || totalPaginas === 0 ? 'text-verde-musgo opacity-50 cursor-not-allowed' : 'text-verde-escuro hover:bg-verde-pastel'}`}
-                  >
-                    <IoChevronForward size={18} />
-                  </button>
+                  )}
                 </div>
+              </div>
+            </div>
+
+            <div className="px-4 sm:px-8 py-4 sm:py-5 bg-input-bg border-t border-verde-musgo border-opacity-20 flex flex-col sm:flex-row justify-between items-center gap-3">
+              <span className="text-verde-musgo text-sm font-medium text-center sm:text-left">
+                Mostrando {usuariosFiltrados.length === 0 ? 0 : startIndex + 1}-
+                {Math.min(startIndex + itensPorPagina, usuariosFiltrados.length)} de{' '}
+                {usuariosFiltrados.length} usuários
+              </span>
+
+              <div className="flex flex-wrap items-center justify-center gap-2">
+                <button
+                  onClick={() => setPaginaAtual((prev) => Math.max(prev - 1, 1))}
+                  disabled={paginaAtual === 1}
+                  className={`p-2 rounded-lg transition ${paginaAtual === 1 ? 'text-verde-musgo opacity-50 cursor-not-allowed' : 'text-verde-escuro hover:bg-verde-pastel'}`}
+                >
+                  <IoChevronBack size={18} />
+                </button>
+
+                {Array.from({ length: totalPaginas }, (_, i) => i + 1).map((pagina) => (
+                  <button
+                    key={pagina}
+                    onClick={() => setPaginaAtual(pagina)}
+                    className={`w-8 h-8 rounded-lg text-sm font-bold flex justify-center items-center transition ${paginaAtual === pagina ? 'bg-verde-musgo text-white' : 'text-verde-escuro hover:bg-verde-pastel'}`}
+                  >
+                    {pagina}
+                  </button>
+                ))}
+
+                <button
+                  onClick={() => setPaginaAtual((prev) => Math.min(prev + 1, totalPaginas))}
+                  disabled={paginaAtual === totalPaginas || totalPaginas === 0}
+                  className={`p-2 rounded-lg transition ${paginaAtual === totalPaginas || totalPaginas === 0 ? 'text-verde-musgo opacity-50 cursor-not-allowed' : 'text-verde-escuro hover:bg-verde-pastel'}`}
+                >
+                  <IoChevronForward size={18} />
+                </button>
               </div>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
-            <div className="col-span-2 p-6 bg-input-bg border border-verde-musgo border-opacity-30 rounded-3xl flex gap-4 items-start">
+            <div className="md:col-span-2 p-6 bg-input-bg border border-verde-musgo border-opacity-30 rounded-3xl flex gap-4 items-start">
               <IoInformationCircleOutline size={24} className="text-verde-musgo shrink-0 mt-0.5" />
               <div className="flex flex-col gap-1">
                 <h4 className="text-verde-musgo font-bold text-lg">Dica de Segurança</h4>

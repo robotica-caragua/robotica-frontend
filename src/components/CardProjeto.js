@@ -32,7 +32,7 @@ export function CardProjeto({
   }
 
   return (
-    <article className="w-full max-w-[400px] bg-white rounded-lg outline outline-1 outline-offset-[-1px] outline-verde-musgo inline-flex flex-col justify-start items-start overflow-hidden">
+    <article className="w-full max-w-[400px] mx-auto bg-white rounded-lg outline outline-1 outline-offset-[-1px] outline-verde-musgo inline-flex flex-col justify-start items-start overflow-hidden">
       <div className="self-stretch h-48 relative flex flex-col justify-center items-start overflow-hidden">
         {imageUrl && (
           <Image src={imageUrl} alt={`Foto do projeto ${title}`} fill className="object-cover" />

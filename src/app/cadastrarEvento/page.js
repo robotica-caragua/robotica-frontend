@@ -365,17 +365,17 @@ function CadastrarEventoConteudo() {
             </div>
 
             {/* Ações */}
-            <div className="flex justify-between items-center pt-4">
+            <div className="flex flex-col-reverse sm:flex-row justify-between items-stretch sm:items-center gap-3 pt-4">
               <Link
                 href="/gestaoEventos"
-                className="flex items-center gap-2 px-6 py-3 rounded-lg text-verde-escuro font-bold uppercase text-sm tracking-wide hover:bg-input-bg transition"
+                className="flex items-center justify-center gap-2 px-6 py-3 rounded-lg text-verde-escuro font-bold uppercase text-sm tracking-wide hover:bg-input-bg transition"
               >
                 <IoClose size={20} /> Cancelar
               </Link>
 
               <button
                 type="submit"
-                className="px-6 py-3 bg-verde-musgo hover:bg-white hover:text-verde-musgo border border-verde-musgo text-white text-sm font-bold uppercase tracking-widest rounded-lg flex items-center gap-3 cursor-pointer transition"
+                className="px-6 py-3 bg-verde-musgo hover:bg-white hover:text-verde-musgo border border-verde-musgo text-white text-sm font-bold uppercase tracking-widest rounded-lg flex items-center justify-center gap-3 cursor-pointer transition"
               >
                 {idEdicao ? 'Salvar Alterações' : 'Publicar Evento'}
                 <IoArrowForward size={20} />

@@ -144,10 +144,10 @@ export default function DashboardPage() {
               </p>
             </div>
 
-            <div className="flex flex-col gap-2.5">
+            <div className="flex flex-col sm:flex-row lg:flex-col gap-2.5 w-full sm:w-auto">
               <Link
                 href="/cadastrarUsuario"
-                className="flex w-48 items-center justify-center gap-2 rounded-lg bg-verde-musgo px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:brightness-90 cursor-pointer"
+                className="flex w-full sm:w-48 items-center justify-center gap-2 rounded-lg bg-verde-musgo px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:brightness-90 cursor-pointer"
               >
                 <MdAdd size={18} />
                 Novo Professor
@@ -155,7 +155,7 @@ export default function DashboardPage() {
 
               <Link
                 href="/cadastrarEscola"
-                className="flex w-48 items-center justify-center gap-2 rounded-lg border border-b-3 border-verde-musgo bg-white px-5 py-2 text-sm font-semibold text-verde-musgo hover:bg-verde-pastel"
+                className="flex w-full sm:w-48 items-center justify-center gap-2 rounded-lg border border-b-3 border-verde-musgo bg-white px-5 py-2 text-sm font-semibold text-verde-musgo hover:bg-verde-pastel"
               >
                 <MdOutlineApartment size={18} />
                 Nova Escola
@@ -185,7 +185,7 @@ export default function DashboardPage() {
 
           {/* Últimas Movimentações */}
           <section className="rounded-2xl border border-verde-musgo/60 bg-white py-6">
-            <div className="flex items-center justify-between border-b border-verde-escuro/10 px-6 pb-4">
+            <div className="flex items-center justify-between border-b border-verde-escuro/10 px-4 sm:px-6 pb-4">
               <h2 className="text-lg font-bold text-verde-escuro">Últimas Movimentações</h2>
               <Link
                 href="/projetos"
@@ -196,21 +196,21 @@ export default function DashboardPage() {
             </div>
 
             {carregando ? (
-              <p className="px-6 py-8 text-center text-sm text-verde-musgo">
+              <p className="px-4 sm:px-6 py-8 text-center text-sm text-verde-musgo">
                 Carregando movimentações da rede...
               </p>
             ) : movimentacoes.length > 0 ? (
-              <ul className="divide-y divide-verde-escuro/5 px-6">
+              <ul className="divide-y divide-verde-escuro/5 px-4 sm:px-6">
                 {movimentacoes.map((item) => {
                   const Icone = iconesMovimentacao[item.tipo] || MdOutlineBuild
 
                   return (
                     <li key={item.id} className="flex items-center justify-between gap-4 py-5">
-                      <div className="flex items-start gap-4">
+                      <div className="flex items-start gap-3 sm:gap-4 min-w-0">
                         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-verde-oliva text-verde-escuro">
                           <Icone size={20} />
                         </div>
-                        <div className="text-sm text-verde-escuro">
+                        <div className="text-sm text-verde-escuro break-words min-w-0">
                           <p>
                             {item.textoAntes}
                             {item.destaque && (

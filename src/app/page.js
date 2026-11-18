@@ -23,11 +23,11 @@ const pillars = [
   { title: 'COMUNIDADE', Icon: RiCommunityLine }
 ]
 
-function PillarItem({ Icon, title, size = 90 }) {
+function PillarItem({ Icon, title }) {
   return (
     <div className="flex flex-col items-center">
-      <Icon className="text-branco-esverdeado" size={size} />
-      <h3 className="mt-4 text-branco-esverdeado text-2xl font-semibold text-center text-shadow-lg/20">
+      <Icon className="text-branco-esverdeado w-14 h-14 sm:w-20 sm:h-20 lg:w-[90px] lg:h-[90px]" />
+      <h3 className="mt-3 sm:mt-4 text-branco-esverdeado text-base sm:text-xl lg:text-2xl font-semibold text-center text-shadow-lg/20">
         {title}
       </h3>
     </div>
@@ -36,14 +36,14 @@ function PillarItem({ Icon, title, size = 90 }) {
 
 function InfoItem({ Icon, title, children }) {
   return (
-    <div className="flex flex-col items-center text-center">
-      <div className="relative flex h-22 w-28 items-center justify-center">
-        <div className="absolute top-11 h-43 w-42 rounded-full bg-verde-pastel" />
+    <div className="flex flex-col items-center text-center pb-6 sm:pb-8 md:pb-4">
+      <div className="relative flex h-20 w-24 sm:h-22 sm:w-28 items-center justify-center">
+        <div className="absolute top-9 sm:top-11 h-32 w-32 sm:h-43 sm:w-42 rounded-full bg-verde-pastel" />
 
-        <Icon className="relative z-10 text-7xl" />
+        <Icon className="relative z-10 text-6xl sm:text-7xl" />
       </div>
 
-      <p className="relative z-10 text-xl leading-snug max-w-60">
+      <p className="relative z-10 text-base sm:text-lg lg:text-xl leading-snug max-w-60">
         <strong>
           {title}
           <br />
@@ -100,7 +100,7 @@ export default function HomePage() {
     <>
       <Header />
 
-      <main className="relative min-h-[calc(100vh-96px)] overflow-hidden bg-branco-esverdeado">
+      <main className="relative lg:min-h-[calc(100vh-96px)] overflow-hidden bg-branco-esverdeado">
         <div className="pointer-events-none absolute right-0 top-0 z-0 h-full w-[70%] block">
           <Image
             src={ligacoes}
@@ -111,7 +111,7 @@ export default function HomePage() {
           />
         </div>
 
-        <div className="pointer-events-none absolute right-1 top-1/2 z-10 -translate-y-1/2 hidden lg:block h-240 w-240">
+        <div className="pointer-events-none absolute right-1 top-1/2 z-10 -translate-y-1/2 hidden lg:block lg:h-130 lg:w-130 xl:h-175 xl:w-175 2xl:h-230 2xl:w-230">
           <Image
             src={homeBot}
             alt="Ilustração principal de robótica"
@@ -121,7 +121,7 @@ export default function HomePage() {
           />
         </div>
 
-        <section className="relative z-20 mx-4 sm:mx-8 lg:mx-25 flex min-h-[calc(100vh-96px)] max-w-7xl items-center py-12 lg:py-0">
+        <section className="relative z-20 mx-4 sm:mx-8 lg:mx-16 xl:mx-25 flex lg:min-h-[calc(100vh-96px)] max-w-7xl items-center py-10 sm:py-16 lg:py-0">
           <div className="max-w-140">
             <h1 className="font-bold uppercase leading-tight text-4xl sm:text-5xl lg:text-6xl">
               <span className="text-verde-oliva">
@@ -136,14 +136,14 @@ export default function HomePage() {
               </span>
             </h1>
 
-            <p className="mt-8 max-w-140 text-black text-lg sm:text-xl lg:text-2xl">
+            <p className="mt-6 sm:mt-8 max-w-140 text-black text-lg sm:text-xl lg:text-2xl">
               Conectando escolas, estudantes e a comunidade de Caraguatatuba através da tecnologia.
             </p>
 
             <Link
               href="/projetos"
-              className="mt-10 flex h-15 w-full max-w-74 cursor-pointer items-center justify-between rounded-xl border
-            border-verde-musgo bg-white px-5 text-xl font-bold text-verde-musgo transition hover:bg-verde-pastel"
+              className="mt-8 sm:mt-10 flex h-14 sm:h-15 w-full max-w-74 cursor-pointer items-center justify-between rounded-xl border
+            border-verde-musgo bg-white px-5 text-lg sm:text-xl font-bold text-verde-musgo transition hover:bg-verde-pastel"
             >
               Explorar Projetos
               <MdArrowForward size={24} />
@@ -153,9 +153,9 @@ export default function HomePage() {
       </main>
 
       <div className="w-full bg-verde-oliva py-8 px-4">
-        <div className="flex flex-wrap justify-center gap-8 sm:gap-16 lg:gap-40">
-          {pillars.map(({ title, Icon, size }) => (
-            <PillarItem key={title} Icon={Icon} title={title} size={size} />
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-12 lg:gap-16 max-w-7xl mx-auto">
+          {pillars.map(({ title, Icon }) => (
+            <PillarItem key={title} Icon={Icon} title={title} />
           ))}
         </div>
       </div>
@@ -213,8 +213,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="relative my-12 lg:my-16 min-h-82 overflow-visible mx-4 sm:mx-8 lg:mx-25 rounded-lg border border-verde-musgo bg-white px-6 sm:px-8 py-8">
-        <div className="hidden xl:block absolute -left-72 -bottom-30 z-20">
+      <section className="relative my-12 lg:my-16 min-h-82 overflow-visible mx-4 sm:mx-8 lg:mx-16 xl:mx-25 rounded-lg border border-verde-musgo bg-white px-6 sm:px-8 py-8">
+        <div className="hidden xl:block absolute -left-56 2xl:-left-72 -bottom-20 2xl:-bottom-30 z-20 w-[520px] 2xl:w-[700px] pointer-events-none">
           <Image
             src={working}
             alt="Biobot mexendo em peças"
@@ -224,7 +224,7 @@ export default function HomePage() {
           />
         </div>
 
-        <div className="xl:ml-58 flex flex-col items-center">
+        <div className="xl:ml-52 2xl:ml-60 flex flex-col items-center">
           <h2 className="text-center text-2xl font-bold text-verde-musgo">QUEM SOMOS?</h2>
 
           <p className="mt-3 max-w-160 text-center font-medium leading-tight text-xl sm:text-2xl">

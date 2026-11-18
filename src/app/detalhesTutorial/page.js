@@ -180,12 +180,10 @@ function DetalhesTutorialConteudo() {
           </p>
           {outrosTutoriais.length > 0 ? (
             outrosTutoriais.map((outro) => (
-              <Link key={outro.id} href={`/detalhesTutorial?id=${outro.id}`}>
-                <Project>
-                  <p className="text-verde-musgo text-xl font-medium">{outro.titulo}</p>
-                  <FaArrowRightLong className="fill-verde-escuro" size={24} />
-                </Project>
-              </Link>
+              <Project key={outro.id} href={`/detalhesTutorial?id=${outro.id}`}>
+                <p className="text-verde-musgo text-base sm:text-xl font-medium">{outro.titulo}</p>
+                <FaArrowRightLong className="fill-verde-escuro shrink-0" size={24} />
+              </Project>
             ))
           ) : (
             <p className="text-verde-musgo text-base ms-2">

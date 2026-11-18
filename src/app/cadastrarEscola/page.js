@@ -154,7 +154,7 @@ export default function CadastrarEscola() {
             </div>
 
             {/* SEÇÃO: LOCALIZAÇÃO */}
-            <div className="w-full p-8 bg-white rounded-3xl shadow-sm border border-verde-musgo border-opacity-30 flex flex-col gap-8">
+            <div className="w-full p-5 sm:p-8 bg-white rounded-3xl shadow-sm border border-verde-musgo border-opacity-30 flex flex-col gap-8">
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 bg-verde-pastel rounded-lg flex justify-center items-center text-verde-musgo">
                   <FaMapMarkerAlt size={18} />
@@ -228,7 +228,7 @@ export default function CadastrarEscola() {
             </div>
 
             {/* SEÇÃO: CONTATO E FUNCIONAMENTO */}
-            <div className="w-full p-8 bg-white rounded-3xl shadow-sm border border-verde-musgo border-opacity-30 flex flex-col gap-8">
+            <div className="w-full p-5 sm:p-8 bg-white rounded-3xl shadow-sm border border-verde-musgo border-opacity-30 flex flex-col gap-8">
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 bg-verde-pastel rounded-lg flex justify-center items-center text-verde-musgo">
                   <FaAddressBook size={18} />
@@ -306,17 +306,17 @@ export default function CadastrarEscola() {
             </div>
 
             {/* BOTÕES DE AÇÃO DO FORMULÁRIO */}
-            <div className="flex justify-between items-center pt-4">
+            <div className="flex flex-col-reverse sm:flex-row justify-between items-stretch sm:items-center gap-4 pt-4">
               <Link
                 href="/escolas"
-                className="flex items-center gap-2 px-8 py-4 rounded-lg text-verde-escuro font-bold uppercase hover:bg-input-bg transition cursor-pointer"
+                className="flex items-center justify-center gap-2 px-8 py-4 rounded-lg text-verde-escuro font-bold uppercase hover:bg-input-bg transition cursor-pointer"
               >
                 <IoClose size={24} /> Cancelar
               </Link>
 
               <button
                 type="submit"
-                className="px-6 py-4 bg-verde-musgo hover:bg-white hover:text-verde-musgo hover:border hover:border-verde-musgo text-white text-base font-bold uppercase tracking-widest rounded-lg flex items-center gap-4 cursor-pointer transition-all"
+                className="px-6 py-4 bg-verde-musgo hover:bg-white hover:text-verde-musgo hover:border hover:border-verde-musgo text-white text-base font-bold uppercase tracking-widest rounded-lg flex items-center justify-center gap-4 cursor-pointer transition-all"
               >
                 Cadastrar Escola
                 <IoArrowForward size={28} />

@@ -10,15 +10,19 @@ export function Header() {
   const [menuAberto, setMenuAberto] = useState(false)
 
   return (
-    <header id="topo" className="w-full max-w-[100vw] mx-auto my-4 lg:my-6 px-4 sm:px-6">
-      <div className="h-16 flex items-center justify-between">
+    <header
+      id="topo"
+      className="w-full max-w-[100vw] mx-auto my-4 lg:my-6 px-4 sm:px-6 lg:px-10 xl:px-14"
+    >
+      <div className="h-16 flex items-center justify-between max-w-[1600px] mx-auto">
         <Link href="/" className="block w-fit shrink-0">
           <Image
             src={Logo}
-            alt="Logo Conexão Robótica"
+            alt="Logo BioBot"
             width={180}
             height={50}
             className="w-36 sm:w-[180px] h-auto"
+            priority
           />
         </Link>
 
@@ -33,7 +37,7 @@ export function Header() {
         </button>
 
         <nav className="hidden lg:flex items-center">
-          <ul className="flex items-center gap-6 list-none m-0 p-0 font-medium text-verde-musgo text-xl">
+          <ul className="flex items-center gap-3 xl:gap-6 list-none m-0 p-0 font-medium text-verde-musgo text-lg xl:text-xl">
             <li>
               <Link
                 href="/"
