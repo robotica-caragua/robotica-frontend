@@ -61,14 +61,14 @@ export function SideBarProfessor() {
   return (
     <aside className="w-full lg:w-64 shrink-0 flex flex-col border-b lg:border-b-0 lg:border-r border-verde-pastel bg-input-bg px-4 sm:px-6 py-4 lg:py-8">
       <div className="flex items-center justify-between lg:mb-12">
-        <Link href="/" className="px-2 block w-fit">
+        <Link href="/" className="px-2 block w-fit shrink-0">
           <Image
             src={Logo}
-            alt="Logo Conexão Robótica"
+            alt="Logo BioBot"
             width={180}
             height={50}
-            style={{ width: 'auto', height: 'auto' }}
-            className="max-h-10 lg:max-h-none"
+            className="w-36 sm:w-[180px] h-auto"
+            priority
           />
         </Link>
 

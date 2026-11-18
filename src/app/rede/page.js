@@ -67,9 +67,9 @@ export default function Rede() {
           </p>
         </div>
 
-        <div className="flex flex-col my-10 md:my-20 w-full md:w-[85%] lg:w-[75%] bg-white border-2 border-verde-musgo rounded-2xl py-6 md:py-10 px-4 md:px-6 gap-5">
+        <div className="flex flex-col my-10 md:my-20 w-full md:w-[90%] lg:w-[85%] max-w-6xl bg-white border-2 border-verde-musgo rounded-2xl py-6 md:py-10 px-4 md:px-6 gap-5">
           <div className="flex flex-row items-center gap-3 md:gap-5 text-verde-musgo px-2 md:ml-4">
-            <IoRocketOutline size={30} />
+            <IoRocketOutline size={30} className="shrink-0" />
             <h1 className="font-semibold text-xl md:text-2xl">Projetos e Ações em Destaque</h1>
           </div>
 
@@ -94,7 +94,7 @@ export default function Rede() {
           </div>
         </div>
 
-        <div className="flex flex-col w-full md:w-[85%] lg:w-[75%] py-6 md:py-10 px-2 gap-5 mb-16 md:mb-20 justify-center items-center">
+        <div className="flex flex-col w-full md:w-[90%] lg:w-[85%] max-w-6xl py-6 md:py-10 px-2 gap-5 mb-16 md:mb-20 justify-center items-center">
           <div className="flex flex-wrap justify-center gap-2 mb-8 md:mb-12 text-center">
             <h1 className="font-bold text-3xl sm:text-4xl text-verde-escuro uppercase">
               conheça nossas
@@ -102,9 +102,11 @@ export default function Rede() {
             <h1 className="font-bold text-3xl sm:text-4xl text-verde-musgo uppercase">Escolas!</h1>
           </div>
 
-          <div className="flex flex-wrap gap-6 sm:gap-10 justify-center w-full xl:w-[70%]">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-10 justify-items-center w-full max-w-5xl">
             {carregando ? (
-              <p className="text-verde-musgo font-medium">Carregando escolas da rede...</p>
+              <p className="md:col-span-2 text-center text-verde-musgo font-medium">
+                Carregando escolas da rede...
+              </p>
             ) : escolas.length > 0 ? (
               escolas.map((escola) => (
                 <CardEscola
@@ -115,7 +117,9 @@ export default function Rede() {
                 />
               ))
             ) : (
-              <p className="text-verde-musgo font-medium">Nenhuma escola cadastrada no momento.</p>
+              <p className="md:col-span-2 text-center text-verde-musgo font-medium">
+                Nenhuma escola cadastrada no momento.
+              </p>
             )}
           </div>
         </div>

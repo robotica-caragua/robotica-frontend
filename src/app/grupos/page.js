@@ -186,9 +186,9 @@ export default function GestaoGruposPage() {
           </div>
 
           {/* Barra de busca e ordenação */}
-          <div className="flex flex-wrap items-center gap-4 rounded-xl border border-verde-musgo bg-white px-4 py-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 rounded-xl border border-verde-musgo bg-white px-4 py-3">
             <div className="flex flex-1 items-center gap-3">
-              <IoSearchSharp className="text-xl text-verde-musgo" />
+              <IoSearchSharp className="text-xl text-verde-musgo shrink-0" />
               <input
                 type="text"
                 value={busca}
@@ -200,7 +200,7 @@ export default function GestaoGruposPage() {
 
             <button
               type="button"
-              className="flex items-center gap-2 border-l border-verde-musgo/30 pl-5 text-xs font-bold uppercase text-verde-musgo hover:text-verde-escuro cursor-pointer"
+              className="flex items-center justify-center sm:justify-start gap-2 border-t sm:border-t-0 sm:border-l border-verde-musgo/30 pt-2.5 sm:pt-0 sm:pl-5 text-xs font-bold uppercase text-verde-musgo hover:text-verde-escuro cursor-pointer"
             >
               <MdFilterList size={18} />
               Ordenar por mais recente
@@ -279,17 +279,17 @@ export default function GestaoGruposPage() {
       {/* Modal Nova/Editar Equipe */}
       {modalAberto && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="relative w-full max-w-xl rounded-[36px] border border-verde-musgo bg-white p-10 shadow-xl">
+          <div className="relative w-full max-w-xl rounded-3xl sm:rounded-[36px] border border-verde-musgo bg-white p-6 sm:p-10 shadow-xl">
             <button
               type="button"
               onClick={() => setModalAberto(false)}
               aria-label="Fechar modal"
-              className="absolute top-8 right-8 text-verde-musgo hover:text-verde-escuro cursor-pointer"
+              className="absolute top-5 right-5 sm:top-8 sm:right-8 text-verde-musgo hover:text-verde-escuro cursor-pointer"
             >
               <MdClose size={24} />
             </button>
 
-            <h2 className="text-3xl font-bold text-verde-escuro">
+            <h2 className="text-2xl sm:text-3xl font-bold text-verde-escuro pr-8">
               {idEdicao ? 'Editar ' : 'Nova '}
               <span className="text-verde-musgo">Equipe!</span>
             </h2>

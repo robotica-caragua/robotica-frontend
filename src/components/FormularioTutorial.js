@@ -35,7 +35,7 @@ const opcoesNivel = ['Iniciante', 'Intermediário', 'Avançado']
 const SecaoTitulo = ({ icone: Icone, titulo }) => (
   <div className="flex items-center gap-3 text-verde-escuro">
     <Icone size={22} className="text-verde-musgo shrink-0" />
-    <h2 className="text-2xl font-semibold uppercase tracking-wide">{titulo}</h2>
+    <h2 className="text-xl sm:text-2xl font-semibold uppercase tracking-wide">{titulo}</h2>
   </div>
 )
 
@@ -261,14 +261,17 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
             </p>
           </section>
 
-          <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-12 w-full">
+          <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-8 lg:gap-12 w-full">
             {/* 1. Informações Básicas */}
-            <section className="p-8 md:p-12 bg-white rounded-3xl shadow-sm border border-verde-musgo flex flex-col gap-6">
+            <section className="p-5 sm:p-8 md:p-12 bg-white rounded-3xl shadow-sm border border-verde-musgo flex flex-col gap-6">
               <SecaoTitulo icone={MdInfoOutline} titulo="Informações Básicas" />
 
               <div className="flex flex-col gap-6">
                 <div className="flex flex-col gap-2.5">
-                  <label htmlFor="nome-tutorial" className="text-verde-escuro text-xl font-normal">
+                  <label
+                    htmlFor="nome-tutorial"
+                    className="text-verde-escuro text-lg sm:text-xl font-normal"
+                  >
                     {ehEdicao ? 'Nome da equipe' : 'Nome do tutorial'}
                   </label>
                   <input
@@ -277,7 +280,7 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
                     value={form.nome}
                     onChange={atualizar('nome')}
                     placeholder="Ex: Carrinho Movido a Elástico"
-                    className="w-full h-[60px] px-5 bg-input-bg border border-verde-musgo rounded-[5px] text-lg text-verde-escuro placeholder:text-verde-escuro/80 focus:outline-none focus:ring-1 focus:ring-verde-musgo"
+                    className="w-full h-[54px] sm:h-[60px] px-4 sm:px-5 bg-input-bg border border-verde-musgo rounded-[5px] text-base sm:text-lg text-verde-escuro placeholder:text-verde-escuro/80 focus:outline-none focus:ring-1 focus:ring-verde-musgo"
                   />
                 </div>
 
@@ -285,7 +288,7 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
                   <div className="flex flex-col gap-2.5">
                     <label
                       htmlFor="categoria-tutorial"
-                      className="text-verde-escuro text-xl font-normal"
+                      className="text-verde-escuro text-lg sm:text-xl font-normal"
                     >
                       Categorias
                     </label>
@@ -294,7 +297,7 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
                         id="categoria-tutorial"
                         value={form.categoria}
                         onChange={atualizar('categoria')}
-                        className="w-full h-[60px] px-5 pr-12 appearance-none bg-input-bg border border-verde-musgo rounded-[5px] text-lg text-verde-escuro focus:outline-none focus:ring-1 focus:ring-verde-musgo cursor-pointer"
+                        className="w-full h-[54px] sm:h-[60px] px-4 sm:px-5 pr-12 appearance-none bg-input-bg border border-verde-musgo rounded-[5px] text-base sm:text-lg text-verde-escuro focus:outline-none focus:ring-1 focus:ring-verde-musgo cursor-pointer"
                       >
                         <option value="" disabled>
                           Selecione o tema principal...
@@ -317,10 +320,10 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
                   </div>
 
                   <div className="flex flex-col gap-2.5">
-                    <span className="text-verde-escuro text-xl font-normal">
+                    <span className="text-verde-escuro text-lg sm:text-xl font-normal">
                       Nível de Dificuldade
                     </span>
-                    <div className="grid grid-cols-3 gap-3 h-[60px]">
+                    <div className="grid grid-cols-3 gap-2 sm:gap-3 h-[54px] sm:h-[60px]">
                       {opcoesNivel.map((opcao) => {
                         const selecionado = form.nivel === opcao
                         return (
@@ -328,7 +331,7 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
                             key={opcao}
                             type="button"
                             onClick={() => setForm((prev) => ({ ...prev, nivel: opcao }))}
-                            className={`h-full rounded-lg text-base transition cursor-pointer ${
+                            className={`h-full rounded-lg px-1 text-xs sm:text-sm md:text-base transition cursor-pointer ${
                               selecionado
                                 ? 'bg-verde-limao border-2 border-verde-musgo font-bold text-verde-escuro shadow-xs'
                                 : 'bg-white hover:bg-input-bg border border-verde-musgo font-normal text-verde-escuro'
@@ -345,7 +348,7 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
                 <div className="flex flex-col gap-2.5">
                   <label
                     htmlFor="escola-tutorial"
-                    className="text-verde-escuro text-xl font-normal"
+                    className="text-verde-escuro text-lg sm:text-xl font-normal"
                   >
                     Nome da Escola
                   </label>
@@ -354,7 +357,7 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
                       id="escola-tutorial"
                       value={form.escola}
                       onChange={atualizar('escola')}
-                      className="w-full h-[68px] px-5 pr-12 appearance-none bg-input-bg border border-verde-musgo rounded-lg text-base text-verde-escuro focus:outline-none focus:ring-1 focus:ring-verde-musgo cursor-pointer"
+                      className="w-full h-[54px] sm:h-[68px] px-4 sm:px-5 pr-12 appearance-none bg-input-bg border border-verde-musgo rounded-lg text-sm sm:text-base text-verde-escuro focus:outline-none focus:ring-1 focus:ring-verde-musgo cursor-pointer"
                     >
                       <option value="" disabled>
                         Selecione a unidade onde o professor lecionará as oficinas.
@@ -378,7 +381,7 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
             </section>
 
             {/* 2. Descrição do Projeto */}
-            <section className="p-8 md:p-12 bg-white rounded-3xl shadow-sm border border-verde-musgo flex flex-col gap-6">
+            <section className="p-5 sm:p-8 md:p-12 bg-white rounded-3xl shadow-sm border border-verde-musgo flex flex-col gap-6">
               <SecaoTitulo icone={MdOutlineDescription} titulo="Descrição do Projeto" />
 
               <div className="w-full rounded-xl bg-input-bg border border-verde-musgo/20 overflow-hidden">
@@ -433,7 +436,7 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
             </section>
 
             {/* 3. Materiais Necessários */}
-            <section className="p-8 md:p-12 bg-white rounded-3xl shadow-sm border border-verde-musgo flex flex-col gap-6">
+            <section className="p-5 sm:p-8 md:p-12 bg-white rounded-3xl shadow-sm border border-verde-musgo flex flex-col gap-6">
               <SecaoTitulo icone={MdOutlineInventory2} titulo="Materiais Necessários" />
 
               <div className="flex flex-col sm:flex-row gap-3">
@@ -448,19 +451,19 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
                     }
                   }}
                   placeholder="Novo Material / Componente"
-                  className="flex-1 h-[74px] px-5 bg-input-bg border border-verde-escuro/10 rounded-lg text-lg text-verde-escuro placeholder:text-verde-escuro/80 focus:outline-none focus:ring-1 focus:ring-verde-musgo"
+                  className="flex-1 h-[54px] sm:h-[74px] px-4 sm:px-5 bg-input-bg border border-verde-escuro/10 rounded-lg text-base sm:text-lg text-verde-escuro placeholder:text-verde-escuro/80 focus:outline-none focus:ring-1 focus:ring-verde-musgo"
                 />
                 <button
                   type="button"
                   onClick={adicionarMaterial}
-                  className="h-[74px] px-10 bg-verde-limao hover:bg-verde-oliva text-verde-escuro text-lg font-bold uppercase rounded-lg transition cursor-pointer shrink-0"
+                  className="h-[54px] sm:h-[74px] px-6 sm:px-10 bg-verde-limao hover:bg-verde-oliva text-verde-escuro text-base sm:text-lg font-bold uppercase rounded-lg transition cursor-pointer shrink-0"
                 >
                   Adicionar
                 </button>
               </div>
 
               <div className="w-full rounded-xl bg-input-bg border border-verde-escuro/10 overflow-hidden">
-                <div className="grid grid-cols-12 items-center px-6 py-3 bg-verde-pastel border-b border-verde-escuro/10 text-verde-escuro text-base">
+                <div className="grid grid-cols-12 items-center px-3 sm:px-6 py-3 bg-verde-pastel border-b border-verde-escuro/10 text-verde-escuro text-sm sm:text-base">
                   <div className="col-span-2 sm:col-span-1 flex justify-center">
                     <MdTag size={16} />
                   </div>
@@ -472,7 +475,7 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
                   materiais.map((item) => (
                     <div
                       key={item.id}
-                      className="grid grid-cols-12 items-center px-6 py-5 border-b border-verde-escuro/5 last:border-none"
+                      className="grid grid-cols-12 items-center px-3 sm:px-6 py-4 sm:py-5 border-b border-verde-escuro/5 last:border-none"
                     >
                       <div className="col-span-2 sm:col-span-1 flex justify-center">
                         <input
@@ -483,7 +486,7 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
                           className="size-5 rounded border border-[#C3CAAD] bg-white accent-verde-musgo cursor-pointer"
                         />
                       </div>
-                      <div className="col-span-8 sm:col-span-9 text-base font-medium text-verde-escuro">
+                      <div className="col-span-8 sm:col-span-9 text-sm sm:text-base font-medium text-verde-escuro break-words pr-2">
                         {item.nome}
                       </div>
                       <div className="col-span-2 flex justify-center">
@@ -515,7 +518,7 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
             </section>
 
             {/* 4. Mídia do Projeto (Foto e Vídeo) */}
-            <section className="p-8 md:p-12 bg-white rounded-3xl shadow-sm border border-verde-musgo flex flex-col gap-6">
+            <section className="p-5 sm:p-8 md:p-12 bg-white rounded-3xl shadow-sm border border-verde-musgo flex flex-col gap-6">
               <SecaoTitulo icone={MdOutlineImage} titulo="Foto de Capa do Tutorial" />
 
               <div
@@ -571,24 +574,24 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
             </section>
 
             {/* 5. Vídeo Tutorial */}
-            <section className="p-8 md:p-12 bg-white rounded-3xl shadow-sm border border-verde-musgo flex flex-col gap-6">
+            <section className="p-5 sm:p-8 md:p-12 bg-white rounded-3xl shadow-sm border border-verde-musgo flex flex-col gap-6">
               <SecaoTitulo icone={MdOutlineVideocam} titulo="Vídeo Tutorial" />
 
               <div
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={handleDropVideo}
                 onClick={() => videoInputRef.current?.click()}
-                className="w-full min-h-[340px] bg-input-bg border-2 border-dashed border-verde-musgo rounded-3xl p-10 flex flex-col items-center justify-center gap-5 text-center cursor-pointer hover:bg-verde-pastel/40 transition"
+                className="w-full min-h-[240px] sm:min-h-[340px] bg-input-bg border-2 border-dashed border-verde-musgo rounded-3xl p-6 sm:p-10 flex flex-col items-center justify-center gap-5 text-center cursor-pointer hover:bg-verde-pastel/40 transition"
               >
-                <div className="flex size-16 items-center justify-center rounded-full bg-verde-limao text-verde-escuro">
+                <div className="flex size-14 sm:size-16 items-center justify-center rounded-full bg-verde-limao text-verde-escuro">
                   <MdOutlineVideoCall size={32} />
                 </div>
 
                 <div className="flex flex-col gap-2">
-                  <span className="text-verde-escuro text-lg font-bold uppercase">
+                  <span className="text-verde-escuro text-base sm:text-lg font-bold uppercase break-all">
                     {rotuloVideo || 'Enviar Vídeo Tutorial'}
                   </span>
-                  <span className="text-[#434933] text-base">
+                  <span className="text-[#434933] text-sm sm:text-base">
                     Formatos aceitos: MP4 ou MOV. Tamanho máximo de 500MB.
                   </span>
                 </div>
@@ -599,7 +602,7 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
                     e.stopPropagation()
                     videoInputRef.current?.click()
                   }}
-                  className="px-10 py-3 bg-verde-limao hover:bg-verde-oliva rounded-lg text-verde-escuro text-sm font-bold uppercase transition cursor-pointer"
+                  className="px-6 sm:px-10 py-3 bg-verde-limao hover:bg-verde-oliva rounded-lg text-verde-escuro text-xs sm:text-sm font-bold uppercase transition cursor-pointer"
                 >
                   {rotuloVideo ? 'Trocar Vídeo' : 'Selecionar Vídeo'}
                 </button>
@@ -620,8 +623,8 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
 
             {/* Rodapé: Ações de Controle (Edição) ou Cancelar/Publicar (Criação) */}
             {ehEdicao ? (
-              <section className="p-6 bg-white rounded-3xl shadow-sm border border-verde-musgo flex flex-col gap-5">
-                <h2 className="pb-2 border-b border-verde-escuro/10 text-verde-escuro text-2xl font-semibold uppercase">
+              <section className="p-5 sm:p-6 bg-white rounded-3xl shadow-sm border border-verde-musgo flex flex-col gap-5">
+                <h2 className="pb-2 border-b border-verde-escuro/10 text-verde-escuro text-xl sm:text-2xl font-semibold uppercase">
                   Ações de Controle
                 </h2>
 
@@ -645,10 +648,10 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
                 </div>
               </section>
             ) : (
-              <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-2">
+              <div className="flex flex-col-reverse sm:flex-row justify-between items-stretch sm:items-center gap-4 pt-2">
                 <Link
                   href="/gestaoTutoriais"
-                  className="flex items-center gap-2.5 px-10 py-5 rounded-lg text-[#3F674D] text-xl font-bold uppercase hover:bg-input-bg transition"
+                  className="flex items-center justify-center gap-2.5 px-6 sm:px-10 py-4 sm:py-5 rounded-lg text-[#3F674D] text-lg sm:text-xl font-bold uppercase hover:bg-input-bg transition"
                 >
                   <IoClose size={22} />
                   Cancelar
@@ -656,7 +659,7 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
 
                 <button
                   type="submit"
-                  className="px-10 py-5 bg-[#4C6700] hover:bg-white hover:text-verde-musgo border border-verde-musgo text-white text-lg font-bold uppercase rounded-lg shadow-md flex items-center gap-5 transition cursor-pointer"
+                  className="px-6 sm:px-10 py-4 sm:py-5 bg-[#4C6700] hover:bg-white hover:text-verde-musgo border border-verde-musgo text-white text-base sm:text-lg font-bold uppercase rounded-lg shadow-md flex items-center justify-center gap-4 sm:gap-5 transition cursor-pointer"
                 >
                   Publicar Tutorial
                   <IoArrowForward size={20} />

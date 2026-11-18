@@ -19,10 +19,10 @@ export function ButtonGoBack() {
     <button
       type="button"
       onClick={handleGoBack}
-      className="flex row self-end items-center justify-center bg-verde-limao py-2.5 px-6 rounded-xl hover:brightness-75"
+      className="flex flex-row self-center lg:self-end items-center justify-center bg-verde-limao py-2.5 px-5 sm:px-6 rounded-xl hover:brightness-75 text-sm sm:text-base cursor-pointer"
     >
-      <FaArrowLeft />
-      <span className="ml-5 font-semibold">Voltar para a Página Anterior</span>
+      <FaArrowLeft className="shrink-0" />
+      <span className="ml-3 sm:ml-5 font-semibold">Voltar para a Página Anterior</span>
     </button>
   )
 }

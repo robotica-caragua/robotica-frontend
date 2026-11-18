@@ -5,19 +5,28 @@ import Logo from '../assets/logo.svg'
 
 export function Footer() {
   return (
-    <section className="w-full max-w-[100vw] mx-auto items-center justify-between mt-6 bg-verde-pastel">
-      <div className="flex items-center gap-4 justify-between px-6">
-        <div></div>
-        <Image src={Logo} alt="Logo Conexão Robótica" width={180} height={50} />
+    <footer className="w-full max-w-[100vw] mx-auto items-center justify-between mt-6 pt-6 pb-4 bg-verde-pastel">
+      <div className="flex items-center gap-4 justify-between px-4 sm:px-6 max-w-7xl mx-auto">
+        <div className="w-9 shrink-0" />
+        <Link href="/" className="block w-fit shrink-0">
+          <Image
+            src={Logo}
+            alt="Logo BioBot"
+            width={180}
+            height={50}
+            className="w-36 sm:w-[180px] h-auto"
+          />
+        </Link>
         <Link
           href="#topo"
-          className="font-bold px-1 py-1 bg-verde-escuro text-verde-pastel rounded-4xl hover:bg-white hover:text-verde-escuro border-2 border-verde-escuro transition-colors duration-300 flex items-center gap-4"
+          aria-label="Voltar ao topo"
+          className="font-bold p-1.5 bg-verde-escuro text-verde-pastel rounded-full hover:bg-white hover:text-verde-escuro border-2 border-verde-escuro transition-colors duration-300 flex items-center justify-center shrink-0"
         >
-          <IoIosArrowUp size={24} />{' '}
+          <IoIosArrowUp size={24} />
         </Link>
       </div>
 
-      <div className="w-full justify-center items-center text-center mb-8 md:mb-14 px-4">
+      <div className="w-full justify-center items-center text-center mt-3 mb-8 md:mb-14 px-4">
         <p className="text-verde-escuro font-medium text-base sm:text-lg">
           Conectando educação, sustentabilidade e tecnologia.
         </p>
@@ -75,11 +84,11 @@ export function Footer() {
 
       <div className="w-full border-b border-verde-escuro mt-4 mb-10"></div>
 
-      <div className="w-full justify-center items-center text-center pb-2">
-        <p className="text-verde-escuro font-medium text-base">
+      <div className="w-full justify-center items-center text-center pb-2 px-4">
+        <p className="text-verde-escuro font-medium text-sm sm:text-base">
           © 2026 BioBot. Todos os direitos reservados.
         </p>
       </div>
-    </section>
+    </footer>
   )
 }

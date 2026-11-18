@@ -12,7 +12,7 @@ import {
   MdClose
 } from 'react-icons/md'
 import { FaRegBuilding } from 'react-icons/fa'
-import { IoHomeOutline } from 'react-icons/io5'
+import { IoHomeOutline, IoHelpCircleOutline } from 'react-icons/io5'
 import Logo from '../assets/logo.svg'
 
 export function SideBarAdmin() {
@@ -25,16 +25,16 @@ export function SideBarAdmin() {
   const isEventos = pathname.includes('Evento')
 
   return (
-    <aside className="w-full lg:w-64 shrink-0 flex flex-col border-b lg:border-b-0 lg:border-r border-verde-pastel bg-bg-page px-4 sm:px-6 py-4 lg:py-8">
+    <aside className="w-full lg:w-64 shrink-0 flex flex-col border-b lg:border-b-0 lg:border-r border-verde-pastel bg-input-bg px-4 sm:px-6 py-4 lg:py-8">
       <div className="flex items-center justify-between lg:mb-12">
-        <Link href="/" className="px-2 block w-fit">
+        <Link href="/" className="px-2 block w-fit shrink-0">
           <Image
             src={Logo}
-            alt="Logo Conexão Robótica"
+            alt="Logo BioBot"
             width={180}
             height={50}
-            style={{ width: 'auto', height: 'auto' }}
-            className="max-h-10 lg:max-h-none"
+            className="w-36 sm:w-[180px] h-auto"
+            priority
           />
         </Link>
 
@@ -116,13 +116,13 @@ export function SideBarAdmin() {
           </Link>
         </nav>
 
-        <div className="pt-4 lg:pt-6 lg:mt-6 border-t border-verde-musgo border-opacity-30">
+        <div className="pt-4 lg:pt-6 lg:mt-6 border-t border-verde-musgo/30">
           <Link
             href="/contato"
             onClick={() => setMenuAberto(false)}
             className="flex items-center gap-3 p-3 rounded-lg hover:bg-verde-pastel transition-colors"
           >
-            <div className="w-5 h-5 bg-verde-escuro rounded-full opacity-80"></div>
+            <IoHelpCircleOutline size={22} className="text-verde-escuro" />
             <span className="text-verde-escuro text-sm font-semibold tracking-wide">Suporte</span>
           </Link>
         </div>

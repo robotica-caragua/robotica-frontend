@@ -81,7 +81,7 @@ function SenhaConteudo() {
         com a redefinição da sua senha.
       </p>
 
-      <div className="flex justify-center mt-8 gap-4 sm:gap-9">
+      <div className="flex justify-center mt-8 gap-3 sm:gap-9">
         {digitos.map((digito, idx) => (
           <input
             key={idx}
@@ -90,7 +90,7 @@ function SenhaConteudo() {
             value={digito}
             onChange={(e) => atualizarDigito(idx, e.target.value)}
             aria-label={`Dígito ${idx + 1}`}
-            className="bg-verde-pastel border border-verde-musgo w-14 sm:w-18 h-18 sm:h-24 rounded-xl text-center font-medium text-2xl text-verde-escuro"
+            className="bg-verde-pastel border border-verde-musgo w-13 sm:w-18 h-16 sm:h-24 rounded-xl text-center font-medium text-2xl text-verde-escuro"
           />
         ))}
       </div>
@@ -127,7 +127,7 @@ function SenhaConteudo() {
       <div className="mt-8 mb-8 flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-14">
         <Link
           href="/forgot-password"
-          className="flex items-center justify-center w-40 sm:w-45 h-12 gap-2 rounded-xl bg-white border-2 border-verde-musgo font-bold text-verde-musgo text-base hover:brightness-50 duration-75 cursor-pointer"
+          className="flex items-center justify-center w-full max-w-60 sm:w-45 h-12 gap-2 rounded-xl bg-white border-2 border-verde-musgo font-bold text-verde-musgo text-base hover:brightness-50 duration-75 cursor-pointer"
         >
           Cancelar
         </Link>
@@ -135,7 +135,7 @@ function SenhaConteudo() {
         <button
           type="submit"
           disabled={carregando}
-          className="flex items-center justify-center w-40 sm:w-45 h-12 rounded-xl bg-verde-limao border-b-8 border-verde-escuro font-bold text-verde-escuro hover:brightness-50 duration-75 cursor-pointer disabled:opacity-60"
+          className="flex items-center justify-center w-full max-w-60 sm:w-45 h-12 rounded-xl bg-verde-limao border-b-8 border-verde-escuro font-bold text-verde-escuro hover:brightness-50 duration-75 cursor-pointer disabled:opacity-60"
         >
           {carregando ? 'Enviando...' : 'Enviar'}
         </button>

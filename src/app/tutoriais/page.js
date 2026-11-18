@@ -110,9 +110,9 @@ export default function Tutoriais() {
         </section>
 
         {/* Container principal */}
-        <div className="flex flex-col lg:flex-row w-full max-w-[1440px] mx-auto px-6 lg:pl-[47px] lg:pr-[37px] items-start justify-center gap-10 mt-14">
+        <div className="flex flex-col lg:flex-row w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:pl-[47px] lg:pr-[37px] items-start justify-center gap-8 xl:gap-10 mt-10 lg:mt-14">
           {/* Coluna esquerda */}
-          <aside className="flex w-full lg:w-[350px] shrink-0 flex-col">
+          <aside className="flex w-full lg:w-[280px] xl:w-[350px] shrink-0 flex-col">
             <div className="flex flex-col gap-2.5 w-full">
               <SearchBar
                 value={busca}

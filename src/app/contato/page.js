@@ -42,88 +42,90 @@ export default function Contato() {
   return (
     <>
       <Header />
-      <main className="w-full min-h-screen bg-background py-16 px-4 flex flex-col items-center">
-        <div className="text-center mb-10">
-          <span className="text-[#002A15] text-3xl md:text-[40px] font-bold leading-tight">
+      <main className="w-full min-h-screen bg-background py-8 sm:py-16 px-4 flex flex-col items-center">
+        <div className="text-center mb-8 sm:mb-10">
+          <span className="text-[#002A15] text-2xl sm:text-3xl md:text-[40px] font-bold leading-tight">
             ESCREVA UMA MENSAGEM{' '}
           </span>
-          <span className="text-[#506600] text-3xl md:text-[40px] font-bold leading-tight">
+          <span className="text-[#506600] text-2xl sm:text-3xl md:text-[40px] font-bold leading-tight">
             PARA NÓS!
           </span>
         </div>
 
         {/* formulario */}
 
-        <div className="w-full max-w-[1236px] bg-white rounded-[10px] border border-[#506600] p-6 md:p-12 shadow-sm">
+        <div className="w-full max-w-[1236px] bg-white rounded-[10px] border border-[#506600] p-5 sm:p-8 md:p-12 shadow-sm">
           <form className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
               <div className="flex flex-col gap-2">
-                <label className="text-[#002A15] text-[23px] font-normal font-['Work_Sans']">
+                <label className="text-[#002A15] text-lg sm:text-[23px] font-normal font-['Work_Sans']">
                   Nome
                 </label>
                 <input
                   type="text"
                   placeholder="Digite seu nome..."
-                  className="w-full h-16 px-4 bg-[#F4FFD5] rounded-[5px] border border-[#506600] text-[#002A15] placeholder-[rgba(0,42,21,0.8)] font-['Work_Sans'] text-lg focus:outline-none focus:ring-1 focus:ring-[#506600]"
+                  className="w-full h-12 sm:h-16 px-4 bg-[#F4FFD5] rounded-[5px] border border-[#506600] text-[#002A15] placeholder-[rgba(0,42,21,0.8)] font-['Work_Sans'] text-base sm:text-lg focus:outline-none focus:ring-1 focus:ring-[#506600]"
                 />
               </div>
               <div className="flex flex-col gap-2">
-                <label className="text-[#002A15] text-[23px] font-normal">Sobrenome</label>
+                <label className="text-[#002A15] text-lg sm:text-[23px] font-normal">
+                  Sobrenome
+                </label>
                 <input
                   type="text"
                   placeholder="Digite seu sobrenome..."
-                  className="w-full h-16 px-4 bg-[#F4FFD5] rounded-[5px] border border-[#506600] text-[#002A15] placeholder-[rgba(0,42,21,0.8)] font-['Work_Sans'] text-lg focus:outline-none focus:ring-1 focus:ring-[#506600]"
+                  className="w-full h-12 sm:h-16 px-4 bg-[#F4FFD5] rounded-[5px] border border-[#506600] text-[#002A15] placeholder-[rgba(0,42,21,0.8)] font-['Work_Sans'] text-base sm:text-lg focus:outline-none focus:ring-1 focus:ring-[#506600]"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
               <div className="flex flex-col gap-2">
-                <label className="text-[#002A15] text-[23px] font-normal">Email</label>
+                <label className="text-[#002A15] text-lg sm:text-[23px] font-normal">Email</label>
                 <input
                   type="email"
                   placeholder="exemplo@gmail.com"
-                  className="w-full h-16 px-4 bg-[#F4FFD5] rounded-[5px] border border-[#506600] text-[#002A15] placeholder-[rgba(0,42,21,0.8)] font-['Work_Sans'] text-lg focus:outline-none focus:ring-1 focus:ring-[#506600]"
+                  className="w-full h-12 sm:h-16 px-4 bg-[#F4FFD5] rounded-[5px] border border-[#506600] text-[#002A15] placeholder-[rgba(0,42,21,0.8)] font-['Work_Sans'] text-base sm:text-lg focus:outline-none focus:ring-1 focus:ring-[#506600]"
                 />
               </div>
 
               <div className="flex flex-col gap-2">
-                <label className="text-[#002A15] text-[23px] font-normal">Assunto</label>
+                <label className="text-[#002A15] text-lg sm:text-[23px] font-normal">Assunto</label>
                 <input
                   type="text"
                   placeholder="Digite o assunto..."
-                  className="w-full h-16 px-4 bg-[#F4FFD5] rounded-[5px] border border-[#506600] text-[#002A15] placeholder-[rgba(0,42,21,0.8)] font-['Work_Sans'] text-lg focus:outline-none focus:ring-1 focus:ring-[#506600]"
+                  className="w-full h-12 sm:h-16 px-4 bg-[#F4FFD5] rounded-[5px] border border-[#506600] text-[#002A15] placeholder-[rgba(0,42,21,0.8)] font-['Work_Sans'] text-base sm:text-lg focus:outline-none focus:ring-1 focus:ring-[#506600]"
                 />
               </div>
             </div>
 
-            <div className="flex flex-col gap-2 mt-10">
+            <div className="flex flex-col gap-2 mt-6 sm:mt-10">
               <textarea
-                rows={10}
+                rows={8}
                 placeholder="Escreva sua mensagem aqui....."
-                className="w-full p-4 bg-[#F4FFD5] rounded-[5px] border border-[#506600] text-[#002A15] font-semibold placeholder:font-semibold placeholder-[rgba(0,42,21,0.8)] font-['Work_Sans'] text-lg focus:outline-none focus:ring-1 focus:ring-[#506600] resize-none"
+                className="w-full p-4 bg-[#F4FFD5] rounded-[5px] border border-[#506600] text-[#002A15] font-semibold placeholder:font-semibold placeholder-[rgba(0,42,21,0.8)] font-['Work_Sans'] text-base sm:text-lg focus:outline-none focus:ring-1 focus:ring-[#506600] resize-none"
               />
-              <span className="text-[#002A15]/70 text-base font-normal mt-1 block font">
+              <span className="text-[#002A15]/70 text-sm sm:text-base font-normal mt-1 block font">
                 Por favor, coloque o máximo de informação possível...
               </span>
             </div>
 
-            <div className="flex justify-center pt-6">
+            <div className="flex justify-center pt-4 sm:pt-6">
               <button
                 type="submit"
-                className="w-full sm:w-72 h-14 bg-verde-limao hover:opacity-90 transition-opacity rounded-[13.5px] border border-verde-escuro flex justify-center items-center gap-6 cursor-pointer"
+                className="w-full sm:w-72 h-13 sm:h-14 bg-verde-limao hover:opacity-90 transition-opacity rounded-[13.5px] border border-verde-escuro flex justify-center items-center gap-4 sm:gap-6 cursor-pointer"
               >
-                <span className="text-center text-verde-escuro text-[21.60px] font-bold leading-[32.40px]">
+                <span className="text-center text-verde-escuro text-lg sm:text-[21.60px] font-bold leading-[32.40px]">
                   Confirmar e enviar
                 </span>
-                <FaArrowRight className="text-[#002A15] text-xl" />
+                <FaArrowRight className="text-[#002A15] text-lg sm:text-xl" />
               </button>
             </div>
           </form>
         </div>
 
-        <section className="w-full max-w-[1236px] mt-24 mb-20">
-          <h2 className="text-center text-[#002A15] text-3xl md:text-[40px] font-bold font-['Work_Sans'] leading-tight uppercase mb-12">
+        <section className="w-full max-w-[1236px] mt-14 sm:mt-24 mb-12 sm:mb-20">
+          <h2 className="text-center text-[#002A15] text-2xl sm:text-3xl md:text-[40px] font-bold font-['Work_Sans'] leading-tight uppercase mb-8 sm:mb-12">
             Perguntas Frequentes
           </h2>
 
@@ -138,9 +140,9 @@ export default function Contato() {
                   <button
                     type="button"
                     onClick={() => toggleFaq(index)}
-                    className="w-full py-10 px-8 flex justify-between items-center text-left gap-4 cursor-pointer focus:outline-none"
+                    className="w-full py-5 px-5 sm:py-8 sm:px-8 flex justify-between items-center text-left gap-4 cursor-pointer focus:outline-none"
                   >
-                    <span className="text-[#002A15] text-xl md:text-2xl font-medium leading-tight">
+                    <span className="text-[#002A15] text-lg sm:text-xl md:text-2xl font-medium leading-tight">
                       {faq.pergunta}
                     </span>
 
@@ -151,8 +153,8 @@ export default function Contato() {
 
                   {isOpen && (
                     <>
-                      <div className="mx-6 border-t border-[#506600]/30" />
-                      <div className="p-6 pt-4 text-[#002A15]/90 text-lg md:text-xl font-normal leading-relaxed">
+                      <div className="mx-5 sm:mx-6 border-t border-[#506600]/30" />
+                      <div className="p-5 sm:p-6 pt-4 text-[#002A15]/90 text-base sm:text-lg md:text-xl font-normal leading-relaxed">
                         {faq.resposta}
                       </div>
                     </>
