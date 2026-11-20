@@ -180,9 +180,9 @@ export default function GestaoGruposPage() {
                 setSerie('')
                 setModalAberto(true)
               }}
-              className="flex items-center gap-3 rounded-lg bg-verde-musgo px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:brightness-90 cursor-pointer"
+              className="flex items-center gap-2 rounded-lg bg-verde-musgo hover:bg-white hover:text-verde-musgo border border-verde-musgo px-6 py-3 text-sm sm:text-base font-bold text-white shadow-sm transition cursor-pointer"
             >
-              <MdAdd size={18} />
+              <MdAdd size={20} />
               Nova Equipe
             </button>
           </div>

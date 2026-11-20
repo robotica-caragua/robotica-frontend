@@ -199,32 +199,34 @@ function ConteudoEditarProjeto() {
               Carregando dados do projeto...
             </p>
           ) : (
-            <form onSubmit={handleSalvar} noValidate className="flex flex-col gap-6">
+            <form onSubmit={handleSalvar} noValidate className="flex flex-col gap-6 w-full">
               {/* Informações Básicas */}
-              <section className="flex flex-col gap-5 rounded-2xl border border-verde-musgo bg-white p-7">
-                <div className="flex items-center gap-2 text-verde-escuro">
-                  <MdOutlineArticle size={20} className="text-verde-musgo" />
-                  <h2 className="text-sm font-bold uppercase">Informações Básicas</h2>
+              <section className="flex flex-col gap-5 rounded-2xl border border-verde-musgo bg-white p-6 sm:p-8 shadow-sm">
+                <div className="flex items-center gap-2.5 text-verde-escuro">
+                  <MdOutlineArticle size={20} className="text-verde-musgo shrink-0" />
+                  <h2 className="text-base sm:text-lg font-bold uppercase tracking-wide">
+                    Informações Básicas
+                  </h2>
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-medium text-verde-escuro">Nome do projeto</label>
+                  <label className="text-sm font-semibold text-verde-escuro">Nome do projeto</label>
                   <input
                     type="text"
                     value={nome}
                     onChange={(e) => setNome(e.target.value)}
                     placeholder="Ex: Carrinho Movido a Elástico"
-                    className="w-full rounded-lg border border-verde-musgo bg-input-bg px-4 py-3 text-sm text-verde-escuro placeholder-verde-musgo/80 focus:outline-none"
+                    className="w-full h-12 rounded-xl border border-verde-musgo bg-input-bg px-4 text-sm sm:text-base text-verde-escuro placeholder:text-verde-escuro/60 focus:outline-none focus:ring-1 focus:ring-verde-musgo transition"
                   />
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-medium text-verde-escuro">Categorias</label>
+                  <label className="text-sm font-semibold text-verde-escuro">Categorias</label>
                   <div className="relative">
                     <Select
                       value={categoria}
                       onChange={(e) => setCategoria(e.target.value)}
-                      className="w-full appearance-none rounded-lg border border-verde-musgo bg-input-bg px-4 py-3 pr-10 text-sm text-verde-musgo focus:outline-none cursor-pointer"
+                      className="w-full h-12 appearance-none rounded-xl border border-verde-musgo bg-input-bg px-4 pr-10 text-sm sm:text-base text-verde-escuro focus:outline-none focus:ring-1 focus:ring-verde-musgo cursor-pointer transition"
                     >
                       <option value="">Selecione o tema principal...</option>
                       {categoriasLista.map((cat) => (
@@ -240,12 +242,12 @@ function ConteudoEditarProjeto() {
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-medium text-verde-escuro">Nome da Escola</label>
+                  <label className="text-sm font-semibold text-verde-escuro">Nome da Escola</label>
                   <div className="relative">
                     <Select
                       value={escola}
                       onChange={(e) => setEscola(e.target.value)}
-                      className="w-full appearance-none rounded-lg border border-verde-musgo bg-input-bg px-4 py-3 pr-10 text-sm text-verde-musgo focus:outline-none cursor-pointer"
+                      className="w-full h-12 appearance-none rounded-xl border border-verde-musgo bg-input-bg px-4 pr-10 text-sm sm:text-base text-verde-escuro focus:outline-none focus:ring-1 focus:ring-verde-musgo cursor-pointer transition"
                     >
                       <option value="">
                         Selecione a unidade onde o professor lecionará as oficinas.
@@ -264,14 +266,16 @@ function ConteudoEditarProjeto() {
               </section>
 
               {/* Descrição do Projeto */}
-              <section className="flex flex-col gap-4 rounded-2xl border border-verde-musgo bg-white p-7">
-                <div className="flex items-center gap-2 text-verde-escuro">
-                  <MdOutlineSubject size={20} className="text-verde-musgo" />
-                  <h2 className="text-sm font-bold uppercase">Descrição do Projeto</h2>
+              <section className="flex flex-col gap-5 rounded-2xl border border-verde-musgo bg-white p-6 sm:p-8 shadow-sm">
+                <div className="flex items-center gap-2.5 text-verde-escuro">
+                  <MdOutlineSubject size={20} className="text-verde-musgo shrink-0" />
+                  <h2 className="text-base sm:text-lg font-bold uppercase tracking-wide">
+                    Descrição do Projeto
+                  </h2>
                 </div>
 
                 <div className="overflow-hidden rounded-xl border border-verde-musgo bg-input-bg">
-                  <div className="flex items-center gap-4 border-b border-verde-musgo/20 bg-verde-pastel px-4 py-2.5 text-verde-escuro">
+                  <div className="flex items-center gap-3 border-b border-verde-musgo/20 bg-verde-pastel px-4 py-2.5 text-verde-escuro">
                     <button type="button" aria-label="Negrito" className="hover:text-verde-musgo">
                       <MdFormatBold size={18} />
                     </button>
@@ -287,37 +291,39 @@ function ConteudoEditarProjeto() {
                   </div>
 
                   <textarea
-                    rows={8}
+                    rows={7}
                     value={descricao}
                     onChange={(e) => setDescricao(e.target.value)}
                     placeholder="Descreva qual é o objetivo do projeto e como ele funciona na prática..."
-                    className="w-full resize-none bg-transparent p-4 text-sm text-verde-escuro placeholder-verde-musgo/80 focus:outline-none"
+                    className="w-full resize-none bg-transparent p-4 text-sm sm:text-base text-verde-escuro placeholder:text-verde-escuro/60 focus:outline-none"
                   />
                 </div>
               </section>
 
               {/* Upload de Mídias */}
-              <section className="flex flex-col gap-4 rounded-2xl border border-verde-musgo bg-white p-7">
-                <div className="flex items-center gap-2 text-verde-escuro">
-                  <MdOutlineImage size={20} className="text-verde-musgo" />
-                  <h2 className="text-sm font-bold uppercase">Upload de Mídias</h2>
+              <section className="flex flex-col gap-5 rounded-2xl border border-verde-musgo bg-white p-6 sm:p-8 shadow-sm">
+                <div className="flex items-center gap-2.5 text-verde-escuro">
+                  <MdOutlineImage size={20} className="text-verde-musgo shrink-0" />
+                  <h2 className="text-base sm:text-lg font-bold uppercase tracking-wide">
+                    Upload de Mídias
+                  </h2>
                 </div>
 
-                <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-verde-musgo bg-input-bg px-6 py-12 text-center">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-verde-limao text-verde-escuro">
+                <div className="flex min-h-[200px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-verde-musgo bg-input-bg p-6 sm:p-8 text-center">
+                  <div className="flex size-12 items-center justify-center rounded-full bg-verde-limao text-verde-escuro">
                     <MdOutlineAddAPhoto size={24} />
                   </div>
 
-                  <p className="mt-4 text-xs font-bold uppercase text-verde-escuro">
+                  <p className="mt-3 text-sm font-bold uppercase text-verde-escuro">
                     Enviar mídias do projeto
                   </p>
-                  <p className="mt-1 text-xs text-verde-musgo">
+                  <p className="mt-1 text-xs sm:text-sm text-verde-musgo">
                     Formatos aceitos: JPG, PNG ou WEBP.
                     <br />
                     Tamanho máximo: 5MB por foto (até 10 imagens).
                   </p>
 
-                  <label className="mt-5 rounded-md bg-verde-limao px-5 py-2 text-xs font-bold uppercase text-verde-escuro hover:brightness-95 cursor-pointer">
+                  <label className="mt-4 rounded-lg bg-verde-limao px-6 py-2.5 text-xs font-bold uppercase text-verde-escuro hover:bg-verde-oliva transition cursor-pointer">
                     Selecionar Imagens
                     <input
                       type="file"
@@ -378,14 +384,16 @@ function ConteudoEditarProjeto() {
               </section>
 
               {/* Ações de Controle */}
-              <section className="flex flex-col gap-4 rounded-2xl border border-verde-musgo bg-white p-6">
-                <h2 className="text-xs font-bold uppercase text-verde-escuro">Ações de Controle</h2>
+              <section className="flex flex-col gap-5 rounded-2xl border border-verde-musgo bg-white p-6 sm:p-8 shadow-sm">
+                <h2 className="pb-2 border-b border-verde-escuro/10 text-base sm:text-lg font-bold uppercase tracking-wide text-verde-escuro">
+                  Ações de Controle
+                </h2>
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <button
                     type="submit"
                     disabled={salvando}
-                    className="flex items-center justify-center gap-2 rounded-lg bg-verde-limao py-3 text-xs font-bold uppercase text-verde-escuro hover:brightness-95 cursor-pointer disabled:opacity-60"
+                    className="h-12 flex items-center justify-center gap-2.5 rounded-xl bg-verde-limao text-sm font-bold uppercase text-verde-escuro hover:bg-verde-oliva transition cursor-pointer disabled:opacity-60"
                   >
                     <MdOutlineSave size={18} />
                     {salvando ? 'Salvando...' : 'Salvar Alterações'}
@@ -394,7 +402,7 @@ function ConteudoEditarProjeto() {
                   <button
                     type="button"
                     onClick={handleExcluir}
-                    className="flex items-center justify-center gap-2 rounded-lg border border-vermelho bg-white py-3 text-xs font-bold uppercase text-vermelho hover:bg-vermelho/5 cursor-pointer"
+                    className="h-12 flex items-center justify-center gap-2 rounded-xl border border-vermelho bg-white text-sm font-bold uppercase text-vermelho hover:bg-vermelho/5 transition cursor-pointer"
                   >
                     <MdOutlineDelete size={18} />
                     Excluir Publicação

@@ -19,14 +19,14 @@ import {
 } from 'react-icons/md'
 
 const inputClass =
-  'w-full px-4 py-3 bg-input-bg border border-verde-musgo/40 rounded-lg text-sm text-verde-escuro placeholder:text-verde-escuro/50 focus:outline-none focus:ring-1 focus:ring-verde-musgo transition'
+  'w-full px-4 py-3 bg-input-bg border border-verde-musgo rounded-xl text-sm sm:text-base text-verde-escuro placeholder:text-verde-escuro/60 focus:outline-none focus:ring-1 focus:ring-verde-musgo transition'
 
-const labelClass = 'text-verde-escuro text-sm font-semibold px-1'
+const labelClass = 'text-verde-escuro text-sm font-semibold'
 
 const SecaoTitulo = ({ icone: Icone, titulo }) => (
-  <div className="flex items-center gap-2 text-verde-escuro">
-    <Icone size={18} />
-    <h3 className="text-xs font-bold uppercase tracking-wider">{titulo}</h3>
+  <div className="flex items-center gap-2.5 text-verde-escuro">
+    <Icone size={20} className="text-verde-musgo shrink-0" />
+    <h3 className="text-base sm:text-lg font-bold uppercase tracking-wide">{titulo}</h3>
   </div>
 )
 
@@ -224,7 +224,7 @@ function CadastrarEventoConteudo() {
 
           <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-6 w-full">
             {/* Informações básicas */}
-            <div className="p-6 bg-white rounded-2xl shadow-sm border border-verde-musgo/40 flex flex-col gap-5">
+            <div className="p-6 sm:p-8 bg-white rounded-2xl shadow-sm border border-verde-musgo flex flex-col gap-5">
               <SecaoTitulo icone={MdInfoOutline} titulo="Informações Básicas" />
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -278,7 +278,7 @@ function CadastrarEventoConteudo() {
             </div>
 
             {/* Data & Localização */}
-            <div className="p-6 bg-white rounded-2xl shadow-sm border border-verde-musgo/40 flex flex-col gap-5">
+            <div className="p-6 sm:p-8 bg-white rounded-2xl shadow-sm border border-verde-musgo flex flex-col gap-5">
               <SecaoTitulo icone={MdOutlineLocationOn} titulo="Data & Localização" />
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -475,7 +475,7 @@ function CadastrarEventoConteudo() {
                 )}
               </div>
 
-              <div className="p-6 bg-white rounded-2xl shadow-sm border border-verde-musgo/40 flex flex-col gap-5">
+              <div className="p-6 sm:p-8 bg-white rounded-2xl shadow-sm border border-verde-musgo flex flex-col gap-5">
                 <SecaoTitulo icone={MdOutlineHowToReg} titulo="Inscrições" />
 
                 <div className="flex flex-col gap-5 py-4">

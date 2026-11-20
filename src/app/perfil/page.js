@@ -252,36 +252,40 @@ export default function PerfilPage() {
           </section>
 
           {/* Informações Pessoais */}
-          <section className="rounded-2xl bg-white p-7 shadow-sm">
+          <section className="rounded-2xl border border-verde-musgo bg-white p-6 sm:p-8 shadow-sm">
             <div className="mb-6 flex items-center justify-between">
-              <div className="flex items-center gap-2 text-verde-escuro">
-                <MdPersonOutline size={20} className="text-verde-musgo" />
-                <h2 className="text-base font-bold">Informações Pessoais</h2>
+              <div className="flex items-center gap-2.5 text-verde-escuro">
+                <MdPersonOutline size={20} className="text-verde-musgo shrink-0" />
+                <h2 className="text-base sm:text-lg font-bold uppercase tracking-wide">
+                  Informações Pessoais
+                </h2>
               </div>
 
               <button
                 type="button"
                 onClick={alternarEdicao}
-                className="flex items-center gap-1.5 text-xs font-bold text-verde-musgo hover:underline cursor-pointer"
+                className="flex items-center gap-1.5 text-sm font-bold text-verde-musgo hover:underline cursor-pointer"
               >
                 <MdOutlineEdit size={16} />
                 {editando ? 'Salvar' : 'Editar'}
               </button>
             </div>
 
-            <div className="grid grid-cols-1 gap-x-12 gap-y-6 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-x-12 gap-y-5 sm:grid-cols-2">
               {camposPessoais.map(({ key, label }) => (
                 <div key={key}>
-                  <p className="text-[11px] font-bold uppercase text-verde-musgo">{label}</p>
+                  <p className="text-xs font-bold uppercase text-verde-musgo">{label}</p>
                   {editando ? (
                     <input
                       type="text"
                       value={perfil.pessoal[key]}
                       onChange={(e) => handleCampoChange(key, e.target.value)}
-                      className="mt-1 w-full rounded-lg border border-verde-musgo bg-input-bg px-3 py-1.5 text-sm text-verde-escuro focus:outline-none"
+                      className="mt-1.5 w-full h-11 rounded-xl border border-verde-musgo bg-input-bg px-3.5 text-sm sm:text-base text-verde-escuro focus:outline-none focus:ring-1 focus:ring-verde-musgo"
                     />
                   ) : (
-                    <p className="mt-1 text-sm text-verde-escuro">{perfil.pessoal[key] || '-'}</p>
+                    <p className="mt-1 text-sm sm:text-base text-verde-escuro">
+                      {perfil.pessoal[key] || '-'}
+                    </p>
                   )}
                 </div>
               ))}
@@ -289,10 +293,12 @@ export default function PerfilPage() {
           </section>
 
           {/* Vínculos Institucionais */}
-          <section className="rounded-2xl bg-white p-7 shadow-sm">
-            <div className="mb-5 flex items-center gap-2 text-verde-escuro">
-              <MdOutlineAccountBalance size={20} className="text-verde-musgo" />
-              <h2 className="text-base font-bold">Vínculos Institucionais</h2>
+          <section className="rounded-2xl border border-verde-musgo bg-white p-6 sm:p-8 shadow-sm">
+            <div className="mb-5 flex items-center gap-2.5 text-verde-escuro">
+              <MdOutlineAccountBalance size={20} className="text-verde-musgo shrink-0" />
+              <h2 className="text-base sm:text-lg font-bold uppercase tracking-wide">
+                Vínculos Institucionais
+              </h2>
             </div>
 
             <div className="flex flex-col gap-3">
@@ -336,19 +342,19 @@ export default function PerfilPage() {
           </section>
 
           {/* Credenciais */}
-          <section className="p-8 bg-white rounded-3xl shadow-sm border border-verde-musgo border-opacity-10 flex flex-col gap-8">
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 bg-verde-pastel bg-opacity-20 rounded-lg flex justify-center items-center text-verde-musgo">
-                <MdLockOutline size={24} />
+          <section className="p-6 sm:p-8 bg-white rounded-2xl shadow-sm border border-verde-musgo flex flex-col gap-6">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 bg-verde-pastel rounded-lg flex justify-center items-center text-verde-musgo shrink-0">
+                <MdLockOutline size={20} />
               </div>
-              <h3 className="text-verde-escuro text-2xl font-semibold">Credenciais</h3>
+              <h3 className="text-verde-escuro text-base sm:text-lg font-bold uppercase tracking-wide">
+                Credenciais
+              </h3>
             </div>
 
-            <div className="flex flex-col md:flex-row gap-6 items-start w-full justify-center">
-              <div className="flex flex-col gap-2 max-w-lg flex-1 w-full">
-                <label className="text-verde-musgo text-sm font-bold uppercase tracking-wide px-1">
-                  Nova senha
-                </label>
+            <div className="flex flex-col md:flex-row gap-6 items-start w-full">
+              <div className="flex flex-col gap-1.5 max-w-lg flex-1 w-full">
+                <label className="text-verde-escuro text-sm font-semibold">Nova senha</label>
 
                 <div className="relative">
                   <input
@@ -356,7 +362,7 @@ export default function PerfilPage() {
                     placeholder="Digite a senha..."
                     value={senha}
                     onChange={(e) => setSenha(e.target.value)}
-                    className="w-full px-4 py-3.5 pe-12 bg-input-bg border border-verde-musgo rounded-xl text-verde-musgo focus:outline-none transition"
+                    className="w-full h-12 px-4 pe-12 bg-input-bg border border-verde-musgo rounded-xl text-sm sm:text-base text-verde-escuro placeholder:text-verde-escuro/60 focus:outline-none focus:ring-1 focus:ring-verde-musgo transition"
                   />
 
                   <button

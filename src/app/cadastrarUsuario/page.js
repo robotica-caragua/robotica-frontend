@@ -198,95 +198,87 @@ function CadastrarUsuarioConteudo() {
             </p>
           </section>
 
-          <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-8 w-full">
-            <div className="w-full p-5 sm:p-8 bg-white rounded-3xl shadow-sm border border-verde-musgo border-opacity-30 flex flex-col gap-8">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-verde-pastel rounded-lg flex justify-center items-center text-verde-musgo">
+          <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-6 w-full">
+            <div className="w-full p-6 sm:p-8 bg-white rounded-2xl shadow-sm border border-verde-musgo flex flex-col gap-6">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 bg-verde-pastel rounded-lg flex justify-center items-center text-verde-musgo shrink-0">
                   <FaRegUser size={18} />
                 </div>
-                <h3 className="text-verde-escuro text-2xl font-semibold">Dados Pessoais</h3>
+                <h3 className="text-verde-escuro text-base sm:text-lg font-bold uppercase tracking-wide">
+                  Dados Pessoais
+                </h3>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="flex flex-col gap-2 md:col-span-2">
-                  <label className="text-verde-musgo text-sm font-bold uppercase tracking-wide px-1">
-                    Nome Completo
-                  </label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div className="flex flex-col gap-1.5 md:col-span-2">
+                  <label className="text-verde-escuro text-sm font-semibold">Nome Completo</label>
                   <input
                     type="text"
                     value={nome}
                     onChange={(e) => setNome(e.target.value)}
                     placeholder="Digite o nome completo do professor..."
-                    className="w-full px-4 py-3.5 bg-input-bg border border-verde-musgo rounded-xl text-verde-escuro placeholder-verde-escuro placeholder-opacity-50 focus:outline-none transition"
+                    className="w-full h-12 px-4 bg-input-bg border border-verde-musgo rounded-xl text-sm sm:text-base text-verde-escuro placeholder:text-verde-escuro/60 focus:outline-none focus:ring-1 focus:ring-verde-musgo transition"
                   />
                 </div>
 
-                <div className="flex flex-col gap-2">
-                  <label className="text-verde-musgo text-sm font-bold uppercase tracking-wide px-1">
-                    Matrícula
-                  </label>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-verde-escuro text-sm font-semibold">Matrícula</label>
                   <input
                     type="text"
                     value={matricula}
                     onChange={(e) => setMatricula(e.target.value)}
                     placeholder="Digite a matrícula..."
-                    className="w-full px-4 py-3.5 bg-input-bg border border-verde-musgo rounded-xl text-verde-escuro placeholder-verde-escuro placeholder-opacity-50 focus:outline-none transition"
+                    className="w-full h-12 px-4 bg-input-bg border border-verde-musgo rounded-xl text-sm sm:text-base text-verde-escuro placeholder:text-verde-escuro/60 focus:outline-none focus:ring-1 focus:ring-verde-musgo transition"
                   />
                 </div>
 
-                <div className="flex flex-col gap-2">
-                  <label className="text-verde-musgo text-sm font-bold uppercase tracking-wide px-1">
-                    E-mail
-                  </label>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-verde-escuro text-sm font-semibold">E-mail</label>
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => validarEmail(e.target.value)}
                     placeholder="exemplo@gmail.com"
-                    className={`w-full px-4 py-3.5 bg-input-bg border rounded-xl text-verde-escuro placeholder-verde-escuro placeholder-opacity-50 focus:outline-none transition ${erroEmail ? 'border-vermelho focus:ring-vermelho' : 'border-verde-musgo'}`}
+                    className={`w-full h-12 px-4 bg-input-bg border rounded-xl text-sm sm:text-base text-verde-escuro placeholder:text-verde-escuro/60 focus:outline-none focus:ring-1 transition ${erroEmail ? 'border-vermelho focus:ring-vermelho' : 'border-verde-musgo focus:ring-verde-musgo'}`}
                   />
                   {erroEmail && (
                     <span className="text-vermelho text-xs font-semibold px-1">{erroEmail}</span>
                   )}
                 </div>
 
-                <div className="flex flex-col gap-2">
-                  <label className="text-verde-musgo text-sm font-bold uppercase tracking-wide px-1">
-                    CPF
-                  </label>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-verde-escuro text-sm font-semibold">CPF</label>
                   <input
                     type="text"
                     value={cpf}
                     onChange={handleCPF}
                     placeholder="000.000.000-00"
-                    className="w-full px-4 py-3.5 bg-input-bg border border-verde-musgo rounded-xl text-verde-escuro placeholder-verde-escuro placeholder-opacity-50 focus:outline-none transition"
+                    className="w-full h-12 px-4 bg-input-bg border border-verde-musgo rounded-xl text-sm sm:text-base text-verde-escuro placeholder:text-verde-escuro/60 focus:outline-none focus:ring-1 focus:ring-verde-musgo transition"
                   />
                 </div>
 
-                <div className="flex flex-col gap-2">
-                  <label className="text-verde-musgo text-sm font-bold uppercase tracking-wide px-1">
-                    Telefone
-                  </label>
-                  <div className="flex items-center w-full px-4 py-3.5 bg-input-bg border border-verde-musgo rounded-xl text-verde-escuro focus-within:ring-1 focus-within:ring-verde-musgo transition">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-verde-escuro text-sm font-semibold">Telefone</label>
+                  <div className="flex items-center w-full h-12 px-4 bg-input-bg border border-verde-musgo rounded-xl text-sm sm:text-base text-verde-escuro focus-within:ring-1 focus-within:ring-verde-musgo transition">
                     <span className="font-semibold text-verde-escuro select-none mr-1.5">+55</span>
                     <input
                       type="text"
                       value={telefone}
                       onChange={handleTelefone}
                       placeholder="(00) 00000-0000"
-                      className="w-full bg-transparent text-verde-escuro placeholder-verde-escuro placeholder-opacity-50 focus:outline-none"
+                      className="w-full bg-transparent text-sm sm:text-base text-verde-escuro placeholder:text-verde-escuro/60 focus:outline-none"
                     />
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-2 md:col-span-2">
-                  <label className="text-verde-musgo text-sm font-bold uppercase tracking-wide px-1">
+                <div className="flex flex-col gap-1.5 md:col-span-2">
+                  <label className="text-verde-escuro text-sm font-semibold">
                     Escola Vinculada
                   </label>
                   <Select
                     value={escola}
                     onChange={(e) => setEscola(e.target.value)}
-                    className="w-full px-4 py-3.5 bg-input-bg border border-verde-musgo rounded-xl text-verde-escuro focus:outline-none appearance-none cursor-pointer"
+                    className="w-full h-12 px-4 pr-10 bg-input-bg border border-verde-musgo rounded-xl text-sm sm:text-base text-verde-escuro focus:outline-none focus:ring-1 focus:ring-verde-musgo appearance-none cursor-pointer transition"
                   >
                     <option value="" disabled>
                       Selecione a unidade onde o professor lecionará as oficinas...
@@ -301,17 +293,19 @@ function CadastrarUsuarioConteudo() {
               </div>
             </div>
 
-            <div className="p-8 bg-white rounded-3xl shadow-sm border border-verde-musgo border-opacity-10 flex flex-col gap-8">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-verde-pastel bg-opacity-20 rounded-lg flex justify-center items-center text-verde-musgo">
-                  <MdLockOutline size={24} />
+            <div className="p-6 sm:p-8 bg-white rounded-2xl shadow-sm border border-verde-musgo flex flex-col gap-6">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 bg-verde-pastel rounded-lg flex justify-center items-center text-verde-musgo shrink-0">
+                  <MdLockOutline size={20} />
                 </div>
-                <h3 className="text-verde-escuro text-2xl font-semibold">Credenciais</h3>
+                <h3 className="text-verde-escuro text-base sm:text-lg font-bold uppercase tracking-wide">
+                  Credenciais
+                </h3>
               </div>
 
-              <div className="flex flex-row gap-6 items-start w-full justify-center">
-                <div className="flex flex-col gap-2 max-w-lg flex-1">
-                  <label className="text-verde-musgo text-sm font-bold uppercase tracking-wide px-1">
+              <div className="flex flex-col md:flex-row gap-6 items-start w-full">
+                <div className="flex flex-col gap-1.5 w-full md:flex-1">
+                  <label className="text-verde-escuro text-sm font-semibold">
                     Senha temporária
                   </label>
 
@@ -321,7 +315,7 @@ function CadastrarUsuarioConteudo() {
                       placeholder="Digite a senha..."
                       value={senha}
                       onChange={(e) => setSenha(e.target.value)}
-                      className="w-full px-4 py-3.5 pe-12 bg-input-bg border border-verde-musgo rounded-xl text-verde-musgo focus:outline-none transition"
+                      className="w-full h-12 px-4 pe-12 bg-input-bg border border-verde-musgo rounded-xl text-sm sm:text-base text-verde-escuro placeholder:text-verde-escuro/60 focus:outline-none focus:ring-1 focus:ring-verde-musgo transition"
                     />
 
                     <button
