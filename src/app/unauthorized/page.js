@@ -20,7 +20,7 @@ export default function UnauthorizedPage() {
           <div className="flex flex-col gap-4 lg:gap-5 items-center lg:items-start">
             <Label>ERRO 403</Label>
 
-            <h2 className="font-bold text-3xl sm:text-4xl lg:text-5xl">Ops! Acesso restrito.</h2>
+            <h2 className="font-bold text-2xl">Ops! Acesso restrito.</h2>
 
             <p className="text-verde-musgo text-base sm:text-lg max-w-lg">
               Parece que você está tentando acessar uma área restrita. Sem pânico! Para continuar e

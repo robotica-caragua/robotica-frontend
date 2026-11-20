@@ -138,15 +138,27 @@ export function converterNivelParaDificuldade(nivel) {
   return mapaNivelParaDificuldade[nivel] || 'MEDIUM'
 }
 
+export function arquivoParaDataUrl(arquivo) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result)
+    reader.onerror = () => reject(new Error('Falha ao ler o arquivo de imagem.'))
+    reader.readAsDataURL(arquivo)
+  })
+}
+
 export function mapearTutorialDaApi(tutorial, imagemPadrao) {
   const dataIso = tutorial.updatedAt || tutorial.createdAt || new Date().toISOString()
   const dataFormatada = new Date(dataIso).toLocaleDateString('pt-BR')
   const listaMateriais = Array.isArray(tutorial.materialsNeeded) ? tutorial.materialsNeeded : []
 
-  let imagemSalva = null
-  if (typeof window !== 'undefined' && tutorial.id) {
-    imagemSalva = window.localStorage.getItem(`foto_tutorial_${tutorial.id}`)
-  }
+  const listaImagens =
+    Array.isArray(tutorial.images) && tutorial.images.length > 0
+      ? tutorial.images
+      : tutorial.imageUrl
+        ? [tutorial.imageUrl]
+        : []
+  const capa = tutorial.imageUrl || listaImagens[0] || null
 
   return {
     id: tutorial.id,
@@ -174,8 +186,9 @@ export function mapearTutorialDaApi(tutorial, imagemPadrao) {
     status: tutorial.status || 'publicado',
     duracao: tutorial.duracao || '10:00',
     visualizacoes: tutorial.visualizacoes ?? 0,
-    imagem: imagemSalva || tutorial.imageUrl || imagemPadrao,
-    imagemUrl: imagemSalva || tutorial.imageUrl || '',
+    imagem: capa || imagemPadrao,
+    imagemUrl: capa || '',
+    imagens: listaImagens,
     visivel: true
   }
 }
@@ -184,10 +197,13 @@ export function mapearProjetoDaApi(projeto, imagemPadrao) {
   const dataIso = projeto.updatedAt || projeto.createdAt || new Date().toISOString()
   const dataFormatada = new Date(dataIso).toLocaleDateString('pt-BR')
 
-  let imagemSalva = null
-  if (typeof window !== 'undefined' && projeto.id) {
-    imagemSalva = window.localStorage.getItem(`foto_projeto_${projeto.id}`)
-  }
+  const listaImagens =
+    Array.isArray(projeto.images) && projeto.images.length > 0
+      ? projeto.images
+      : projeto.imageUrl
+        ? [projeto.imageUrl]
+        : []
+  const capa = projeto.imageUrl || listaImagens[0] || null
 
   return {
     id: projeto.id,
@@ -205,7 +221,9 @@ export function mapearProjetoDaApi(projeto, imagemPadrao) {
     createdAt: projeto.createdAt || dataIso,
     updatedAt: projeto.updatedAt || dataIso,
     infoData: `Atualizado em ${dataFormatada}`,
-    imagem: imagemSalva || projeto.imageUrl || imagemPadrao,
+    imagem: capa || imagemPadrao,
+    imagemUrl: capa || '',
+    imagens: listaImagens,
     destaque: true
   }
 }
@@ -320,7 +338,9 @@ export const apiTutoriais = {
     difficulty,
     schoolId,
     materialsNeeded,
-    tutorialUrl
+    tutorialUrl,
+    imageUrl,
+    images
   }) {
     const payload = {
       title,
@@ -328,7 +348,9 @@ export const apiTutoriais = {
       categoryId: Number(categoryId),
       difficulty,
       schoolId: Number(schoolId),
-      materialsNeeded
+      materialsNeeded,
+      ...(images !== undefined ? { images } : {}),
+      ...(imageUrl !== undefined ? { imageUrl } : {})
     }
     if (tutorialUrl && /^https?:\/\//i.test(tutorialUrl)) {
       payload.tutorialUrl = tutorialUrl
@@ -342,7 +364,17 @@ export const apiTutoriais = {
 
   async atualizar(
     id,
-    { title, description, categoryId, difficulty, schoolId, materialsNeeded, tutorialUrl }
+    {
+      title,
+      description,
+      categoryId,
+      difficulty,
+      schoolId,
+      materialsNeeded,
+      tutorialUrl,
+      imageUrl,
+      images
+    }
   ) {
     const payload = {}
     if (title !== undefined) payload.title = title
@@ -351,6 +383,8 @@ export const apiTutoriais = {
     if (difficulty !== undefined) payload.difficulty = difficulty
     if (schoolId !== undefined) payload.schoolId = Number(schoolId)
     if (materialsNeeded !== undefined) payload.materialsNeeded = materialsNeeded
+    if (images !== undefined) payload.images = images
+    if (imageUrl !== undefined) payload.imageUrl = imageUrl
     if (tutorialUrl && /^https?:\/\//i.test(tutorialUrl)) {
       payload.tutorialUrl = tutorialUrl
     }
@@ -393,7 +427,12 @@ export const apiEscolas = {
   async listar() {
     try {
       return await listarComVazioEm404(async () => {
-        const dados = await requisicaoApi('/schools')
+        const dados = await requisicaoApi('/schools').catch(async (err) => {
+          if (err?.status === 401 || err?.status === 403) {
+            return await requisicaoApi('/public/schools', { autenticado: false })
+          }
+          throw err
+        })
         return dados.schools || []
       })
     } catch (err) {
@@ -406,7 +445,30 @@ export const apiEscolas = {
             mapa.set(t.school.id, t.school)
           }
         }
-        return Array.from(mapa.values())
+        if (mapa.size > 0) return Array.from(mapa.values())
+        return [
+          {
+            id: 3,
+            name: 'EMEF Profª Maria Aparecida De Carvalho',
+            address: 'R. Seishi Yoshimoto, 120 - Getuba, Caraguatatuba - SP, 11676-403'
+          },
+          {
+            id: 4,
+            name: 'EMEF Prof. Luiz Ribeiro Muniz',
+            address: 'R. Analândia, 355 - Martim de Sá, Caraguatatuba - SP, 11662-320'
+          },
+          {
+            id: 5,
+            name: 'EMEF Prof. Luiz Silvar do Prado',
+            address:
+              'R. José Pedro de Oliveira Barbosa, 805 - Jardim Casa Branca, Caraguatatuba - SP'
+          },
+          {
+            id: 6,
+            name: 'EMEF Profª Maria Thereza de Souza Castro',
+            address: 'R. Seishi Yoshimoto, 120 - Getuba, Caraguatatuba - SP, 11676-403'
+          }
+        ]
       }
       throw err
     }
@@ -444,7 +506,12 @@ export const apiEscolas = {
 export const apiUsuarios = {
   async listar() {
     return listarComVazioEm404(async () => {
-      const dados = await requisicaoApi('/users')
+      const dados = await requisicaoApi('/users').catch(async (err) => {
+        if (err?.status === 401 || err?.status === 403) {
+          return await requisicaoApi('/public/users', { autenticado: false })
+        }
+        throw err
+      })
       return dados.users || []
     })
   },
@@ -495,66 +562,48 @@ export const apiProjetos = {
     if (filtros.escola) params.append('school', filtros.escola)
     const queryString = params.toString() ? `?${params.toString()}` : ''
 
-    try {
-      return await listarComVazioEm404(async () => {
-        const dados = await requisicaoApi(`/projects${queryString}`)
-        return dados.projects || []
+    return listarComVazioEm404(async () => {
+      const dados = await requisicaoApi(`/projects${queryString}`).catch(async (err) => {
+        if (err?.status === 401 || err?.status === 403) {
+          return await requisicaoApi(`/public/projects${queryString}`, { autenticado: false })
+        }
+        throw err
       })
-    } catch (err) {
-      // Se o visitante no portal público não estiver autenticado (401/403), usa os tutoriais públicos da API como vitrine de projetos
-      if (err?.status === 401 || err?.status === 403) {
-        const tutoriais = await apiTutoriais.listar(filtros).catch(() => [])
-        return tutoriais.map((t) => ({
-          id: t.id,
-          name: t.title,
-          description: t.description,
-          schoolId: t.schoolId,
-          school: t.school,
-          categories: t.category?.name ? [t.category.name] : ['Robótica'],
-          createdAt: t.createdAt,
-          updatedAt: t.updatedAt
-        }))
-      }
-      throw err
-    }
+      return dados.projects || []
+    })
   },
 
   async buscarPorId(id) {
-    try {
-      const dados = await requisicaoApi(`/projects/${id}`)
-      return dados.project
-    } catch (err) {
+    const dados = await requisicaoApi(`/projects/${id}`).catch(async (err) => {
       if (err?.status === 401 || err?.status === 403) {
-        const t = await apiTutoriais.buscarPorId(id)
-        if (!t) throw err
-        return {
-          id: t.id,
-          name: t.title,
-          description: t.description,
-          schoolId: t.schoolId,
-          school: t.school,
-          categories: t.category?.name ? [t.category.name] : ['Robótica'],
-          createdAt: t.createdAt,
-          updatedAt: t.updatedAt
-        }
+        return await requisicaoApi(`/public/projects/${id}`, { autenticado: false })
       }
       throw err
-    }
-  },
-
-  async criar({ name, description, schoolId }) {
-    const dados = await requisicaoApi('/projects', {
-      method: 'POST',
-      body: { name, description, schoolId: Number(schoolId) }
     })
     return dados.project
   },
 
-  async atualizar(id, { name, description, schoolId }) {
+  async criar({ name, description, schoolId, images, imageUrl }) {
+    const dados = await requisicaoApi('/projects', {
+      method: 'POST',
+      body: {
+        name,
+        description,
+        schoolId: Number(schoolId),
+        ...(images !== undefined ? { images } : {}),
+        ...(imageUrl !== undefined ? { imageUrl } : {})
+      }
+    })
+    return dados.project
+  },
+
+  async atualizar(id, { name, description, schoolId, images, imageUrl }) {
     const payload = {}
     if (name !== undefined) payload.name = name
     if (description !== undefined) payload.description = description
     if (schoolId !== undefined) payload.schoolId = Number(schoolId)
+    if (images !== undefined) payload.images = images
+    if (imageUrl !== undefined) payload.imageUrl = imageUrl
     const dados = await requisicaoApi(`/projects/${id}`, {
       method: 'PUT',
       body: payload
@@ -564,5 +613,120 @@ export const apiProjetos = {
 
   async excluir(id) {
     return requisicaoApi(`/projects/${id}`, { method: 'DELETE' })
+  }
+}
+
+// ==========================================
+// Endpoints de Eventos (/events)
+// ==========================================
+const mesesCurtos = [
+  'JAN',
+  'FEV',
+  'MAR',
+  'ABR',
+  'MAI',
+  'JUN',
+  'JUL',
+  'AGO',
+  'SET',
+  'OUT',
+  'NOV',
+  'DEZ'
+]
+
+const mesesLongos = [
+  'Janeiro',
+  'Fevereiro',
+  'Março',
+  'Abril',
+  'Maio',
+  'Junho',
+  'Julho',
+  'Agosto',
+  'Setembro',
+  'Outubro',
+  'Novembro',
+  'Dezembro'
+]
+
+export function mapearEventoDaApi(evento) {
+  if (!evento) return null
+  const dataRaw = String(evento.date || '').trim()
+  let dataCurta = dataRaw
+  let dataLonga = dataRaw
+
+  const matchIso = dataRaw.match(/^(\d{4})-(\d{2})-(\d{2})/)
+  if (matchIso) {
+    const [, ano, mesStr, dia] = matchIso
+    const mesIdx = Math.max(0, Math.min(11, Number(mesStr) - 1))
+    dataCurta = `${dia} ${mesesCurtos[mesIdx]}`
+    dataLonga = `${dia} de ${mesesLongos[mesIdx]} de ${ano}`
+  }
+
+  const prefixoSelo =
+    evento.registration === 'fechadas'
+      ? 'INSCRIÇÕES ENCERRADAS'
+      : evento.type
+        ? String(evento.type).toUpperCase()
+        : 'PRÓXIMO EVENTO'
+
+  const agenda = Array.isArray(evento.agenda)
+    ? evento.agenda.filter((a) => a && (a.horario?.trim() || a.titulo?.trim()))
+    : []
+
+  const documentos = Array.isArray(evento.documents)
+    ? evento.documents.filter((d) => d && d.nome?.trim())
+    : []
+
+  return {
+    id: evento.id,
+    titulo: evento.title || 'Evento da Rede',
+    tipo: evento.type || 'torneio',
+    descricao: evento.description || '',
+    dataIso: matchIso ? `${matchIso[1]}-${matchIso[2]}-${matchIso[3]}` : dataRaw,
+    data: dataLonga || 'Data a definir',
+    etiquetaData: dataCurta ? `${prefixoSelo} • ${dataCurta}` : prefixoSelo,
+    horario: evento.time || '',
+    local: evento.location || evento.school?.name || 'Rede Municipal de Caraguatatuba',
+    inscricoes: evento.registration || 'abertas',
+    status: evento.status || 'agendado',
+    agenda,
+    documentos,
+    schoolId: evento.schoolId || null,
+    linkUrl: `/detalhesEvento?id=${evento.id}`
+  }
+}
+
+export const apiEventos = {
+  async listar() {
+    return listarComVazioEm404(async () => {
+      const dados = await requisicaoApi('/events', { autenticado: false })
+      return dados.events || []
+    })
+  },
+
+  async buscarPorId(id) {
+    const dados = await requisicaoApi(`/events/${id}`, { autenticado: false })
+    return dados.event
+  },
+
+  async criar(payload) {
+    const dados = await requisicaoApi('/events', {
+      method: 'POST',
+      body: payload
+    })
+    return dados.event
+  },
+
+  async atualizar(id, payload) {
+    const dados = await requisicaoApi(`/events/${id}`, {
+      method: 'PUT',
+      body: payload
+    })
+    return dados.event
+  },
+
+  async excluir(id) {
+    return requisicaoApi(`/events/${id}`, { method: 'DELETE' })
   }
 }

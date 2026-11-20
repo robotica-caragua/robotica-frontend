@@ -1,7 +1,6 @@
-import Link from 'next/link'
 import { MdOutlineSchool, MdOutlineDelete } from 'react-icons/md'
 
-export function CardEscolaAdmin({ id, name, region, teams, onExcluir }) {
+export function CardEscolaAdmin({ id, name, region, teams, onExcluir, onVerMais }) {
   return (
     <div className="flex flex-col rounded-2xl border border-verde-musgo bg-white p-5">
       <div className="flex items-start justify-between">
@@ -21,12 +20,13 @@ export function CardEscolaAdmin({ id, name, region, teams, onExcluir }) {
       </p>
 
       <div className="mt-auto flex items-center gap-4 border-t border-verde-escuro/10 pt-4">
-        <Link
-          href="/rede"
-          className="flex-1 rounded-md border border-verde-musgo py-1.5 text-center text-sm font-bold text-verde-escuro hover:bg-verde-musgo hover:text-white transition"
+        <button
+          type="button"
+          onClick={onVerMais}
+          className="flex-1 rounded-md border border-verde-musgo py-1.5 text-center text-sm font-bold text-verde-escuro hover:bg-verde-musgo hover:text-white transition cursor-pointer"
         >
           Ver Mais
-        </Link>
+        </button>
         <button
           type="button"
           onClick={() => onExcluir?.(id, name)}

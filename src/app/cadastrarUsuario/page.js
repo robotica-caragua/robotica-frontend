@@ -1,5 +1,6 @@
 'use client'
 
+import { Select } from '@/components/Select'
 import { Suspense, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
@@ -113,11 +114,29 @@ function CadastrarUsuarioConteudo() {
   }
 
   const handleTelefone = (e) => {
-    let valor = e.target.value.replace(/\D/g, '')
-    valor = valor.replace(/^(\d{2})(\d)/g, '+$1 ($2')
-    valor = valor.replace(/(\(\d{2})(\d)/g, '$1) $2')
-    valor = valor.replace(/(\d{5})(\d)/g, '$1-$2')
-    setTelefone(valor.substring(0, 19))
+    let digitos = e.target.value.replace(/\D/g, '')
+    if (digitos.length > 11 && digitos.startsWith('55')) {
+      digitos = digitos.slice(2)
+    }
+    digitos = digitos.slice(0, 11)
+
+    if (digitos.length === 0) {
+      setTelefone('')
+      return
+    }
+    if (digitos.length <= 2) {
+      setTelefone(`(${digitos}`)
+      return
+    }
+    if (digitos.length <= 6) {
+      setTelefone(`(${digitos.slice(0, 2)}) ${digitos.slice(2)}`)
+      return
+    }
+    if (digitos.length <= 10) {
+      setTelefone(`(${digitos.slice(0, 2)}) ${digitos.slice(2, 6)}-${digitos.slice(6)}`)
+      return
+    }
+    setTelefone(`(${digitos.slice(0, 2)}) ${digitos.slice(2, 7)}-${digitos.slice(7)}`)
   }
 
   const handleSubmit = async (e) => {
@@ -165,106 +184,101 @@ function CadastrarUsuarioConteudo() {
   }
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen bg-background relative">
+    <div className="flex flex-col lg:flex-row min-h-screen w-full bg-background relative">
       <SideBarAdmin />
 
       <main className="flex-1 flex flex-col">
-        <div className="w-full max-w-5xl mx-auto py-8 lg:py-12 px-4 sm:px-8 flex flex-col gap-10">
-          <section className="flex flex-col gap-2 items-center text-center">
-            <h2 className="text-verde-escuro text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight">
+        <div className="w-full max-w-[1040px] mx-auto py-8 lg:py-10 px-6 sm:px-10 lg:px-14 flex flex-col gap-8">
+          <section className="flex flex-col gap-2">
+            <h1 className="text-verde-escuro text-3xl sm:text-4xl font-bold leading-tight">
               {idEdicao ? 'Editar Professor' : 'Cadastrar Novo Professor'}
-            </h2>
-            <p className="text-verde-musgo text-base sm:text-lg lg:text-xl font-normal">
+            </h1>
+            <p className="text-verde-musgo text-sm sm:text-base font-normal">
               Configure as credenciais e acessos do docente no sistema.
             </p>
           </section>
 
-          <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-8 w-full">
-            <div className="w-full p-5 sm:p-8 bg-white rounded-3xl shadow-sm border border-verde-musgo border-opacity-30 flex flex-col gap-8">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-verde-pastel rounded-lg flex justify-center items-center text-verde-musgo">
+          <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-6 w-full">
+            <div className="w-full p-6 sm:p-8 bg-white rounded-2xl shadow-sm border border-verde-musgo flex flex-col gap-6">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 bg-verde-pastel rounded-lg flex justify-center items-center text-verde-musgo shrink-0">
                   <FaRegUser size={18} />
                 </div>
-                <h3 className="text-verde-escuro text-2xl font-semibold">Dados Pessoais</h3>
+                <h3 className="text-verde-escuro text-base sm:text-lg font-bold uppercase tracking-wide">
+                  Dados Pessoais
+                </h3>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="flex flex-col gap-2 md:col-span-2">
-                  <label className="text-verde-musgo text-sm font-bold uppercase tracking-wide px-1">
-                    Nome Completo
-                  </label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div className="flex flex-col gap-1.5 md:col-span-2">
+                  <label className="text-verde-escuro text-sm font-semibold">Nome Completo</label>
                   <input
                     type="text"
                     value={nome}
                     onChange={(e) => setNome(e.target.value)}
                     placeholder="Digite o nome completo do professor..."
-                    className="w-full px-4 py-3.5 bg-input-bg border border-verde-musgo rounded-xl text-verde-escuro placeholder-verde-escuro placeholder-opacity-50 focus:outline-none transition"
+                    className="w-full h-12 px-4 bg-input-bg border border-verde-musgo rounded-xl text-sm sm:text-base text-verde-escuro placeholder:text-verde-escuro/60 focus:outline-none focus:ring-1 focus:ring-verde-musgo transition"
                   />
                 </div>
 
-                <div className="flex flex-col gap-2">
-                  <label className="text-verde-musgo text-sm font-bold uppercase tracking-wide px-1">
-                    Matrícula
-                  </label>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-verde-escuro text-sm font-semibold">Matrícula</label>
                   <input
                     type="text"
                     value={matricula}
                     onChange={(e) => setMatricula(e.target.value)}
                     placeholder="Digite a matrícula..."
-                    className="w-full px-4 py-3.5 bg-input-bg border border-verde-musgo rounded-xl text-verde-escuro placeholder-verde-escuro placeholder-opacity-50 focus:outline-none transition"
+                    className="w-full h-12 px-4 bg-input-bg border border-verde-musgo rounded-xl text-sm sm:text-base text-verde-escuro placeholder:text-verde-escuro/60 focus:outline-none focus:ring-1 focus:ring-verde-musgo transition"
                   />
                 </div>
 
-                <div className="flex flex-col gap-2">
-                  <label className="text-verde-musgo text-sm font-bold uppercase tracking-wide px-1">
-                    E-mail
-                  </label>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-verde-escuro text-sm font-semibold">E-mail</label>
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => validarEmail(e.target.value)}
                     placeholder="exemplo@gmail.com"
-                    className={`w-full px-4 py-3.5 bg-input-bg border rounded-xl text-verde-escuro placeholder-verde-escuro placeholder-opacity-50 focus:outline-none transition ${erroEmail ? 'border-vermelho focus:ring-vermelho' : 'border-verde-musgo'}`}
+                    className={`w-full h-12 px-4 bg-input-bg border rounded-xl text-sm sm:text-base text-verde-escuro placeholder:text-verde-escuro/60 focus:outline-none focus:ring-1 transition ${erroEmail ? 'border-vermelho focus:ring-vermelho' : 'border-verde-musgo focus:ring-verde-musgo'}`}
                   />
                   {erroEmail && (
                     <span className="text-vermelho text-xs font-semibold px-1">{erroEmail}</span>
                   )}
                 </div>
 
-                <div className="flex flex-col gap-2">
-                  <label className="text-verde-musgo text-sm font-bold uppercase tracking-wide px-1">
-                    CPF
-                  </label>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-verde-escuro text-sm font-semibold">CPF</label>
                   <input
                     type="text"
                     value={cpf}
                     onChange={handleCPF}
                     placeholder="000.000.000-00"
-                    className="w-full px-4 py-3.5 bg-input-bg border border-verde-musgo rounded-xl text-verde-escuro placeholder-verde-escuro placeholder-opacity-50 focus:outline-none transition"
+                    className="w-full h-12 px-4 bg-input-bg border border-verde-musgo rounded-xl text-sm sm:text-base text-verde-escuro placeholder:text-verde-escuro/60 focus:outline-none focus:ring-1 focus:ring-verde-musgo transition"
                   />
                 </div>
 
-                <div className="flex flex-col gap-2">
-                  <label className="text-verde-musgo text-sm font-bold uppercase tracking-wide px-1">
-                    Telefone
-                  </label>
-                  <input
-                    type="text"
-                    value={telefone}
-                    onChange={handleTelefone}
-                    placeholder="+55 (00) 00000-0000"
-                    className="w-full px-4 py-3.5 bg-input-bg border border-verde-musgo rounded-xl text-verde-escuro placeholder-verde-escuro placeholder-opacity-50 focus:outline-none transition"
-                  />
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-verde-escuro text-sm font-semibold">Telefone</label>
+                  <div className="flex items-center w-full h-12 px-4 bg-input-bg border border-verde-musgo rounded-xl text-sm sm:text-base text-verde-escuro focus-within:ring-1 focus-within:ring-verde-musgo transition">
+                    <span className="font-semibold text-verde-escuro select-none mr-1.5">+55</span>
+                    <input
+                      type="text"
+                      value={telefone}
+                      onChange={handleTelefone}
+                      placeholder="(00) 00000-0000"
+                      className="w-full bg-transparent text-sm sm:text-base text-verde-escuro placeholder:text-verde-escuro/60 focus:outline-none"
+                    />
+                  </div>
                 </div>
 
-                <div className="flex flex-col gap-2 md:col-span-2">
-                  <label className="text-verde-musgo text-sm font-bold uppercase tracking-wide px-1">
+                <div className="flex flex-col gap-1.5 md:col-span-2">
+                  <label className="text-verde-escuro text-sm font-semibold">
                     Escola Vinculada
                   </label>
-                  <select
+                  <Select
                     value={escola}
                     onChange={(e) => setEscola(e.target.value)}
-                    className="w-full px-4 py-3.5 bg-input-bg border border-verde-musgo rounded-xl text-verde-escuro focus:outline-none appearance-none cursor-pointer"
+                    className="w-full h-12 px-4 pr-10 bg-input-bg border border-verde-musgo rounded-xl text-sm sm:text-base text-verde-escuro focus:outline-none focus:ring-1 focus:ring-verde-musgo appearance-none cursor-pointer transition"
                   >
                     <option value="" disabled>
                       Selecione a unidade onde o professor lecionará as oficinas...
@@ -274,22 +288,24 @@ function CadastrarUsuarioConteudo() {
                         {esc.name}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
               </div>
             </div>
 
-            <div className="p-5 sm:p-8 bg-white rounded-3xl shadow-sm border border-verde-musgo border-opacity-10 flex flex-col gap-8">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-verde-pastel bg-opacity-20 rounded-lg flex justify-center items-center text-verde-musgo">
-                  <MdLockOutline size={24} />
+            <div className="p-6 sm:p-8 bg-white rounded-2xl shadow-sm border border-verde-musgo flex flex-col gap-6">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 bg-verde-pastel rounded-lg flex justify-center items-center text-verde-musgo shrink-0">
+                  <MdLockOutline size={20} />
                 </div>
-                <h3 className="text-verde-escuro text-2xl font-semibold">Credenciais</h3>
+                <h3 className="text-verde-escuro text-base sm:text-lg font-bold uppercase tracking-wide">
+                  Credenciais
+                </h3>
               </div>
 
-              <div className="flex flex-col md:flex-row gap-6 items-stretch md:items-start w-full justify-center">
-                <div className="flex flex-col gap-2 max-w-lg flex-1 w-full">
-                  <label className="text-verde-musgo text-sm font-bold uppercase tracking-wide px-1">
+              <div className="flex flex-col md:flex-row gap-6 items-start w-full">
+                <div className="flex flex-col gap-1.5 w-full md:flex-1">
+                  <label className="text-verde-escuro text-sm font-semibold">
                     Senha temporária
                   </label>
 
@@ -299,7 +315,7 @@ function CadastrarUsuarioConteudo() {
                       placeholder="Digite a senha..."
                       value={senha}
                       onChange={(e) => setSenha(e.target.value)}
-                      className="w-full px-4 py-3.5 pe-12 bg-input-bg border border-verde-musgo rounded-xl text-verde-musgo focus:outline-none transition"
+                      className="w-full h-12 px-4 pe-12 bg-input-bg border border-verde-musgo rounded-xl text-sm sm:text-base text-verde-escuro placeholder:text-verde-escuro/60 focus:outline-none focus:ring-1 focus:ring-verde-musgo transition"
                     />
 
                     <button
@@ -353,7 +369,7 @@ function CadastrarUsuarioConteudo() {
                     <span className="text-verde-escuro text-sm font-bold mb-1">
                       A senha deve conter:
                     </span>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-4">
+                    <div className="grid grid-cols-2 gap-y-3 gap-x-4">
                       <RequisitoItem atendido={validacoes.tamanho} texto="Mínimo 8 caracteres" />
                       <RequisitoItem atendido={validacoes.maiuscula} texto="1 letra maiúscula" />
                       <RequisitoItem atendido={validacoes.numero} texto="1 número" />
@@ -363,7 +379,7 @@ function CadastrarUsuarioConteudo() {
                 </div>
 
                 {/* Toggle permissões de admin */}
-                <div className="flex-1 max-w-lg w-full p-5 bg-input-bg rounded-2xl border border-verde-musgo flex justify-between items-center gap-4 md:mt-7">
+                <div className="flex-1 max-w-lg p-5 bg-input-bg rounded-2xl border border-verde-musgo flex justify-between items-center mt-7">
                   <div className="flex flex-col">
                     <span className="text-verde-escuro text-base font-bold">
                       Permissões de Administrador
@@ -373,7 +389,7 @@ function CadastrarUsuarioConteudo() {
                     </span>
                   </div>
 
-                  <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                  <label className="relative inline-flex items-center cursor-pointer">
                     <input
                       type="checkbox"
                       checked={ehAdmin}
@@ -386,20 +402,20 @@ function CadastrarUsuarioConteudo() {
               </div>
             </div>
 
-            <div className="flex flex-col-reverse sm:flex-row justify-between items-stretch sm:items-center gap-4 pt-4">
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-4">
               <Link
                 href="/gestaoUsuarios"
-                className="flex items-center justify-center gap-2 px-8 py-4 rounded-lg text-verde-escuro font-bold uppercase hover:bg-input-bg transition cursor-pointer"
+                className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl text-verde-escuro font-bold uppercase hover:bg-input-bg transition cursor-pointer text-sm"
               >
-                <IoClose size={24} /> Cancelar
+                <IoClose size={20} /> Cancelar
               </Link>
 
               <button
                 type="submit"
-                className="px-6 py-4 bg-verde-musgo hover:bg-white hover:text-verde-musgo hover:border hover:border-verde-musgo text-white text-base font-bold uppercase tracking-widest rounded-lg flex items-center justify-center gap-4 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full sm:w-auto px-6 py-3.5 bg-verde-musgo hover:bg-white hover:text-verde-musgo hover:border hover:border-verde-musgo text-white text-sm sm:text-base font-bold uppercase tracking-wider rounded-xl flex items-center justify-center gap-3 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-xs"
               >
                 {idEdicao ? 'Salvar Alterações' : 'Cadastrar Professor'}
-                <IoArrowForward size={28} />
+                <IoArrowForward size={22} />
               </button>
             </div>
           </form>
@@ -422,7 +438,7 @@ function CadastrarUsuarioConteudo() {
             : mensagemErroApi ||
               'Verifique se todos os campos e requisitos da senha foram preenchidos corretamente e tente salvar mais uma vez.'
         }
-        textoBotaoVoltar="Voltar para Usuários"
+        textoBotaoVoltar="Voltar"
         hrefVoltar="/gestaoUsuarios"
         onTentarNovamente={() => setModal(null)}
       />

@@ -1,11 +1,12 @@
 'use client'
 
+import { Select } from '@/components/Select'
 import { useState } from 'react'
 import Link from 'next/link'
 import { SideBarAdmin } from '@/components/SideBarAdmin'
 import { ModalConfirmacao } from '@/components/ModalConfirmacao'
 import { apiEscolas } from '@/services/api'
-import { IoClose, IoArrowForward, IoChevronDown } from 'react-icons/io5'
+import { IoClose, IoArrowForward } from 'react-icons/io5'
 import { FaBuilding, FaMapMarkerAlt, FaAddressBook } from 'react-icons/fa'
 
 export default function CadastrarEscola() {
@@ -60,41 +61,40 @@ export default function CadastrarEscola() {
   }
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen bg-background relative">
+    <div className="flex flex-col lg:flex-row min-h-screen w-full bg-background relative">
       {/* MENU LATERAL (SIDEBAR) */}
       <SideBarAdmin />
 
       {/* ÁREA DIREITA (Conteúdo) */}
       <main className="flex-1 flex flex-col">
-        <div className="w-full max-w-5xl mx-auto py-8 lg:py-12 px-4 sm:px-8 flex flex-col gap-10">
+        <div className="w-full max-w-[1040px] mx-auto py-8 lg:py-10 px-6 sm:px-10 lg:px-14 flex flex-col gap-8">
           {/* CABEÇALHO DA PÁGINA */}
-          <section className="flex flex-col gap-2 items-center text-center">
-            <h2 className="text-verde-escuro text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight">
+          <section className="flex flex-col gap-2">
+            <h1 className="text-verde-escuro text-3xl sm:text-4xl font-bold leading-tight">
               Cadastrar Nova Escola
-            </h2>
-            <p className="text-verde-musgo text-base sm:text-lg lg:text-xl font-normal">
+            </h1>
+            <p className="text-verde-musgo text-sm sm:text-base font-normal">
               Registre uma nova unidade escolar para que ela possa receber equipes e professores no
               circuito de robótica.
             </p>
           </section>
 
           {/* FORMULÁRIO DE CADASTRO */}
-          <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-8 w-full">
+          <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-6 w-full">
             {/* SEÇÃO: INFORMAÇÕES DA UNIDADE */}
-            <div className="w-full p-5 sm:p-8 bg-white rounded-3xl shadow-sm border border-verde-musgo border-opacity-30 flex flex-col gap-8">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-verde-pastel rounded-lg flex justify-center items-center text-verde-musgo">
+            <div className="w-full p-6 sm:p-8 bg-white rounded-2xl shadow-sm border border-verde-musgo flex flex-col gap-6">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 bg-verde-pastel rounded-lg flex justify-center items-center text-verde-musgo shrink-0">
                   <FaBuilding size={18} />
                 </div>
-                <h3 className="text-verde-escuro text-2xl font-semibold">Informações da Unidade</h3>
+                <h3 className="text-verde-escuro text-base sm:text-lg font-bold uppercase tracking-wide">
+                  Informações da Unidade
+                </h3>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="flex flex-col gap-2 md:col-span-2">
-                  <label
-                    htmlFor="nomeEscola"
-                    className="text-verde-musgo text-sm font-bold uppercase tracking-wide px-1"
-                  >
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div className="flex flex-col gap-1.5 md:col-span-2">
+                  <label htmlFor="nomeEscola" className="text-verde-escuro text-sm font-semibold">
                     Nome da Escola
                   </label>
                   <input
@@ -103,15 +103,12 @@ export default function CadastrarEscola() {
                     value={form.nomeEscola}
                     onChange={atualizar('nomeEscola')}
                     placeholder="Ex: EMEF Prof. João Batista"
-                    className="w-full px-4 py-3.5 bg-input-bg border border-verde-musgo rounded-xl text-verde-escuro placeholder-verde-escuro placeholder-opacity-50 focus:outline-none transition"
+                    className="w-full h-12 px-4 bg-input-bg border border-verde-musgo rounded-xl text-sm sm:text-base text-verde-escuro placeholder:text-verde-escuro/60 focus:outline-none focus:ring-1 focus:ring-verde-musgo transition"
                   />
                 </div>
 
-                <div className="flex flex-col gap-2">
-                  <label
-                    htmlFor="codigoInep"
-                    className="text-verde-musgo text-sm font-bold uppercase tracking-wide px-1"
-                  >
+                <div className="flex flex-col gap-1.5">
+                  <label htmlFor="codigoInep" className="text-verde-escuro text-sm font-semibold">
                     Código INEP (Opcional)
                   </label>
                   <input
@@ -120,54 +117,46 @@ export default function CadastrarEscola() {
                     value={form.codigoInep}
                     onChange={atualizar('codigoInep')}
                     placeholder="Ex: 35001234"
-                    className="w-full px-4 py-3.5 bg-input-bg border border-verde-musgo rounded-xl text-verde-escuro placeholder-verde-escuro placeholder-opacity-50 focus:outline-none transition"
+                    className="w-full h-12 px-4 bg-input-bg border border-verde-musgo rounded-xl text-sm sm:text-base text-verde-escuro placeholder:text-verde-escuro/60 focus:outline-none focus:ring-1 focus:ring-verde-musgo transition"
                   />
                 </div>
 
-                <div className="flex flex-col gap-2">
-                  <label
-                    htmlFor="tipoUnidade"
-                    className="text-verde-musgo text-sm font-bold uppercase tracking-wide px-1"
-                  >
+                <div className="flex flex-col gap-1.5">
+                  <label htmlFor="tipoUnidade" className="text-verde-escuro text-sm font-semibold">
                     Tipo de Unidade
                   </label>
                   <div className="relative">
-                    <select
+                    <Select
                       id="tipoUnidade"
                       value={form.tipoUnidade}
                       onChange={atualizar('tipoUnidade')}
-                      className="w-full px-4 py-3.5 pr-10 bg-input-bg border border-verde-musgo rounded-xl text-verde-escuro focus:outline-none appearance-none cursor-pointer"
+                      className="w-full h-12 px-4 pr-10 bg-input-bg border border-verde-musgo rounded-xl text-sm sm:text-base text-verde-escuro focus:outline-none focus:ring-1 focus:ring-verde-musgo appearance-none cursor-pointer transition"
                     >
                       <option value="" disabled className="text-verde-escuro text-opacity-50">
                         Selecione o tipo de unidade...
                       </option>
                       <option value="emef">EMEF</option>
                       <option value="emei">EMEI</option>
-                    </select>
-                    <IoChevronDown
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-verde-musgo pointer-events-none"
-                      size={20}
-                    />
+                    </Select>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* SEÇÃO: LOCALIZAÇÃO */}
-            <div className="w-full p-5 sm:p-8 bg-white rounded-3xl shadow-sm border border-verde-musgo border-opacity-30 flex flex-col gap-8">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-verde-pastel rounded-lg flex justify-center items-center text-verde-musgo">
+            <div className="w-full p-6 sm:p-8 bg-white rounded-2xl shadow-sm border border-verde-musgo flex flex-col gap-6">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 bg-verde-pastel rounded-lg flex justify-center items-center text-verde-musgo shrink-0">
                   <FaMapMarkerAlt size={18} />
                 </div>
-                <h3 className="text-verde-escuro text-2xl font-semibold">Localização</h3>
+                <h3 className="text-verde-escuro text-base sm:text-lg font-bold uppercase tracking-wide">
+                  Localização
+                </h3>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="flex flex-col gap-2 md:col-span-2">
-                  <label
-                    htmlFor="endereco"
-                    className="text-verde-musgo text-sm font-bold uppercase tracking-wide px-1"
-                  >
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div className="flex flex-col gap-1.5 md:col-span-2">
+                  <label htmlFor="endereco" className="text-verde-escuro text-sm font-semibold">
                     Endereço Completo
                   </label>
                   <input
@@ -176,15 +165,12 @@ export default function CadastrarEscola() {
                     value={form.endereco}
                     onChange={atualizar('endereco')}
                     placeholder="Ex: Rua das Flores, 123"
-                    className="w-full px-4 py-3.5 bg-input-bg border border-verde-musgo rounded-xl text-verde-escuro placeholder-verde-escuro placeholder-opacity-50 focus:outline-none transition"
+                    className="w-full h-12 px-4 bg-input-bg border border-verde-musgo rounded-xl text-sm sm:text-base text-verde-escuro placeholder:text-verde-escuro/60 focus:outline-none focus:ring-1 focus:ring-verde-musgo transition"
                   />
                 </div>
 
-                <div className="flex flex-col gap-2">
-                  <label
-                    htmlFor="bairro"
-                    className="text-verde-musgo text-sm font-bold uppercase tracking-wide px-1"
-                  >
+                <div className="flex flex-col gap-1.5">
+                  <label htmlFor="bairro" className="text-verde-escuro text-sm font-semibold">
                     Bairro
                   </label>
                   <input
@@ -193,23 +179,20 @@ export default function CadastrarEscola() {
                     value={form.bairro}
                     onChange={atualizar('bairro')}
                     placeholder="Ex: Tinga, Massaguaçu ou Perequê-Mirim"
-                    className="w-full px-4 py-3.5 bg-input-bg border border-verde-musgo rounded-xl text-verde-escuro placeholder-verde-escuro placeholder-opacity-50 focus:outline-none transition"
+                    className="w-full h-12 px-4 bg-input-bg border border-verde-musgo rounded-xl text-sm sm:text-base text-verde-escuro placeholder:text-verde-escuro/60 focus:outline-none focus:ring-1 focus:ring-verde-musgo transition"
                   />
                 </div>
 
-                <div className="flex flex-col gap-2">
-                  <label
-                    htmlFor="regiao"
-                    className="text-verde-musgo text-sm font-bold uppercase tracking-wide px-1"
-                  >
+                <div className="flex flex-col gap-1.5">
+                  <label htmlFor="regiao" className="text-verde-escuro text-sm font-semibold">
                     Região
                   </label>
                   <div className="relative">
-                    <select
+                    <Select
                       id="regiao"
                       value={form.regiao}
                       onChange={atualizar('regiao')}
-                      className="w-full px-4 py-3.5 pr-10 bg-input-bg border border-verde-musgo rounded-xl text-verde-escuro focus:outline-none appearance-none cursor-pointer"
+                      className="w-full h-12 px-4 pr-10 bg-input-bg border border-verde-musgo rounded-xl text-sm sm:text-base text-verde-escuro focus:outline-none focus:ring-1 focus:ring-verde-musgo appearance-none cursor-pointer transition"
                     >
                       <option value="" disabled className="text-verde-escuro text-opacity-50">
                         Selecione a região...
@@ -217,33 +200,26 @@ export default function CadastrarEscola() {
                       <option value="norte">Norte</option>
                       <option value="sul">Sul</option>
                       <option value="centro">Centro</option>
-                    </select>
-                    <IoChevronDown
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-verde-musgo pointer-events-none"
-                      size={20}
-                    />
+                    </Select>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* SEÇÃO: CONTATO E FUNCIONAMENTO */}
-            <div className="w-full p-5 sm:p-8 bg-white rounded-3xl shadow-sm border border-verde-musgo border-opacity-30 flex flex-col gap-8">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-verde-pastel rounded-lg flex justify-center items-center text-verde-musgo">
+            <div className="w-full p-6 sm:p-8 bg-white rounded-2xl shadow-sm border border-verde-musgo flex flex-col gap-6">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 bg-verde-pastel rounded-lg flex justify-center items-center text-verde-musgo shrink-0">
                   <FaAddressBook size={18} />
                 </div>
-                <h3 className="text-verde-escuro text-2xl font-semibold">
+                <h3 className="text-verde-escuro text-base sm:text-lg font-bold uppercase tracking-wide">
                   Contato e Funcionamento
                 </h3>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="flex flex-col gap-2">
-                  <label
-                    htmlFor="telefone"
-                    className="text-verde-musgo text-sm font-bold uppercase tracking-wide px-1"
-                  >
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div className="flex flex-col gap-1.5">
+                  <label htmlFor="telefone" className="text-verde-escuro text-sm font-semibold">
                     Telefone da Secretaria
                   </label>
                   <input
@@ -252,15 +228,12 @@ export default function CadastrarEscola() {
                     value={form.telefone}
                     onChange={atualizar('telefone')}
                     placeholder="+55 (00) 00000-0000"
-                    className="w-full px-4 py-3.5 bg-input-bg border border-verde-musgo rounded-xl text-verde-escuro placeholder-verde-escuro placeholder-opacity-50 focus:outline-none transition"
+                    className="w-full h-12 px-4 bg-input-bg border border-verde-musgo rounded-xl text-sm sm:text-base text-verde-escuro placeholder:text-verde-escuro/60 focus:outline-none focus:ring-1 focus:ring-verde-musgo transition"
                   />
                 </div>
 
-                <div className="flex flex-col gap-2">
-                  <label
-                    htmlFor="email"
-                    className="text-verde-musgo text-sm font-bold uppercase tracking-wide px-1"
-                  >
+                <div className="flex flex-col gap-1.5">
+                  <label htmlFor="email" className="text-verde-escuro text-sm font-semibold">
                     E-mail Institucional da Escola
                   </label>
                   <input
@@ -269,16 +242,14 @@ export default function CadastrarEscola() {
                     value={form.email}
                     onChange={atualizar('email')}
                     placeholder="exemplo@educacao.sp.gov.br"
-                    className="w-full px-4 py-3.5 bg-input-bg border border-verde-musgo rounded-xl text-verde-escuro placeholder-verde-escuro placeholder-opacity-50 focus:outline-none transition"
+                    className="w-full h-12 px-4 bg-input-bg border border-verde-musgo rounded-xl text-sm sm:text-base text-verde-escuro placeholder:text-verde-escuro/60 focus:outline-none focus:ring-1 focus:ring-verde-musgo transition"
                   />
                 </div>
               </div>
 
               <div className="flex flex-col gap-2 pt-2">
-                <span className="text-verde-musgo text-sm font-bold uppercase tracking-wide px-1">
-                  Status do Polo
-                </span>
-                <div className="flex gap-6 px-1">
+                <span className="text-verde-escuro text-sm font-semibold">Status do Polo</span>
+                <div className="flex gap-6">
                   <label className="flex cursor-pointer items-center gap-2">
                     <input
                       type="radio"
@@ -286,9 +257,11 @@ export default function CadastrarEscola() {
                       value="ativo"
                       checked={form.statusPolo === 'ativo'}
                       onChange={atualizar('statusPolo')}
-                      className="w-5 h-5 accent-verde-musgo"
+                      className="w-4 h-4 accent-verde-musgo"
                     />
-                    <span className="text-base text-verde-escuro font-medium">Ativo</span>
+                    <span className="text-sm sm:text-base text-verde-escuro font-medium">
+                      Ativo
+                    </span>
                   </label>
                   <label className="flex cursor-pointer items-center gap-2">
                     <input
@@ -297,29 +270,31 @@ export default function CadastrarEscola() {
                       value="inativo"
                       checked={form.statusPolo === 'inativo'}
                       onChange={atualizar('statusPolo')}
-                      className="w-5 h-5 accent-verde-musgo"
+                      className="w-4 h-4 accent-verde-musgo"
                     />
-                    <span className="text-base text-verde-escuro font-medium">Inativo</span>
+                    <span className="text-sm sm:text-base text-verde-escuro font-medium">
+                      Inativo
+                    </span>
                   </label>
                 </div>
               </div>
             </div>
 
             {/* BOTÕES DE AÇÃO DO FORMULÁRIO */}
-            <div className="flex flex-col-reverse sm:flex-row justify-between items-stretch sm:items-center gap-4 pt-4">
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-2">
               <Link
                 href="/escolas"
-                className="flex items-center justify-center gap-2 px-8 py-4 rounded-lg text-verde-escuro font-bold uppercase hover:bg-input-bg transition cursor-pointer"
+                className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm text-[#3F674D] font-bold uppercase hover:bg-input-bg transition cursor-pointer"
               >
-                <IoClose size={24} /> Cancelar
+                <IoClose size={18} /> Cancelar
               </Link>
 
               <button
                 type="submit"
-                className="px-6 py-4 bg-verde-musgo hover:bg-white hover:text-verde-musgo hover:border hover:border-verde-musgo text-white text-base font-bold uppercase tracking-widest rounded-lg flex items-center justify-center gap-4 cursor-pointer transition-all"
+                className="w-full sm:w-auto px-6 py-3 bg-verde-musgo hover:bg-white hover:text-verde-musgo border border-verde-musgo text-white text-sm font-bold uppercase tracking-wider rounded-xl shadow-sm flex items-center justify-center gap-3 cursor-pointer transition-all"
               >
                 Cadastrar Escola
-                <IoArrowForward size={28} />
+                <IoArrowForward size={18} />
               </button>
             </div>
           </form>
@@ -338,7 +313,7 @@ export default function CadastrarEscola() {
             : mensagemErroApi ||
               'Verifique se todos os campos foram preenchidos corretamente e tente salvar mais uma vez.'
         }
-        textoBotaoVoltar="Voltar para Escolas"
+        textoBotaoVoltar="Voltar"
         hrefVoltar="/escolas"
         onTentarNovamente={() => setModal(null)}
       />

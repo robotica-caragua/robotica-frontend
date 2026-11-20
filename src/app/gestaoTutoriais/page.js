@@ -1,21 +1,24 @@
 'use client'
 
+import { Select } from '@/components/Select'
 import { useEffect, useMemo, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { SideBarProfessor } from '@/components/SideBarProfessor'
+import { ModalConfirmacao } from '@/components/ModalConfirmacao'
 import { correspondeBusca, opcoesUnicas } from '@/utils/filtros'
 import { apiCategorias, apiEscolas, apiTutoriais, mapearTutorialDaApi } from '@/services/api'
 import semaforo from '@/assets/semaforo.png'
 import containerImg from '@/assets/container.png'
-import { IoSearchOutline, IoAddOutline } from 'react-icons/io5'
+import { IoSearchOutline, IoAddOutline, IoSettingsOutline } from 'react-icons/io5'
 import {
-  MdKeyboardArrowDown,
   MdOutlineEdit,
   MdOutlineVisibilityOff,
   MdOutlineVisibility,
-  MdOutlineDeleteOutline
+  MdOutlineDeleteOutline,
+  MdOutlineNotificationsNone,
+  MdPersonOutline
 } from 'react-icons/md'
 
 const opcoesNivel = ['Iniciante', 'Intermediário', 'Avançado']
@@ -26,6 +29,13 @@ export default function GestaoTutoriais() {
   const [categoriasApi, setCategoriasApi] = useState([])
   const [escolasApi, setEscolasApi] = useState([])
   const [carregando, setCarregando] = useState(true)
+  const [modal, setModal] = useState({
+    aberto: false,
+    tipo: 'confirmacao',
+    titulo: '',
+    mensagem: '',
+    tutorialParaExcluir: null
+  })
   const [busca, setBusca] = useState('')
   const [nivel, setNivel] = useState('')
   const [categoria, setCategoria] = useState('')
@@ -88,23 +98,47 @@ export default function GestaoTutoriais() {
     setTutoriais((prev) => prev.map((t) => (t.id === id ? { ...t, visivel: !t.visivel } : t)))
   }
 
-  const excluirTutorial = async (tutorial) => {
-    if (!window.confirm(`Deseja realmente excluir o tutorial "${tutorial.titulo}"?`)) return
+  const excluirTutorial = (tutorial) => {
+    setModal({
+      aberto: true,
+      tipo: 'confirmacao',
+      titulo: 'Excluir Tutorial?',
+      mensagem: `Deseja realmente remover o tutorial "${tutorial.titulo}"?`,
+      tutorialParaExcluir: tutorial
+    })
+  }
+
+  const handleConfirmarExclusaoTutorial = async () => {
+    if (!modal.tutorialParaExcluir) return
+    const tut = modal.tutorialParaExcluir
     try {
-      await apiTutoriais.excluir(tutorial.id)
-      setTutoriais((prev) => prev.filter((t) => t.id !== tutorial.id))
+      await apiTutoriais.excluir(tut.id)
+      setTutoriais((prev) => prev.filter((item) => item.id !== tut.id))
+      setModal({
+        aberto: true,
+        tipo: 'sucesso',
+        titulo: 'Tutorial excluído com sucesso!',
+        mensagem: `O tutorial "${tut.titulo}" foi removido do catálogo.`,
+        tutorialParaExcluir: null
+      })
     } catch (err) {
-      window.alert(err?.message || 'Não foi possível excluir o tutorial.')
+      setModal({
+        aberto: true,
+        tipo: 'erro',
+        titulo: 'Erro ao excluir tutorial',
+        mensagem: err?.message || 'Não foi possível excluir o tutorial.',
+        tutorialParaExcluir: null
+      })
     }
   }
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen bg-background relative">
+    <div className="flex flex-col lg:flex-row min-h-screen w-full bg-background relative">
       <SideBarProfessor />
 
-      <main className="flex-1 flex flex-col min-w-0">
-        <div className="w-[92%] sm:w-[90%] max-w-5xl mx-auto py-8 lg:py-10 px-2 sm:px-4 flex flex-col gap-8 lg:gap-10">
-          {/* Busca superior */}
+      <main className="flex-1 flex flex-col">
+        {/* Top Bar alinhada ao Figma */}
+        <header className="w-full px-6 sm:px-10 lg:px-14 pt-6 pb-2 flex items-center justify-between gap-4">
           <div className="relative w-full max-w-[350px]">
             <IoSearchOutline
               size={18}
@@ -120,13 +154,42 @@ export default function GestaoTutoriais() {
             />
           </div>
 
+          <div className="flex items-center gap-4 shrink-0">
+            <button
+              type="button"
+              aria-label="Notificações"
+              className="relative p-1.5 text-verde-escuro hover:text-verde-musgo transition cursor-pointer"
+            >
+              <MdOutlineNotificationsNone size={22} />
+              <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-vermelho" />
+            </button>
+
+            <Link
+              href="/perfil"
+              aria-label="Configurações de Perfil"
+              className="p-1.5 text-verde-escuro hover:text-verde-musgo transition"
+            >
+              <IoSettingsOutline size={20} />
+            </Link>
+
+            <Link
+              href="/perfil"
+              aria-label="Meu Perfil"
+              className="size-10 rounded-full border-2 border-verde-musgo bg-verde-pastel flex items-center justify-center text-verde-escuro hover:brightness-95 transition overflow-hidden"
+            >
+              <MdPersonOutline size={22} />
+            </Link>
+          </div>
+        </header>
+
+        <div className="w-full max-w-[1040px] mx-auto py-6 lg:py-8 px-6 sm:px-10 lg:px-14 flex flex-col gap-6 sm:gap-8">
           {/* Cabeçalho da página */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
-            <section className="flex flex-col gap-2 max-w-[647px]">
-              <h1 className="text-verde-escuro text-3xl sm:text-5xl font-bold leading-tight">
+            <section className="flex flex-col gap-2 max-w-[600px]">
+              <h1 className="text-verde-escuro text-3xl sm:text-4xl font-bold leading-tight">
                 Meus Tutoriais
               </h1>
-              <p className="text-verde-musgo text-base sm:text-xl font-normal">
+              <p className="text-verde-musgo text-sm sm:text-base font-normal">
                 Gerencie os seus Tutoriais. Publique novas ideias, continue rascunhos ou remova
                 projetos antigos.
               </p>
@@ -134,15 +197,15 @@ export default function GestaoTutoriais() {
 
             <Link
               href="/cadastrarTutorial"
-              className="shrink-0 px-5 sm:px-6 py-2.5 sm:py-3 bg-[#4C6700] hover:bg-white hover:text-verde-musgo border border-verde-musgo text-white text-base sm:text-xl font-bold rounded-lg shadow-sm flex items-center gap-2 sm:gap-3 transition"
+              className="shrink-0 px-6 py-3 bg-verde-musgo hover:bg-white hover:text-verde-musgo border border-verde-musgo text-white text-sm sm:text-base font-bold rounded-lg shadow-sm flex items-center gap-2 transition cursor-pointer"
             >
-              <IoAddOutline size={22} />
+              <IoAddOutline size={20} />
               Nova Publicação
             </Link>
           </div>
 
           {/* Barra técnica de filtros */}
-          <div className="w-full p-6 bg-white/80 backdrop-blur-sm border border-verde-musgo rounded-[20px] flex flex-col md:flex-row items-stretch md:items-center gap-6 md:gap-10">
+          <div className="w-full p-5 bg-white border border-b-4 border-verde-musgo rounded-2xl flex flex-col md:flex-row items-stretch md:items-center gap-6 md:gap-10">
             <div className="flex-1 flex flex-col gap-1">
               <label
                 htmlFor="filtro-nivel"
@@ -151,7 +214,7 @@ export default function GestaoTutoriais() {
                 Nível
               </label>
               <div className="relative">
-                <select
+                <Select
                   id="filtro-nivel"
                   value={nivel}
                   onChange={(e) => setNivel(e.target.value)}
@@ -163,11 +226,7 @@ export default function GestaoTutoriais() {
                       {op}
                     </option>
                   ))}
-                </select>
-                <MdKeyboardArrowDown
-                  size={21}
-                  className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 text-verde-musgo"
-                />
+                </Select>
               </div>
             </div>
 
@@ -181,7 +240,7 @@ export default function GestaoTutoriais() {
                 Categoria
               </label>
               <div className="relative">
-                <select
+                <Select
                   id="filtro-categoria"
                   value={categoria}
                   onChange={(e) => setCategoria(e.target.value)}
@@ -193,11 +252,7 @@ export default function GestaoTutoriais() {
                       {op}
                     </option>
                   ))}
-                </select>
-                <MdKeyboardArrowDown
-                  size={21}
-                  className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 text-verde-musgo"
-                />
+                </Select>
               </div>
             </div>
 
@@ -211,7 +266,7 @@ export default function GestaoTutoriais() {
                 Escola
               </label>
               <div className="relative">
-                <select
+                <Select
                   id="filtro-escola"
                   value={escola}
                   onChange={(e) => setEscola(e.target.value)}
@@ -223,11 +278,7 @@ export default function GestaoTutoriais() {
                       {op}
                     </option>
                   ))}
-                </select>
-                <MdKeyboardArrowDown
-                  size={21}
-                  className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 text-verde-musgo"
-                />
+                </Select>
               </div>
             </div>
           </div>
@@ -238,13 +289,13 @@ export default function GestaoTutoriais() {
               Carregando tutoriais...
             </p>
           ) : tutoriaisFiltrados.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-x-7 gap-y-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-7 gap-y-12">
               {tutoriaisFiltrados.map((tutorial) => {
                 const ehRascunho = tutorial.status === 'rascunho'
                 return (
                   <article
                     key={tutorial.id}
-                    className={`w-full max-w-[280px] mx-auto bg-white rounded-3xl shadow-sm overflow-hidden flex flex-col transition ${
+                    className={`w-full max-w-[320px] mx-auto bg-white rounded-2xl border border-stone-200 shadow-xs overflow-hidden flex flex-col hover:shadow-lg hover:-translate-y-1 transition-all duration-300 ${
                       !tutorial.visivel ? 'opacity-60' : ''
                     }`}
                   >
@@ -273,7 +324,7 @@ export default function GestaoTutoriais() {
                         </span>
                       )}
 
-                      <h2 className="text-verde-escuro text-2xl font-bold leading-snug line-clamp-2 min-h-[60px]">
+                      <h2 className="text-verde-escuro text-base font-bold leading-snug line-clamp-2 min-h-[44px]">
                         {tutorial.titulo}
                       </h2>
 
@@ -341,6 +392,23 @@ export default function GestaoTutoriais() {
           )}
         </div>
       </main>
+
+      {modal.aberto && (
+        <ModalConfirmacao
+          aberto={modal.aberto}
+          tipo={modal.tipo}
+          titulo={modal.titulo}
+          mensagem={modal.mensagem}
+          textoConfirmar="Excluir"
+          textoCancelar="Cancelar"
+          onConfirmar={
+            modal.tipo === 'confirmacao'
+              ? handleConfirmarExclusaoTutorial
+              : () => setModal((prev) => ({ ...prev, aberto: false }))
+          }
+          onCancelar={() => setModal((prev) => ({ ...prev, aberto: false }))}
+        />
+      )}
     </div>
   )
 }

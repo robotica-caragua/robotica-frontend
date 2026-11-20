@@ -1,5 +1,6 @@
 'use client'
 
+import { Select } from '@/components/Select'
 import { useEffect, useState } from 'react'
 import {
   MdAdd,
@@ -10,7 +11,6 @@ import {
   MdInfoOutline
 } from 'react-icons/md'
 import { IoSearchSharp } from 'react-icons/io5'
-import { IoIosArrowDown } from 'react-icons/io'
 import { AdminSidebar } from '@/components/AdminSidebar'
 import { ModalConfirmacao } from '@/components/ModalConfirmacao'
 import { apiAuth, apiEscolas, apiProjetos, apiUsuarios, obterToken } from '@/services/api'
@@ -157,16 +157,18 @@ export default function GestaoGruposPage() {
   const totalFormatado = String(equipes.length).padStart(2, '0')
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen">
+    <div className="flex flex-col lg:flex-row min-h-screen w-full">
       <AdminSidebar variant="professor" />
 
-      <div className="flex flex-1 flex-col px-4 sm:px-6 lg:px-10 pb-16">
-        <main className="mx-auto flex w-full max-w-4xl flex-col gap-6 pt-8 lg:pt-12">
+      <div className="flex flex-1 flex-col pb-16">
+        <main className="w-full max-w-[1040px] mx-auto flex flex-col gap-6 py-8 lg:py-10 px-6 sm:px-10 lg:px-14">
           {/* Cabeçalho */}
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
               <p className="text-xl font-bold text-verde-musgo">{totalFormatado}</p>
-              <h1 className="text-3xl sm:text-4xl font-bold text-verde-escuro">Equipes Ativas</h1>
+              <h1 className="text-3xl sm:text-4xl font-bold text-verde-escuro leading-tight">
+                Equipes Ativas
+              </h1>
             </div>
 
             <button
@@ -178,17 +180,17 @@ export default function GestaoGruposPage() {
                 setSerie('')
                 setModalAberto(true)
               }}
-              className="flex items-center gap-3 rounded-lg bg-verde-musgo px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:brightness-90 cursor-pointer"
+              className="flex items-center gap-2 rounded-lg bg-verde-musgo hover:bg-white hover:text-verde-musgo border border-verde-musgo px-6 py-3 text-sm sm:text-base font-bold text-white shadow-sm transition cursor-pointer"
             >
-              <MdAdd size={18} />
+              <MdAdd size={20} />
               Nova Equipe
             </button>
           </div>
 
           {/* Barra de busca e ordenação */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 rounded-xl border border-verde-musgo bg-white px-4 py-3">
+          <div className="flex flex-wrap items-center gap-4 rounded-xl border border-verde-musgo bg-white px-4 py-3">
             <div className="flex flex-1 items-center gap-3">
-              <IoSearchSharp className="text-xl text-verde-musgo shrink-0" />
+              <IoSearchSharp className="text-xl text-verde-musgo" />
               <input
                 type="text"
                 value={busca}
@@ -200,7 +202,7 @@ export default function GestaoGruposPage() {
 
             <button
               type="button"
-              className="flex items-center justify-center sm:justify-start gap-2 border-t sm:border-t-0 sm:border-l border-verde-musgo/30 pt-2.5 sm:pt-0 sm:pl-5 text-xs font-bold uppercase text-verde-musgo hover:text-verde-escuro cursor-pointer"
+              className="flex items-center gap-2 border-l border-verde-musgo/30 pl-5 text-xs font-bold uppercase text-verde-musgo hover:text-verde-escuro cursor-pointer"
             >
               <MdFilterList size={18} />
               Ordenar por mais recente
@@ -279,17 +281,17 @@ export default function GestaoGruposPage() {
       {/* Modal Nova/Editar Equipe */}
       {modalAberto && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="relative w-full max-w-xl rounded-3xl sm:rounded-[36px] border border-verde-musgo bg-white p-6 sm:p-10 shadow-xl">
+          <div className="relative w-full max-w-xl rounded-[36px] border border-verde-musgo bg-white p-10 shadow-xl">
             <button
               type="button"
               onClick={() => setModalAberto(false)}
               aria-label="Fechar modal"
-              className="absolute top-5 right-5 sm:top-8 sm:right-8 text-verde-musgo hover:text-verde-escuro cursor-pointer"
+              className="absolute top-8 right-8 text-verde-musgo hover:text-verde-escuro cursor-pointer"
             >
               <MdClose size={24} />
             </button>
 
-            <h2 className="text-2xl sm:text-3xl font-bold text-verde-escuro pr-8">
+            <h2 className="text-2xl font-bold text-verde-escuro">
               {idEdicao ? 'Editar ' : 'Nova '}
               <span className="text-verde-musgo">Equipe!</span>
             </h2>
@@ -327,7 +329,7 @@ export default function GestaoGruposPage() {
                   Série
                 </label>
                 <div className="relative">
-                  <select
+                  <Select
                     value={serie}
                     onChange={(e) => setSerie(e.target.value)}
                     className="w-full appearance-none rounded-lg border border-verde-musgo bg-input-bg px-4 py-3 pr-10 text-sm text-verde-musgo focus:outline-none cursor-pointer"
@@ -337,8 +339,7 @@ export default function GestaoGruposPage() {
                     <option value="7º Ano">7º Ano</option>
                     <option value="8º Ano">8º Ano</option>
                     <option value="9º Ano">9º Ano</option>
-                  </select>
-                  <IoIosArrowDown className="pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 text-xl text-verde-musgo" />
+                  </Select>
                 </div>
               </div>
 
@@ -366,7 +367,7 @@ export default function GestaoGruposPage() {
             : modalConfirmacao.mensagemErro ||
               'Verifique se todos os campos foram preenchidos corretamente e tente salvar mais uma vez.'
         }
-        textoBotaoSucesso="Voltar para Equipes"
+        textoBotaoSucesso="Voltar"
         onConfirmar={() =>
           setModalConfirmacao({ aberto: false, tipo: 'sucesso', mensagemErro: '' })
         }

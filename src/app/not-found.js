@@ -20,7 +20,7 @@ export default function Page404() {
           <div className="flex flex-col gap-4 lg:gap-5 items-center lg:items-start">
             <Label>ERRO 404</Label>
 
-            <h2 className="font-bold text-3xl sm:text-4xl lg:text-5xl">
+            <h2 className="font-bold text-2xl">
               Ops! Parece que
               <br /> perdemos a conexão.
             </h2>

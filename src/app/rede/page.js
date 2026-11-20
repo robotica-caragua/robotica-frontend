@@ -6,44 +6,87 @@ import { CardEscola } from '@/components/CardEscola'
 import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
 import { IoRocketOutline } from 'react-icons/io5'
-import { apiEscolas, apiProjetos } from '@/services/api'
+import { apiEscolas, apiEventos, mapearEventoDaApi } from '@/services/api'
+
+const linksMapasOficiais = {
+  'EMEF Profª Maria Aparecida De Carvalho': 'https://maps.app.goo.gl/pH6TnrBJsTyLY3gK8',
+  'EMEF Prof. Luiz Ribeiro Muniz': 'https://maps.app.goo.gl/ueybEfw95rgpqRYU6',
+  'EMEF Prof. Luiz Silvar do Prado': 'https://maps.app.goo.gl/43diBvZfvfCGr3iZA',
+  'EMEF Profª Maria Thereza de Souza Castro': 'https://maps.app.goo.gl/TWYSGxUgsena9FTCA'
+}
+
+const escolasOficiaisIniciais = [
+  {
+    id: 3,
+    name: 'EMEF Profª Maria Aparecida De Carvalho',
+    location: 'R. Seishi Yoshimoto, 120 - Getuba, Caraguatatuba - SP, 11676-403',
+    linkUrl: 'https://maps.app.goo.gl/pH6TnrBJsTyLY3gK8'
+  },
+  {
+    id: 4,
+    name: 'EMEF Prof. Luiz Ribeiro Muniz',
+    location: 'R. Analândia, 355 - Martim de Sá, Caraguatatuba - SP, 11662-320',
+    linkUrl: 'https://maps.app.goo.gl/ueybEfw95rgpqRYU6'
+  },
+  {
+    id: 5,
+    name: 'EMEF Prof. Luiz Silvar do Prado',
+    location: 'R. José Pedro de Oliveira Barbosa, 805 - Jardim Casa Branca, Caraguatatuba - SP',
+    linkUrl: 'https://maps.app.goo.gl/43diBvZfvfCGr3iZA'
+  },
+  {
+    id: 6,
+    name: 'EMEF Profª Maria Thereza de Souza Castro',
+    location: 'R. Seishi Yoshimoto, 120 - Getuba, Caraguatatuba - SP, 11676-403',
+    linkUrl: 'https://maps.app.goo.gl/TWYSGxUgsena9FTCA'
+  }
+]
 
 export default function Rede() {
-  const [escolas, setEscolas] = useState([])
+  const [escolas, setEscolas] = useState(escolasOficiaisIniciais)
   const [destaques, setDestaques] = useState([])
-  const [carregando, setCarregando] = useState(true)
 
   useEffect(() => {
     let ativo = true
 
-    Promise.all([apiEscolas.listar().catch(() => []), apiProjetos.listar().catch(() => [])])
-      .then(([listaEscolas, listaProjetos]) => {
+    apiEventos
+      .listar()
+      .then((listaEventos) => {
+        if (!ativo || !Array.isArray(listaEventos)) return
+        setDestaques(
+          listaEventos.map((ev) => {
+            const mapeado = mapearEventoDaApi(ev)
+            return {
+              id: ev.id,
+              title: mapeado.titulo,
+              date: mapeado.etiquetaData,
+              location: mapeado.local,
+              linkUrl: mapeado.linkUrl
+            }
+          })
+        )
+      })
+      .catch(() => {})
+
+    apiEscolas
+      .listar()
+      .then((listaEscolas) => {
         if (!ativo) return
-        setEscolas(
-          (Array.isArray(listaEscolas) ? listaEscolas : []).map((escola) => ({
+        if (Array.isArray(listaEscolas) && listaEscolas.length > 0) {
+          const formatadas = listaEscolas.map((escola) => ({
             id: escola.id,
             name: escola.name,
             location: escola.address || 'Caraguatatuba - SP',
-            linkUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-              `${escola.name} ${escola.address || 'Caraguatatuba SP'}`
-            )}`
+            linkUrl:
+              linksMapasOficiais[escola.name] ||
+              `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                `${escola.name} ${escola.address || 'Caraguatatuba SP'}`
+              )}`
           }))
-        )
-        setDestaques(
-          (Array.isArray(listaProjetos) ? listaProjetos : []).map((proj) => ({
-            id: proj.id,
-            title: proj.name,
-            date: `PUBLICADO • ${new Date(proj.createdAt || Date.now())
-              .toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })
-              .toUpperCase()}`,
-            location: proj.school?.name || 'Rede Municipal de Caraguatatuba',
-            linkUrl: `/detalhesProjeto?id=${proj.id}`
-          }))
-        )
+          setEscolas(formatadas)
+        }
       })
-      .finally(() => {
-        if (ativo) setCarregando(false)
-      })
+      .catch(() => {})
 
     return () => {
       ativo = false
@@ -54,29 +97,28 @@ export default function Rede() {
     <div className="flex flex-col min-h-screen">
       <Header />
 
-      <main className="grow flex flex-col items-center px-4">
-        <div className="flex flex-wrap items-center justify-center gap-2 mb-4 text-center">
-          <h1 className="font-bold text-3xl sm:text-4xl text-verde-escuro uppercase">Nossa</h1>
-          <h1 className="font-bold text-3xl sm:text-4xl text-verde-musgo uppercase">Rede!</h1>
-        </div>
-
-        <div className="items-center justify-center gap-4 text-lg sm:text-xl text-center font-medium max-w-2xl">
-          <p>
+      <main className="grow flex flex-col items-center px-4 py-8 sm:py-12">
+        <section className="flex flex-col items-center text-center gap-2 mb-3 px-4">
+          <h1 className="font-extrabold text-3xl sm:text-4xl uppercase text-verde-escuro tracking-tight">
+            Nossa <span className="text-verde-musgo">Rede!</span>
+          </h1>
+          <p className="text-sm sm:text-base text-verde-musgo font-medium max-w-2xl mx-auto leading-relaxed">
             Conheça as escolas parceiras e acompanhe tudo o que movimenta o nosso circuito de
             robótica.
           </p>
-        </div>
+        </section>
 
-        <div className="flex flex-col my-10 md:my-20 w-full md:w-[90%] lg:w-[85%] max-w-6xl bg-white border-2 border-verde-musgo rounded-2xl py-6 md:py-10 px-4 md:px-6 gap-5">
-          <div className="flex flex-row items-center gap-3 md:gap-5 text-verde-musgo px-2 md:ml-4">
-            <IoRocketOutline size={30} className="shrink-0" />
-            <h1 className="font-semibold text-xl md:text-2xl">Projetos e Ações em Destaque</h1>
+        {/* Eventos em Destaque (como na imagem 2) */}
+        <div className="flex flex-col my-8 md:my-14 w-full md:w-[85%] lg:w-[75%] max-w-[1200px] bg-white border-2 border-verde-musgo rounded-2xl py-6 md:py-8 px-4 md:px-6 gap-6 shadow-xs">
+          <div className="flex flex-row items-center gap-3 md:gap-4 text-verde-musgo px-2 md:ml-4">
+            <IoRocketOutline size={30} />
+            <h2 className="font-semibold text-xl sm:text-2xl text-verde-musgo">
+              Eventos em Destaque
+            </h2>
           </div>
 
-          <div className="flex flex-wrap gap-4 justify-center px-2 md:px-6">
-            {carregando ? (
-              <p className="text-verde-musgo font-medium py-6">Carregando destaques da rede...</p>
-            ) : destaques.length > 0 ? (
+          <div className="flex flex-wrap gap-4 sm:gap-6 justify-center px-2 md:px-4">
+            {destaques.length > 0 ? (
               destaques.map((item) => (
                 <CardEvento
                   key={item.id}
@@ -87,40 +129,33 @@ export default function Rede() {
                 />
               ))
             ) : (
-              <p className="text-verde-musgo font-medium py-6">
-                Nenhuma ação em destaque cadastrada no momento.
+              <p className="text-center text-verde-musgo text-sm sm:text-base font-medium py-4">
+                Nenhum evento em destaque no momento.
               </p>
             )}
           </div>
         </div>
 
-        <div className="flex flex-col w-full md:w-[90%] lg:w-[85%] max-w-6xl py-6 md:py-10 px-2 gap-5 mb-16 md:mb-20 justify-center items-center">
-          <div className="flex flex-wrap justify-center gap-2 mb-8 md:mb-12 text-center">
-            <h1 className="font-bold text-3xl sm:text-4xl text-verde-escuro uppercase">
-              conheça nossas
-            </h1>
-            <h1 className="font-bold text-3xl sm:text-4xl text-verde-musgo uppercase">Escolas!</h1>
+        {/* Conheça Nossas Escolas (as 4 escolas da imagem) */}
+        <div
+          id="escolas"
+          className="scroll-mt-8 flex flex-col w-full md:w-[85%] lg:w-[75%] max-w-[1200px] py-6 md:py-8 px-2 gap-6 mb-14 md:mb-16 justify-center items-center"
+        >
+          <div className="flex flex-wrap justify-center gap-2 mb-6 md:mb-10 text-center">
+            <h2 className="font-extrabold text-3xl sm:text-4xl text-verde-escuro uppercase tracking-tight">
+              Conheça nossas <span className="text-verde-musgo">Escolas!</span>
+            </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-10 justify-items-center w-full max-w-5xl">
-            {carregando ? (
-              <p className="md:col-span-2 text-center text-verde-musgo font-medium">
-                Carregando escolas da rede...
-              </p>
-            ) : escolas.length > 0 ? (
-              escolas.map((escola) => (
-                <CardEscola
-                  key={escola.id}
-                  name={escola.name}
-                  location={escola.location}
-                  linkUrl={escola.linkUrl}
-                />
-              ))
-            ) : (
-              <p className="md:col-span-2 text-center text-verde-musgo font-medium">
-                Nenhuma escola cadastrada no momento.
-              </p>
-            )}
+          <div className="flex flex-wrap gap-6 sm:gap-8 justify-center w-full">
+            {escolas.map((escola) => (
+              <CardEscola
+                key={escola.id}
+                name={escola.name}
+                location={escola.location}
+                linkUrl={escola.linkUrl}
+              />
+            ))}
           </div>
         </div>
       </main>

@@ -5,21 +5,30 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { SideBarProfessor } from '@/components/SideBarProfessor'
+import { ModalConfirmacao } from '@/components/ModalConfirmacao'
 import { correspondeBusca } from '@/utils/filtros'
 import semaforo from '@/assets/semaforo.png'
 import containerImg from '@/assets/container.png'
 import {
   apiAuth,
   apiEscolas,
+  apiEventos,
   apiProjetos,
   apiTutoriais,
   apiUsuarios,
+  mapearEventoDaApi,
   mapearProjetoDaApi,
   mapearTutorialDaApi,
   obterToken,
   obterUsuario
 } from '@/services/api'
-import { IoSearchOutline, IoAddOutline, IoArrowForward, IoOpenOutline } from 'react-icons/io5'
+import {
+  IoSearchOutline,
+  IoAddOutline,
+  IoArrowForward,
+  IoOpenOutline,
+  IoSettingsOutline
+} from 'react-icons/io5'
 import {
   MdOutlineLocationOn,
   MdOutlineFolder,
@@ -29,16 +38,42 @@ import {
   MdOutlineVisibilityOff,
   MdOutlineVisibility,
   MdOutlineDeleteOutline,
-  MdOutlineCampaign
+  MdOutlineCampaign,
+  MdOutlineNotificationsNone,
+  MdPersonOutline
 } from 'react-icons/md'
+
+function formatarNomeProfessor(usuario) {
+  const nome = String(usuario?.name || '').trim()
+  if (
+    !nome ||
+    usuario?.role === 'ADMIN' ||
+    nome.toLowerCase().includes('administrador') ||
+    nome.toLowerCase() === 'professor(a)'
+  ) {
+    return 'Prof. Robson Nascimento'
+  }
+  if (/^prof(\.|essor|essora)?\b/i.test(nome)) {
+    return nome
+  }
+  return `Prof. ${nome}`
+}
 
 export default function PainelProfessor() {
   const router = useRouter()
   const [busca, setBusca] = useState('')
   const [publicacoes, setPublicacoes] = useState([])
+  const [avisos, setAvisos] = useState([])
   const [carregando, setCarregando] = useState(true)
-  const [nomeProfessor, setNomeProfessor] = useState(() => obterUsuario()?.name || 'Professor(a)')
-  const [nomeEscola, setNomeEscola] = useState('Rede Municipal de Caraguatatuba')
+  const [modal, setModal] = useState({
+    aberto: false,
+    tipo: 'confirmacao',
+    titulo: '',
+    mensagem: '',
+    pubParaExcluir: null
+  })
+  const [nomeProfessor, setNomeProfessor] = useState(() => formatarNomeProfessor(obterUsuario()))
+  const [nomeEscola, setNomeEscola] = useState('EMEF Prof. Luiz Ribeiro Muniz')
 
   useEffect(() => {
     let ativo = true
@@ -48,8 +83,8 @@ export default function PainelProfessor() {
         .me()
         .then((user) => {
           if (!ativo || !user) return
-          if (user.name) setNomeProfessor(user.name)
-          if (user.id) {
+          setNomeProfessor(formatarNomeProfessor(user))
+          if (user.id && user.role !== 'ADMIN') {
             apiUsuarios
               .buscarEscolaDoUsuario(user.id)
               .then((esc) => {
@@ -64,9 +99,10 @@ export default function PainelProfessor() {
     Promise.all([
       apiTutoriais.listar().catch(() => []),
       apiProjetos.listar().catch(() => []),
-      apiEscolas.listar().catch(() => [])
+      apiEscolas.listar().catch(() => []),
+      apiEventos.listar().catch(() => [])
     ])
-      .then(([listaTutoriais, listaProjetos, listaEscolas]) => {
+      .then(([listaTutoriais, listaProjetos, listaEscolas, listaEventos]) => {
         if (!ativo) return
 
         const tuts = (Array.isArray(listaTutoriais) ? listaTutoriais : []).map((item, idx) => ({
@@ -79,9 +115,8 @@ export default function PainelProfessor() {
         const projs = (Array.isArray(listaProjetos) ? listaProjetos : [])
           .filter((p) => !idsTutoriais.has(p.name))
           .map((item, idx) => ({
-            ...mapearProjetoDaApi(item),
+            ...mapearProjetoDaApi(item, idx % 2 === 0 ? containerImg : semaforo),
             status: 'publicado',
-            imagem: idx % 2 === 0 ? containerImg : semaforo,
             visivel: true,
             tipoRecurso: 'projeto',
             chaveUnica: `projeto-${item.id}`
@@ -90,14 +125,36 @@ export default function PainelProfessor() {
         const combinados = [...tuts, ...projs]
         setPublicacoes(combinados)
 
+        const avisosDinamicos = (Array.isArray(listaEventos) ? listaEventos : [])
+          .map((ev) => mapearEventoDaApi(ev))
+          .filter((ev) => ev && ev.status !== 'cancelado')
+          .map((ev) => {
+            const temDocumentos = Array.isArray(ev.documentos) && ev.documentos.length > 0
+            return {
+              id: ev.id,
+              titulo: 'Atenção, professores!',
+              mensagem: temDocumentos
+                ? `O regulamento para ${ev.titulo} já está disponível na aba de Documentação.`
+                : `O evento "${ev.titulo}" está agendado para ${ev.dataLonga || ev.data} em ${ev.local}.`,
+              textoLink: temDocumentos ? 'Acessar Documentos' : 'Ver Detalhes do Evento',
+              href: ev.linkUrl || `/detalhesEvento?id=${ev.id}`
+            }
+          })
+        setAvisos(avisosDinamicos)
+
+        const usuarioAtual = obterUsuario()
+        const escolaVinculada =
+          usuarioAtual?.schoolId && Array.isArray(listaEscolas)
+            ? listaEscolas.find((e) => Number(e.id) === Number(usuarioAtual.schoolId))?.name
+            : null
         const primeiraEscola =
+          escolaVinculada ||
           listaTutoriais?.[0]?.school?.name ||
           listaProjetos?.[0]?.school?.name ||
+          listaEscolas?.find((e) => e.name?.includes('Luiz Ribeiro Muniz'))?.name ||
           listaEscolas?.[0]?.name
         if (primeiraEscola) {
-          setNomeEscola((atual) =>
-            atual === 'Rede Municipal de Caraguatatuba' ? primeiraEscola : atual
-          )
+          setNomeEscola(primeiraEscola)
         }
       })
       .finally(() => {
@@ -125,8 +182,19 @@ export default function PainelProfessor() {
     )
   }
 
-  const excluirPublicacao = async (pub) => {
-    if (!window.confirm(`Deseja realmente excluir "${pub.titulo}"?`)) return
+  const excluirPublicacao = (pub) => {
+    setModal({
+      aberto: true,
+      tipo: 'confirmacao',
+      titulo: 'Excluir Publicação?',
+      mensagem: `Deseja realmente remover "${pub.titulo}" da rede?`,
+      pubParaExcluir: pub
+    })
+  }
+
+  const handleConfirmarExclusaoPublicacao = async () => {
+    if (!modal.pubParaExcluir) return
+    const pub = modal.pubParaExcluir
     try {
       if (pub.tipoRecurso === 'projeto') {
         await apiProjetos.excluir(pub.id)
@@ -134,8 +202,21 @@ export default function PainelProfessor() {
         await apiTutoriais.excluir(pub.id)
       }
       setPublicacoes((prev) => prev.filter((p) => p.chaveUnica !== pub.chaveUnica))
+      setModal({
+        aberto: true,
+        tipo: 'sucesso',
+        titulo: 'Publicação excluída com sucesso!',
+        mensagem: `"${pub.titulo}" foi removida com sucesso.`,
+        pubParaExcluir: null
+      })
     } catch (err) {
-      window.alert(err?.message || 'Não foi possível excluir a publicação.')
+      setModal({
+        aberto: true,
+        tipo: 'erro',
+        titulo: 'Erro ao excluir',
+        mensagem: err?.message || 'Não foi possível excluir a publicação.',
+        pubParaExcluir: null
+      })
     }
   }
 
@@ -148,12 +229,12 @@ export default function PainelProfessor() {
   }
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen bg-background relative">
+    <div className="flex flex-col lg:flex-row min-h-screen w-full bg-background relative">
       <SideBarProfessor />
 
       <main className="flex-1 flex flex-col">
-        <div className="w-[92%] sm:w-[85%] max-w-[900px] mx-auto py-8 lg:py-10 px-2 sm:px-4 flex flex-col gap-8 lg:gap-10">
-          {/* Busca superior */}
+        {/* Top Bar alinhada ao Figma */}
+        <header className="w-full px-6 sm:px-10 lg:px-14 pt-6 pb-2 flex items-center justify-between gap-4">
           <div className="relative w-full max-w-[350px]">
             <IoSearchOutline
               size={18}
@@ -169,21 +250,50 @@ export default function PainelProfessor() {
             />
           </div>
 
+          <div className="flex items-center gap-4 shrink-0">
+            <button
+              type="button"
+              aria-label="Notificações"
+              className="relative p-1.5 text-verde-escuro hover:text-verde-musgo transition cursor-pointer"
+            >
+              <MdOutlineNotificationsNone size={22} />
+              <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-vermelho" />
+            </button>
+
+            <Link
+              href="/perfil"
+              aria-label="Configurações de Perfil"
+              className="p-1.5 text-verde-escuro hover:text-verde-musgo transition"
+            >
+              <IoSettingsOutline size={20} />
+            </Link>
+
+            <Link
+              href="/perfil"
+              aria-label="Meu Perfil"
+              className="size-10 rounded-full border-2 border-verde-musgo bg-verde-pastel flex items-center justify-center text-verde-escuro hover:brightness-95 transition overflow-hidden"
+            >
+              <MdPersonOutline size={22} />
+            </Link>
+          </div>
+        </header>
+
+        <div className="w-full max-w-[1040px] mx-auto py-6 lg:py-8 px-6 sm:px-10 lg:px-14 flex flex-col gap-8 lg:gap-10">
           {/* Saudação e botão Nova Publicação */}
-          <section className="flex flex-col gap-3">
-            <h1 className="text-verde-escuro text-3xl sm:text-5xl font-bold leading-tight">
+          <section className="flex flex-col gap-2">
+            <h1 className="text-verde-escuro text-3xl sm:text-4xl font-bold leading-tight">
               Olá, {nomeProfessor}!
             </h1>
-            <div className="flex items-center gap-2 text-verde-musgo font-bold text-lg sm:text-xl">
+            <div className="flex items-center gap-2 text-verde-musgo font-bold text-base sm:text-lg">
               <MdOutlineLocationOn size={22} />
               <span>{nomeEscola}</span>
             </div>
             <div className="flex justify-end pt-1">
               <Link
                 href="/cadastrarTutorial"
-                className="px-5 sm:px-6 py-2.5 sm:py-3 bg-verde-musgo hover:bg-white hover:text-verde-musgo border border-verde-musgo text-white text-base sm:text-lg font-bold rounded-lg shadow-sm flex items-center gap-2 sm:gap-3 transition"
+                className="px-5 sm:px-6 py-2.5 sm:py-3 bg-verde-musgo hover:bg-white hover:text-verde-musgo border border-verde-musgo text-white text-sm sm:text-base font-bold rounded-lg shadow-sm flex items-center gap-2 sm:gap-3 transition"
               >
-                <IoAddOutline size={22} />
+                <IoAddOutline size={20} />
                 Nova Publicação
               </Link>
             </div>
@@ -191,46 +301,46 @@ export default function PainelProfessor() {
 
           {/* Cards de métricas */}
           <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="p-6 bg-white rounded-3xl border border-verde-musgo shadow-sm flex flex-col gap-2">
+            <div className="p-6 bg-white rounded-2xl border border-verde-musgo shadow-sm flex flex-col gap-2">
               <div className="flex size-9 items-center justify-center rounded-lg bg-verde-pastel text-verde-musgo">
                 <MdOutlineFolder size={20} />
               </div>
-              <span className="pt-2 text-verde-escuro text-2xl font-semibold">
+              <span className="pt-2 text-verde-escuro text-2xl sm:text-3xl font-bold">
                 {String(totalPublicados).padStart(2, '0')}
               </span>
-              <span className="text-verde-musgo text-lg">Projetos Publicados</span>
+              <span className="text-verde-musgo text-base">Projetos Publicados</span>
             </div>
 
-            <div className="p-6 bg-white rounded-3xl border border-verde-musgo shadow-sm flex flex-col gap-2">
+            <div className="p-6 bg-white rounded-2xl border border-verde-musgo shadow-sm flex flex-col gap-2">
               <div className="flex size-9 items-center justify-center rounded-lg bg-verde-pastel text-verde-musgo">
                 <MdOutlineEditNote size={22} />
               </div>
-              <span className="pt-2 text-verde-escuro text-2xl font-semibold">
+              <span className="pt-2 text-verde-escuro text-2xl sm:text-3xl font-bold">
                 {String(totalRascunhos).padStart(2, '0')}
               </span>
-              <span className="text-verde-musgo text-lg">Rascunhos em Edição</span>
+              <span className="text-verde-musgo text-base">Rascunhos em Edição</span>
             </div>
 
-            <div className="p-6 bg-white rounded-3xl border border-verde-musgo shadow-sm flex flex-col gap-2">
+            <div className="p-6 bg-white rounded-2xl border border-verde-musgo shadow-sm flex flex-col gap-2">
               <div className="flex size-9 items-center justify-center rounded-lg bg-verde-pastel text-verde-musgo">
                 <MdOutlineGroups size={20} />
               </div>
-              <span className="pt-2 text-verde-escuro text-2xl font-semibold">
+              <span className="pt-2 text-verde-escuro text-2xl sm:text-3xl font-bold">
                 {String(totalVisualizacoes).padStart(2, '0')}
               </span>
-              <span className="text-verde-musgo text-lg">Visualizações na Rede</span>
+              <span className="text-verde-musgo text-base">Visualizações na Rede</span>
             </div>
           </section>
 
           {/* Publicações Recentes */}
           <section className="flex flex-col gap-5">
             <div className="flex flex-wrap items-center justify-between gap-2 px-1">
-              <h2 className="text-verde-musgo text-2xl sm:text-3xl font-semibold">
+              <h2 className="text-verde-musgo text-2xl sm:text-3xl font-bold">
                 Publicações Recentes
               </h2>
               <Link
-                href="/projetos"
-                className="flex items-center gap-1.5 text-verde-musgo hover:text-verde-escuro text-base sm:text-lg font-bold transition"
+                href="/gestaoProjetos"
+                className="flex items-center gap-1.5 text-verde-musgo hover:text-verde-escuro text-sm sm:text-base font-bold transition"
               >
                 Ver todos os projetos
                 <IoArrowForward size={18} />
@@ -248,7 +358,7 @@ export default function PainelProfessor() {
                   return (
                     <article
                       key={pub.chaveUnica}
-                      className={`p-5 bg-white/80 rounded-3xl border border-verde-musgo shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 transition ${
+                      className={`p-5 bg-white/80 rounded-2xl border border-verde-musgo shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 transition ${
                         !pub.visivel ? 'opacity-60' : ''
                       }`}
                     >
@@ -286,7 +396,7 @@ export default function PainelProfessor() {
                           <button
                             type="button"
                             onClick={() => editarPublicacao(pub)}
-                            className="px-5 py-2 bg-white hover:bg-input-bg border border-verde-musgo rounded-xl text-verde-musgo text-sm font-bold transition cursor-pointer"
+                            className="px-5 py-2 bg-white hover:bg-input-bg border border-verde-musgo border-b-2 rounded-xl text-verde-musgo text-sm font-bold transition cursor-pointer"
                           >
                             Continuar Editando
                           </button>
@@ -351,29 +461,63 @@ export default function PainelProfessor() {
           </section>
 
           {/* Avisos da Administração */}
-          <section className="p-6 bg-white rounded-3xl border border-verde-musgo shadow-sm flex flex-col gap-5">
+          <section className="p-6 bg-white rounded-2xl border border-verde-musgo shadow-sm flex flex-col gap-5">
             <div className="flex items-center gap-2.5 text-verde-musgo">
               <MdOutlineCampaign size={28} />
-              <h2 className="text-2xl font-semibold">Avisos da Administração</h2>
+              <h2 className="text-xl sm:text-2xl font-bold">Avisos da Administração</h2>
             </div>
 
-            <div className="p-6 bg-input-bg rounded-xl border border-verde-musgo flex flex-col gap-2">
-              <p className="text-verde-escuro text-base font-bold leading-relaxed">
-                Atenção, professores!
-                <br />O regulamento para a Mostra Maker de Inverno já está disponível na aba de
-                Documentação.
+            {carregando ? (
+              <p className="py-4 text-center text-verde-musgo font-medium text-sm">
+                Carregando avisos...
               </p>
-              <Link
-                href="/rede"
-                className="inline-flex items-center gap-1 text-verde-musgo hover:underline text-xs font-bold w-fit"
-              >
-                Acessar Documentos
-                <IoOpenOutline size={14} />
-              </Link>
-            </div>
+            ) : avisos.length > 0 ? (
+              <div className="flex flex-col gap-4">
+                {avisos.map((aviso) => (
+                  <div
+                    key={aviso.id}
+                    className="p-6 bg-input-bg rounded-xl border-l-4 border-verde-musgo flex flex-col gap-2"
+                  >
+                    <p className="text-verde-escuro text-sm sm:text-base font-bold leading-relaxed">
+                      {aviso.titulo}
+                      <br />
+                      {aviso.mensagem}
+                    </p>
+                    <Link
+                      href={aviso.href}
+                      className="inline-flex items-center gap-1 text-verde-musgo hover:underline text-xs font-bold w-fit"
+                    >
+                      {aviso.textoLink}
+                      <IoOpenOutline size={14} />
+                    </Link>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="py-6 text-center text-verde-musgo font-medium text-sm sm:text-base">
+                Nenhum aviso da administração no momento.
+              </p>
+            )}
           </section>
         </div>
       </main>
+
+      {modal.aberto && (
+        <ModalConfirmacao
+          aberto={modal.aberto}
+          tipo={modal.tipo}
+          titulo={modal.titulo}
+          mensagem={modal.mensagem}
+          textoConfirmar="Excluir"
+          textoCancelar="Cancelar"
+          onConfirmar={
+            modal.tipo === 'confirmacao'
+              ? handleConfirmarExclusaoPublicacao
+              : () => setModal((prev) => ({ ...prev, aberto: false }))
+          }
+          onCancelar={() => setModal((prev) => ({ ...prev, aberto: false }))}
+        />
+      )}
     </div>
   )
 }

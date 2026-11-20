@@ -1,30 +1,37 @@
 'use client'
 
+import { Select } from '@/components/Select'
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { MdAdd, MdAddCircleOutline } from 'react-icons/md'
+import {
+  MdAdd,
+  MdAddCircleOutline,
+  MdOutlineEdit,
+  MdOutlineDeleteOutline,
+  MdClose,
+  MdArrowForward
+} from 'react-icons/md'
 import { IoSearchSharp } from 'react-icons/io5'
-import { IoIosArrowDown } from 'react-icons/io'
 import { AdminSidebar } from '@/components/AdminSidebar'
 import { CardEscolaAdmin } from '@/components/CardEscolaAdmin'
+import { ModalConfirmacao } from '@/components/ModalConfirmacao'
 import { apiEscolas, apiProjetos, apiUsuarios } from '@/services/api'
 import { correspondeBusca } from '@/utils/filtros'
 
 function Filtro({ label, value, onChange, children }) {
   return (
-    <label className="flex flex-col w-full sm:w-auto border-t sm:border-t-0 sm:border-l border-verde-musgo/20 pt-3 sm:pt-0 sm:pl-6">
+    <div className="flex flex-col w-full sm:w-auto border-t sm:border-t-0 sm:border-l border-verde-musgo/20 pt-3 sm:pt-0 sm:pl-6 min-w-[170px]">
       <span className="text-xs font-bold uppercase text-verde-escuro">{label}</span>
       <div className="relative">
-        <select
+        <Select
           value={value}
           onChange={onChange}
           className="w-full appearance-none bg-transparent pr-14 text-sm text-verde-musgo focus:outline-none cursor-pointer"
         >
           {children}
-        </select>
-        <IoIosArrowDown className="pointer-events-none absolute top-1/2 right-0 -translate-y-1/2 text-verde-musgo" />
+        </Select>
       </div>
-    </label>
+    </div>
   )
 }
 
@@ -36,45 +43,61 @@ export default function GestaoEscolas() {
   const [busca, setBusca] = useState('')
   const [regiaoSelecionada, setRegiaoSelecionada] = useState('')
   const [statusSelecionado, setStatusSelecionado] = useState('Ativas')
+  const [escolaSelecionada, setEscolaSelecionada] = useState(null)
 
-  useEffect(() => {
-    let ativo = true
+  // Estado para os Modais de Confirmação, Sucesso e Erro
+  const [modal, setModal] = useState({
+    aberto: false,
+    tipo: 'confirmacao',
+    titulo: '',
+    mensagem: '',
+    escolaParaExcluir: null
+  })
 
-    Promise.all([
+  const carregarDados = () => {
+    return Promise.all([
       apiEscolas.listar().catch(() => []),
       apiUsuarios.listar().catch(() => []),
       apiProjetos.listar().catch(() => [])
-    ])
-      .then(([listaEscolas, listaUsuarios, listaProjetos]) => {
-        if (!ativo) return
+    ]).then(([listaEscolas, listaUsuarios, listaProjetos]) => {
+      const projsPorEscola = new Map()
+      for (const p of Array.isArray(listaProjetos) ? listaProjetos : []) {
+        const sid = p.schoolId || p.school?.id
+        if (sid) projsPorEscola.set(sid, (projsPorEscola.get(sid) || 0) + 1)
+      }
 
-        const projsPorEscola = new Map()
-        for (const p of Array.isArray(listaProjetos) ? listaProjetos : []) {
-          const sid = p.schoolId || p.school?.id
-          if (sid) projsPorEscola.set(sid, (projsPorEscola.get(sid) || 0) + 1)
-        }
+      const docentesPorEscola = new Map()
+      for (const u of Array.isArray(listaUsuarios) ? listaUsuarios : []) {
+        const sid = u.schoolId
+        if (sid) docentesPorEscola.set(Number(sid), (docentesPorEscola.get(Number(sid)) || 0) + 1)
+      }
 
-        setEscolas(
-          (Array.isArray(listaEscolas) ? listaEscolas : []).map((item) => ({
-            id: item.id,
-            name: item.name,
-            address: item.address || '',
-            createdAt: item.createdAt,
-            region: item.address?.toUpperCase().includes('SUL')
-              ? 'Sul'
-              : item.address?.toUpperCase().includes('CENTRO')
-                ? 'Centro'
-                : 'Norte',
-            teams: projsPorEscola.get(item.id) || 0
-          }))
-        )
+      setEscolas(
+        (Array.isArray(listaEscolas) ? listaEscolas : []).map((item) => ({
+          id: item.id,
+          name: item.name,
+          address: item.address || '',
+          createdAt: item.createdAt,
+          region: item.address?.toUpperCase().includes('SUL')
+            ? 'Sul'
+            : item.address?.toUpperCase().includes('CENTRO')
+              ? 'Centro'
+              : 'Norte',
+          teams: projsPorEscola.get(item.id) || 0,
+          teachers: docentesPorEscola.get(Number(item.id)) || 1
+        }))
+      )
 
-        setTotalDocentes(Array.isArray(listaUsuarios) ? listaUsuarios.length : 0)
-        setTotalProjetos(Array.isArray(listaProjetos) ? listaProjetos.length : 0)
-      })
-      .finally(() => {
-        if (ativo) setCarregando(false)
-      })
+      setTotalDocentes(Array.isArray(listaUsuarios) ? listaUsuarios.length : 0)
+      setTotalProjetos(Array.isArray(listaProjetos) ? listaProjetos.length : 0)
+    })
+  }
+
+  useEffect(() => {
+    let ativo = true
+    carregarDados().finally(() => {
+      if (ativo) setCarregando(false)
+    })
 
     return () => {
       ativo = false
@@ -91,13 +114,39 @@ export default function GestaoEscolas() {
     [busca, escolas, regiaoSelecionada]
   )
 
-  const handleExcluirEscola = async (id, nome) => {
-    if (!window.confirm(`Deseja realmente excluir a escola "${nome}"?`)) return
+  const handleAbrirConfirmacaoExcluir = (id, nome) => {
+    setModal({
+      aberto: true,
+      tipo: 'confirmacao',
+      titulo: 'Excluir Escola?',
+      mensagem: `Deseja realmente remover a escola "${nome}" da rede? Todos os vínculos associados serão atualizados.`,
+      escolaParaExcluir: { id, nome }
+    })
+  }
+
+  const handleConfirmarExclusao = async () => {
+    if (!modal.escolaParaExcluir) return
+    const { id, nome } = modal.escolaParaExcluir
+
     try {
       await apiEscolas.excluir(id)
       setEscolas((prev) => prev.filter((e) => e.id !== id))
+      setModal({
+        aberto: true,
+        tipo: 'sucesso',
+        titulo: 'Escola excluída com sucesso!',
+        mensagem: `A unidade "${nome}" foi removida do sistema com sucesso.`,
+        escolaParaExcluir: null
+      })
     } catch (err) {
-      window.alert(err?.message || 'Não foi possível excluir a escola.')
+      setModal({
+        aberto: true,
+        tipo: 'erro',
+        titulo: 'Erro ao excluir escola',
+        mensagem:
+          err?.message || 'Não foi possível excluir a escola. Verifique se o servidor está ativo.',
+        escolaParaExcluir: null
+      })
     }
   }
 
@@ -110,36 +159,39 @@ export default function GestaoEscolas() {
   const atividadesRecentes = escolas.slice(0, 3)
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen">
-      <AdminSidebar />
+    <div className="flex flex-col lg:flex-row min-h-screen w-full bg-background relative">
+      <AdminSidebar variant="admin" />
 
-      <div className="flex flex-1 flex-col px-4 sm:px-6 lg:px-10 pb-16">
-        <main className="mx-auto flex w-full max-w-4xl flex-col gap-6 pt-6 sm:pt-12">
+      <div className="flex flex-1 flex-col pb-16">
+        <main className="w-full max-w-[1040px] mx-auto flex flex-col gap-6 py-8 lg:py-10 px-6 sm:px-10 lg:px-14">
           {/* Título da página */}
-          <div className="mb-2 flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-verde-escuro">
+          <div className="mb-2 flex flex-wrap items-end justify-between gap-4">
+            <div className="max-w-[560px]">
+              <h1 className="text-3xl sm:text-4xl font-bold text-verde-escuro leading-tight">
                 Gestão de Escolas
               </h1>
-              <p className="mt-1 max-w-sm text-sm sm:text-base text-verde-musgo">
+              <p className="mt-2 max-w-md text-sm sm:text-base text-verde-musgo">
                 Administre as unidades da rede conectadas ao sistema.
               </p>
             </div>
             <Link
               href="/cadastrarEscola"
-              className="flex items-center gap-3 rounded-md bg-verde-musgo px-7 py-2.5 font-semibold text-white shadow-sm hover:brightness-90 cursor-pointer"
+              className="flex items-center gap-2 rounded-lg bg-verde-musgo hover:bg-white hover:text-verde-musgo border border-verde-musgo px-6 py-3 text-sm sm:text-base font-bold text-white shadow-sm transition cursor-pointer"
             >
-              <MdAdd size={18} />
+              <MdAdd size={20} />
               Nova Escola
             </Link>
           </div>
 
           {/* Estatísticas */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
             {estatisticas.map(({ label, value }) => (
-              <div key={label} className="rounded-2xl border border-verde-musgo bg-white px-5 py-5">
-                <p className="text-sm font-medium text-verde-musgo">{label}</p>
-                <p className="mt-2 text-3xl font-bold text-verde-escuro">{value}</p>
+              <div
+                key={label}
+                className="rounded-2xl border border-verde-musgo bg-white p-6 shadow-sm"
+              >
+                <p className="text-xs sm:text-sm font-semibold text-verde-musgo">{label}</p>
+                <p className="mt-2 text-2xl sm:text-3xl font-bold text-verde-escuro">{value}</p>
               </div>
             ))}
           </div>
@@ -209,7 +261,12 @@ export default function GestaoEscolas() {
           ) : (
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {escolasFiltradas.map((escola) => (
-                <CardEscolaAdmin key={escola.id} {...escola} onExcluir={handleExcluirEscola} />
+                <CardEscolaAdmin
+                  key={escola.id}
+                  {...escola}
+                  onExcluir={handleAbrirConfirmacaoExcluir}
+                  onVerMais={() => setEscolaSelecionada(escola)}
+                />
               ))}
 
               <Link
@@ -221,8 +278,123 @@ export default function GestaoEscolas() {
               </Link>
             </div>
           )}
+
+          {/* Modal / Card Detalhes da Escola (Figma 889:414) */}
+          {escolaSelecionada && (
+            <div
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-[2px] p-4"
+              onClick={() => setEscolaSelecionada(null)}
+            >
+              <div
+                className="w-full max-w-[900px] rounded-2xl border border-verde-musgo bg-white p-6 sm:p-8 shadow-2xl flex flex-col gap-6"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex flex-col gap-2">
+                    <span className="w-fit rounded-full bg-verde-limao px-3 py-0.5 text-[10px] font-bold uppercase text-verde-escuro">
+                      Polo Ativo
+                    </span>
+                    <h3 className="text-xl sm:text-2xl font-bold text-verde-escuro">
+                      {escolaSelecionada.name}
+                    </h3>
+                    <p className="text-sm text-verde-musgo">
+                      {escolaSelecionada.address ||
+                        `Região ${escolaSelecionada.region} • Caraguatatuba - SP`}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0">
+                    <Link
+                      href={`/cadastrarEscola?id=${escolaSelecionada.id}`}
+                      title="Editar escola"
+                      className="p-2 text-verde-musgo hover:text-verde-escuro transition"
+                    >
+                      <MdOutlineEdit size={20} />
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const esc = escolaSelecionada
+                        setEscolaSelecionada(null)
+                        handleAbrirConfirmacaoExcluir(esc.id, esc.name)
+                      }}
+                      title="Excluir escola"
+                      className="p-2 text-vermelho hover:opacity-75 transition cursor-pointer"
+                    >
+                      <MdOutlineDeleteOutline size={20} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEscolaSelecionada(null)}
+                      title="Fechar"
+                      className="p-2 text-verde-escuro hover:bg-stone-100 rounded-lg transition cursor-pointer"
+                    >
+                      <MdClose size={22} />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="border-t border-verde-escuro/15 pt-6 grid grid-cols-2 sm:grid-cols-4 items-center gap-6">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-xs font-bold uppercase tracking-wider text-verde-musgo">
+                      Professores
+                    </span>
+                    <span className="text-2xl font-bold text-verde-escuro">
+                      {escolaSelecionada.teachers}
+                    </span>
+                  </div>
+
+                  <div className="flex flex-col gap-1">
+                    <span className="text-xs font-bold uppercase tracking-wider text-verde-musgo">
+                      Equipes
+                    </span>
+                    <span className="text-2xl font-bold text-verde-escuro">
+                      {escolaSelecionada.teams}
+                    </span>
+                  </div>
+
+                  <div className="flex flex-col gap-1">
+                    <span className="text-xs font-bold uppercase tracking-wider text-verde-musgo">
+                      Projetos
+                    </span>
+                    <span className="text-2xl font-bold text-verde-escuro">
+                      {escolaSelecionada.teams}
+                    </span>
+                  </div>
+
+                  <div className="flex sm:justify-end">
+                    <Link
+                      href={`/projetos?escola=${encodeURIComponent(escolaSelecionada.name)}`}
+                      className="inline-flex items-center gap-2 text-sm font-bold text-verde-musgo hover:text-verde-escuro transition"
+                    >
+                      <span>Ver Detalhes</span>
+                      <MdArrowForward size={18} />
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </main>
       </div>
+
+      {/* Modal Interativo Padronizado (Confirmação / Sucesso / Erro) */}
+      {modal.aberto && (
+        <ModalConfirmacao
+          aberto={modal.aberto}
+          tipo={modal.tipo}
+          titulo={modal.titulo}
+          mensagem={modal.mensagem}
+          textoConfirmar="Excluir"
+          textoCancelar="Cancelar"
+          onConfirmar={
+            modal.tipo === 'confirmacao'
+              ? handleConfirmarExclusao
+              : () => setModal((prev) => ({ ...prev, aberto: false }))
+          }
+          onCancelar={() => setModal((prev) => ({ ...prev, aberto: false }))}
+        />
+      )}
     </div>
   )
 }

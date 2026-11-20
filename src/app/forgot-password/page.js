@@ -39,10 +39,10 @@ export default function ForgotPassword() {
       <Header />
       <main className="px-4 py-8 max-w-4xl mx-auto">
         <div className="flex flex-col sm:flex-row justify-center items-center gap-2 mt-6 sm:mt-12 text-center">
-          <h1 className="font-bold text-3xl sm:text-4xl text-verde-escuro">ESQUECEU SUA SENHA?</h1>
-          <span className="font-bold text-3xl sm:text-4xl text-verde-musgo">
-            RECUPERE SEU ACESSO!
-          </span>
+          <h1 className="font-extrabold text-3xl sm:text-4xl uppercase tracking-tight text-verde-escuro">
+            ESQUECEU SUA SENHA?
+          </h1>
+          <span className="font-bold text-2xl text-verde-musgo">RECUPERE SEU ACESSO!</span>
         </div>
 
         <p className="flex justify-center mt-8 sm:mt-16 font-medium text-xl sm:text-2xl text-center px-4 max-w-2xl mx-auto">
@@ -57,7 +57,7 @@ export default function ForgotPassword() {
           <div className="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-12 mt-8 sm:mt-10">
             <Link
               href="/login"
-              className="flex items-center justify-center w-full max-w-60 sm:w-40 h-11 gap-2 rounded-xl bg-white border-2 border-verde-musgo font-bold text-verde-musgo text-base hover:brightness-50 duration-75 cursor-pointer"
+              className="flex items-center justify-center w-40 h-11 gap-2 rounded-xl bg-white border-2 border-verde-musgo font-bold text-verde-musgo text-base hover:brightness-50 duration-75 cursor-pointer"
             >
               Cancelar
             </Link>
@@ -65,7 +65,7 @@ export default function ForgotPassword() {
             <button
               type="submit"
               disabled={carregando}
-              className="flex w-full max-w-60 sm:w-40 h-11 items-center justify-center gap-2 rounded-xl bg-verde-limao border-b-6 border-verde-escuro font-bold text-verde-escuro hover:brightness-50 duration-75 cursor-pointer disabled:opacity-60"
+              className="flex w-40 h-11 items-center justify-center gap-2 rounded-xl bg-verde-limao border-b-6 border-verde-escuro font-bold text-verde-escuro hover:brightness-50 duration-75 cursor-pointer disabled:opacity-60"
             >
               <span>{carregando ? 'Enviando...' : 'Enviar'}</span>
             </button>
