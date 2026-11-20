@@ -1,19 +1,21 @@
 'use client'
 
+import { Select } from '@/components/Select'
 import { useEffect, useMemo, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { SideBarProfessor } from '@/components/SideBarProfessor'
 import { ModalConfirmacao } from '@/components/ModalConfirmacao'
-import { apiProjetos, mapearProjetoDaApi } from '@/services/api'
-import { IoSearchOutline, IoAddOutline } from 'react-icons/io5'
+import { apiCategorias, apiEscolas, apiProjetos, mapearProjetoDaApi } from '@/services/api'
+import { IoSearchOutline, IoAddOutline, IoSettingsOutline } from 'react-icons/io5'
 import {
-  MdKeyboardArrowDown,
   MdOutlineEdit,
   MdOutlineVisibility,
   MdOutlineVisibilityOff,
-  MdOutlineDeleteOutline
+  MdOutlineDeleteOutline,
+  MdOutlineNotificationsNone,
+  MdPersonOutline
 } from 'react-icons/md'
 import semaforo from '@/assets/semaforo.png'
 import containerImg from '@/assets/container.png'
@@ -21,6 +23,8 @@ import containerImg from '@/assets/container.png'
 export default function GestaoProjetos() {
   const router = useRouter()
   const [projetos, setProjetos] = useState([])
+  const [categoriasApi, setCategoriasApi] = useState([])
+  const [escolasApi, setEscolasApi] = useState([])
   const [carregando, setCarregando] = useState(true)
   const [busca, setBusca] = useState('')
   const [categoria, setCategoria] = useState('')
@@ -30,27 +34,35 @@ export default function GestaoProjetos() {
   useEffect(() => {
     let ativo = true
 
-    apiProjetos
-      .listar()
-      .catch(() => [])
-      .then((listaProjetos) => {
+    Promise.all([
+      apiProjetos.listar().catch(() => []),
+      apiCategorias.listar().catch(() => []),
+      apiEscolas.listar().catch(() => [])
+    ])
+      .then(([listaProjetos, listaCategorias, listaEscolas]) => {
         if (!ativo) return
         const dados = (Array.isArray(listaProjetos) ? listaProjetos : []).map((item, idx) => {
-          const mapeado = mapearProjetoDaApi(item)
+          const mapeado = mapearProjetoDaApi(item, idx % 2 === 0 ? containerImg : semaforo)
           return {
             id: item.id,
             titulo: item.name || mapeado.titulo,
             descricao: item.description || mapeado.descricao,
-            imagem: idx % 2 === 0 ? containerImg : semaforo,
+            imagem: mapeado.imagem,
             status: 'publicado',
             visivel: true,
-            escola: item.school?.name || mapeado.escola || 'Rede Municipal',
+            escola: item.school?.name || mapeado.escola || 'EMEF Prof. Luiz Ribeiro Muniz',
             categorias: mapeado.categorias || [],
             curtidas: item.likes || mapeado.curtidas || 0,
-            infoData: `Atualizado em ${new Date(item.updatedAt || item.createdAt || Date.now()).toLocaleDateString('pt-BR')}`
+            infoData: `Criado em ${new Date(item.updatedAt || item.createdAt || Date.now()).toLocaleDateString('pt-BR')}`
           }
         })
         setProjetos(dados)
+        setCategoriasApi(
+          Array.isArray(listaCategorias) ? listaCategorias.map((c) => c.name).filter(Boolean) : []
+        )
+        setEscolasApi(
+          Array.isArray(listaEscolas) ? listaEscolas.map((s) => s.name).filter(Boolean) : []
+        )
       })
       .finally(() => {
         if (ativo) setCarregando(false)
@@ -62,15 +74,15 @@ export default function GestaoProjetos() {
   }, [])
 
   const opcoesCategoria = useMemo(() => {
-    const cats = new Set()
+    const cats = new Set(categoriasApi)
     projetos.forEach((p) => (p.categorias || []).forEach((c) => cats.add(c)))
-    return Array.from(cats).sort()
-  }, [projetos])
+    return Array.from(cats).sort((a, b) => a.localeCompare(b, 'pt-BR'))
+  }, [categoriasApi, projetos])
 
   const opcoesEscola = useMemo(() => {
-    const esc = new Set(projetos.map((p) => p.escola).filter(Boolean))
-    return Array.from(esc).sort()
-  }, [projetos])
+    const esc = new Set([...escolasApi, ...projetos.map((p) => p.escola).filter(Boolean)])
+    return Array.from(esc).sort((a, b) => a.localeCompare(b, 'pt-BR'))
+  }, [escolasApi, projetos])
 
   const projetosFiltrados = useMemo(() => {
     return projetos.filter((proj) => {
@@ -125,29 +137,59 @@ export default function GestaoProjetos() {
   }
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen bg-background relative">
+    <div className="flex flex-col lg:flex-row min-h-screen w-full bg-background relative">
       <SideBarProfessor />
 
-      <main className="flex-1 flex flex-col p-4 sm:p-8 lg:p-12 overflow-x-hidden">
-        <div className="w-full max-w-6xl mx-auto flex flex-col gap-8">
-          {/* Barra de pesquisa superior */}
-          <div className="relative w-full max-w-md">
+      <main className="flex-1 flex flex-col">
+        {/* Top Bar alinhada ao Figma */}
+        <header className="w-full px-6 sm:px-10 lg:px-14 pt-6 pb-2 flex items-center justify-between gap-4">
+          <div className="relative w-full max-w-[350px]">
             <IoSearchOutline
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-verde-musgo pointer-events-none"
-              size={20}
+              size={18}
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-verde-escuro pointer-events-none"
             />
             <input
-              type="text"
-              placeholder="Pesquisar projetos..."
+              type="search"
               value={busca}
               onChange={(e) => setBusca(e.target.value)}
-              className="w-full pl-11 pr-4 py-2 bg-input-bg border border-verde-musgo rounded-full text-verde-escuro placeholder-verde-escuro/60 text-sm focus:outline-none transition"
+              placeholder="Pesquisar projetos..."
+              aria-label="Pesquisar projetos"
+              className="w-full h-9 pl-11 pr-4 bg-input-bg border border-verde-musgo rounded-full text-sm font-semibold text-verde-escuro placeholder:text-verde-escuro/80 focus:outline-none focus:ring-1 focus:ring-verde-musgo"
             />
           </div>
 
+          <div className="flex items-center gap-4 shrink-0">
+            <button
+              type="button"
+              aria-label="Notificações"
+              className="relative p-1.5 text-verde-escuro hover:text-verde-musgo transition cursor-pointer"
+            >
+              <MdOutlineNotificationsNone size={22} />
+              <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-vermelho" />
+            </button>
+
+            <Link
+              href="/perfil"
+              aria-label="Configurações de Perfil"
+              className="p-1.5 text-verde-escuro hover:text-verde-musgo transition"
+            >
+              <IoSettingsOutline size={20} />
+            </Link>
+
+            <Link
+              href="/perfil"
+              aria-label="Meu Perfil"
+              className="size-10 rounded-full border-2 border-verde-musgo bg-verde-pastel flex items-center justify-center text-verde-escuro hover:brightness-95 transition overflow-hidden"
+            >
+              <MdPersonOutline size={22} />
+            </Link>
+          </div>
+        </header>
+
+        <div className="w-full max-w-[1040px] mx-auto py-6 lg:py-8 px-6 sm:px-10 lg:px-14 flex flex-col gap-6 sm:gap-8">
           {/* Cabeçalho */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
-            <section className="flex flex-col gap-1.5 max-w-xl">
+            <section className="flex flex-col gap-2 max-w-[600px]">
               <h1 className="text-verde-escuro text-3xl sm:text-4xl font-bold leading-tight">
                 Meus Projetos
               </h1>
@@ -159,28 +201,28 @@ export default function GestaoProjetos() {
 
             <Link
               href="/novoProjeto"
-              className="shrink-0 px-5 py-2.5 bg-verde-musgo hover:bg-white hover:text-verde-musgo border-2 border-verde-musgo text-white text-sm font-bold rounded-xl shadow-xs flex items-center gap-2 transition cursor-pointer"
+              className="shrink-0 px-6 py-3 bg-verde-musgo hover:bg-white hover:text-verde-musgo border border-verde-musgo text-white text-sm sm:text-base font-bold rounded-lg shadow-sm flex items-center gap-2 transition cursor-pointer"
             >
               <IoAddOutline size={20} />
               <span>Novo Projeto</span>
             </Link>
           </div>
 
-          {/* Filtros */}
-          <div className="w-full p-5 bg-white border border-verde-musgo rounded-2xl flex flex-col md:flex-row items-stretch md:items-center gap-6">
+          {/* Barra técnica de filtros */}
+          <div className="w-full p-5 bg-white border border-b-4 border-verde-musgo rounded-2xl flex flex-col md:flex-row items-stretch md:items-center gap-6 md:gap-10">
             <div className="flex-1 flex flex-col gap-1">
               <label
                 htmlFor="filtro-categoria"
-                className="text-verde-musgo text-xs font-bold uppercase tracking-wider"
+                className="text-verde-musgo text-xs sm:text-sm font-bold uppercase tracking-wide"
               >
                 Categoria
               </label>
               <div className="relative">
-                <select
+                <Select
                   id="filtro-categoria"
                   value={categoria}
                   onChange={(e) => setCategoria(e.target.value)}
-                  className="w-full appearance-none bg-transparent text-verde-musgo text-sm font-medium pr-7 focus:outline-none cursor-pointer"
+                  className="w-full appearance-none bg-transparent text-verde-musgo text-sm sm:text-base font-medium pr-7 focus:outline-none cursor-pointer"
                 >
                   <option value="">Todas as Categorias</option>
                   {opcoesCategoria.map((op) => (
@@ -188,29 +230,25 @@ export default function GestaoProjetos() {
                       {op}
                     </option>
                   ))}
-                </select>
-                <MdKeyboardArrowDown
-                  size={18}
-                  className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 text-verde-musgo"
-                />
+                </Select>
               </div>
             </div>
 
-            <div className="hidden md:block w-px h-8 bg-verde-escuro/10" />
+            <div className="hidden md:block w-px h-10 bg-verde-escuro/10" />
 
             <div className="flex-1 flex flex-col gap-1">
               <label
                 htmlFor="filtro-escola"
-                className="text-verde-musgo text-xs font-bold uppercase tracking-wider"
+                className="text-verde-musgo text-xs sm:text-sm font-bold uppercase tracking-wide"
               >
                 Escola
               </label>
               <div className="relative">
-                <select
+                <Select
                   id="filtro-escola"
                   value={escola}
                   onChange={(e) => setEscola(e.target.value)}
-                  className="w-full appearance-none bg-transparent text-verde-musgo text-sm font-medium pr-7 focus:outline-none cursor-pointer"
+                  className="w-full appearance-none bg-transparent text-verde-musgo text-sm sm:text-base font-medium pr-7 focus:outline-none cursor-pointer"
                 >
                   <option value="">Todas as Escolas</option>
                   {opcoesEscola.map((op) => (
@@ -218,11 +256,7 @@ export default function GestaoProjetos() {
                       {op}
                     </option>
                   ))}
-                </select>
-                <MdKeyboardArrowDown
-                  size={18}
-                  className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 text-verde-musgo"
-                />
+                </Select>
               </div>
             </div>
           </div>

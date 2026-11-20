@@ -1,5 +1,6 @@
 'use client'
 
+import { Select } from '@/components/Select'
 import { useEffect, useMemo, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -10,13 +11,14 @@ import { correspondeBusca, opcoesUnicas } from '@/utils/filtros'
 import { apiCategorias, apiEscolas, apiTutoriais, mapearTutorialDaApi } from '@/services/api'
 import semaforo from '@/assets/semaforo.png'
 import containerImg from '@/assets/container.png'
-import { IoSearchOutline, IoAddOutline } from 'react-icons/io5'
+import { IoSearchOutline, IoAddOutline, IoSettingsOutline } from 'react-icons/io5'
 import {
-  MdKeyboardArrowDown,
   MdOutlineEdit,
   MdOutlineVisibilityOff,
   MdOutlineVisibility,
-  MdOutlineDeleteOutline
+  MdOutlineDeleteOutline,
+  MdOutlineNotificationsNone,
+  MdPersonOutline
 } from 'react-icons/md'
 
 const opcoesNivel = ['Iniciante', 'Intermediário', 'Avançado']
@@ -131,12 +133,12 @@ export default function GestaoTutoriais() {
   }
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen bg-background relative">
+    <div className="flex flex-col lg:flex-row min-h-screen w-full bg-background relative">
       <SideBarProfessor />
 
       <main className="flex-1 flex flex-col">
-        <div className="w-full max-w-6xl mx-auto py-8 sm:py-10 px-4 sm:px-6 lg:px-8 flex flex-col gap-6 sm:gap-8">
-          {/* Busca superior */}
+        {/* Top Bar alinhada ao Figma */}
+        <header className="w-full px-6 sm:px-10 lg:px-14 pt-6 pb-2 flex items-center justify-between gap-4">
           <div className="relative w-full max-w-[350px]">
             <IoSearchOutline
               size={18}
@@ -152,9 +154,38 @@ export default function GestaoTutoriais() {
             />
           </div>
 
+          <div className="flex items-center gap-4 shrink-0">
+            <button
+              type="button"
+              aria-label="Notificações"
+              className="relative p-1.5 text-verde-escuro hover:text-verde-musgo transition cursor-pointer"
+            >
+              <MdOutlineNotificationsNone size={22} />
+              <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-vermelho" />
+            </button>
+
+            <Link
+              href="/perfil"
+              aria-label="Configurações de Perfil"
+              className="p-1.5 text-verde-escuro hover:text-verde-musgo transition"
+            >
+              <IoSettingsOutline size={20} />
+            </Link>
+
+            <Link
+              href="/perfil"
+              aria-label="Meu Perfil"
+              className="size-10 rounded-full border-2 border-verde-musgo bg-verde-pastel flex items-center justify-center text-verde-escuro hover:brightness-95 transition overflow-hidden"
+            >
+              <MdPersonOutline size={22} />
+            </Link>
+          </div>
+        </header>
+
+        <div className="w-full max-w-[1040px] mx-auto py-6 lg:py-8 px-6 sm:px-10 lg:px-14 flex flex-col gap-6 sm:gap-8">
           {/* Cabeçalho da página */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
-            <section className="flex flex-col gap-2 max-w-[647px]">
+            <section className="flex flex-col gap-2 max-w-[600px]">
               <h1 className="text-verde-escuro text-3xl sm:text-4xl font-bold leading-tight">
                 Meus Tutoriais
               </h1>
@@ -166,15 +197,15 @@ export default function GestaoTutoriais() {
 
             <Link
               href="/cadastrarTutorial"
-              className="shrink-0 px-5 py-2.5 bg-verde-musgo hover:bg-white hover:text-verde-musgo border-2 border-verde-musgo text-white text-sm font-bold rounded-xl shadow-xs flex items-center gap-2 transition cursor-pointer"
+              className="shrink-0 px-6 py-3 bg-verde-musgo hover:bg-white hover:text-verde-musgo border border-verde-musgo text-white text-sm sm:text-base font-bold rounded-lg shadow-sm flex items-center gap-2 transition cursor-pointer"
             >
-              <IoAddOutline size={22} />
+              <IoAddOutline size={20} />
               Nova Publicação
             </Link>
           </div>
 
           {/* Barra técnica de filtros */}
-          <div className="w-full p-6 bg-white/80 backdrop-blur-sm border border-verde-musgo rounded-[20px] flex flex-col md:flex-row items-stretch md:items-center gap-6 md:gap-10">
+          <div className="w-full p-5 bg-white border border-b-4 border-verde-musgo rounded-2xl flex flex-col md:flex-row items-stretch md:items-center gap-6 md:gap-10">
             <div className="flex-1 flex flex-col gap-1">
               <label
                 htmlFor="filtro-nivel"
@@ -183,7 +214,7 @@ export default function GestaoTutoriais() {
                 Nível
               </label>
               <div className="relative">
-                <select
+                <Select
                   id="filtro-nivel"
                   value={nivel}
                   onChange={(e) => setNivel(e.target.value)}
@@ -195,11 +226,7 @@ export default function GestaoTutoriais() {
                       {op}
                     </option>
                   ))}
-                </select>
-                <MdKeyboardArrowDown
-                  size={21}
-                  className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 text-verde-musgo"
-                />
+                </Select>
               </div>
             </div>
 
@@ -213,7 +240,7 @@ export default function GestaoTutoriais() {
                 Categoria
               </label>
               <div className="relative">
-                <select
+                <Select
                   id="filtro-categoria"
                   value={categoria}
                   onChange={(e) => setCategoria(e.target.value)}
@@ -225,11 +252,7 @@ export default function GestaoTutoriais() {
                       {op}
                     </option>
                   ))}
-                </select>
-                <MdKeyboardArrowDown
-                  size={21}
-                  className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 text-verde-musgo"
-                />
+                </Select>
               </div>
             </div>
 
@@ -243,7 +266,7 @@ export default function GestaoTutoriais() {
                 Escola
               </label>
               <div className="relative">
-                <select
+                <Select
                   id="filtro-escola"
                   value={escola}
                   onChange={(e) => setEscola(e.target.value)}
@@ -255,11 +278,7 @@ export default function GestaoTutoriais() {
                       {op}
                     </option>
                   ))}
-                </select>
-                <MdKeyboardArrowDown
-                  size={21}
-                  className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 text-verde-musgo"
-                />
+                </Select>
               </div>
             </div>
           </div>

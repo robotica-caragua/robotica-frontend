@@ -1,11 +1,12 @@
 'use client'
 
+import { Select } from '@/components/Select'
 import { useState } from 'react'
 import Link from 'next/link'
 import { SideBarAdmin } from '@/components/SideBarAdmin'
 import { ModalConfirmacao } from '@/components/ModalConfirmacao'
 import { apiEscolas } from '@/services/api'
-import { IoClose, IoArrowForward, IoChevronDown } from 'react-icons/io5'
+import { IoClose, IoArrowForward } from 'react-icons/io5'
 import { FaBuilding, FaMapMarkerAlt, FaAddressBook } from 'react-icons/fa'
 
 export default function CadastrarEscola() {
@@ -60,19 +61,19 @@ export default function CadastrarEscola() {
   }
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen bg-background relative">
+    <div className="flex flex-col lg:flex-row min-h-screen w-full bg-background relative">
       {/* MENU LATERAL (SIDEBAR) */}
       <SideBarAdmin />
 
       {/* ÁREA DIREITA (Conteúdo) */}
       <main className="flex-1 flex flex-col">
-        <div className="w-full max-w-5xl mx-auto py-8 lg:py-12 px-4 sm:px-8 flex flex-col gap-10">
+        <div className="w-full max-w-[1040px] mx-auto py-8 lg:py-10 px-6 sm:px-10 lg:px-14 flex flex-col gap-8">
           {/* CABEÇALHO DA PÁGINA */}
-          <section className="flex flex-col gap-2 items-center text-center">
-            <h2 className="text-verde-escuro text-2xl font-bold leading-tight">
+          <section className="flex flex-col gap-2">
+            <h1 className="text-verde-escuro text-3xl sm:text-4xl font-bold leading-tight">
               Cadastrar Nova Escola
-            </h2>
-            <p className="text-verde-musgo text-base sm:text-lg lg:text-xl font-normal">
+            </h1>
+            <p className="text-verde-musgo text-sm sm:text-base font-normal">
               Registre uma nova unidade escolar para que ela possa receber equipes e professores no
               circuito de robótica.
             </p>
@@ -132,7 +133,7 @@ export default function CadastrarEscola() {
                     Tipo de Unidade
                   </label>
                   <div className="relative">
-                    <select
+                    <Select
                       id="tipoUnidade"
                       value={form.tipoUnidade}
                       onChange={atualizar('tipoUnidade')}
@@ -143,11 +144,7 @@ export default function CadastrarEscola() {
                       </option>
                       <option value="emef">EMEF</option>
                       <option value="emei">EMEI</option>
-                    </select>
-                    <IoChevronDown
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-verde-musgo pointer-events-none"
-                      size={20}
-                    />
+                    </Select>
                   </div>
                 </div>
               </div>
@@ -205,7 +202,7 @@ export default function CadastrarEscola() {
                     Região
                   </label>
                   <div className="relative">
-                    <select
+                    <Select
                       id="regiao"
                       value={form.regiao}
                       onChange={atualizar('regiao')}
@@ -217,11 +214,7 @@ export default function CadastrarEscola() {
                       <option value="norte">Norte</option>
                       <option value="sul">Sul</option>
                       <option value="centro">Centro</option>
-                    </select>
-                    <IoChevronDown
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-verde-musgo pointer-events-none"
-                      size={20}
-                    />
+                    </Select>
                   </div>
                 </div>
               </div>
@@ -338,7 +331,7 @@ export default function CadastrarEscola() {
             : mensagemErroApi ||
               'Verifique se todos os campos foram preenchidos corretamente e tente salvar mais uma vez.'
         }
-        textoBotaoVoltar="Voltar para Escolas"
+        textoBotaoVoltar="Voltar"
         hrefVoltar="/escolas"
         onTentarNovamente={() => setModal(null)}
       />

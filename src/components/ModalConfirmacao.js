@@ -1,6 +1,6 @@
 'use client'
 
-import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 export function ModalConfirmacao({
   aberto,
@@ -19,6 +19,8 @@ export function ModalConfirmacao({
   onCancelar,
   onTentarNovamente
 }) {
+  const router = useRouter()
+
   if (aberto === false) return null
   if (aberto === undefined && !tipo) return null
 
@@ -137,12 +139,17 @@ export function ModalConfirmacao({
               {textoBotaoPrincipal}
             </button>
           ) : (
-            <Link
-              href={hrefVoltar}
-              className="mt-4 w-full sm:w-auto sm:min-w-[220px] px-8 py-3.5 bg-verde-musgo hover:bg-white hover:text-verde-musgo border-2 border-verde-musgo text-white text-base sm:text-lg font-bold rounded-xl shadow-xs transition text-center"
+            <button
+              type="button"
+              onClick={() =>
+                typeof window !== 'undefined' && window.history.length > 1
+                  ? router.back()
+                  : router.push(hrefVoltar)
+              }
+              className="mt-4 w-full sm:w-auto sm:min-w-[220px] px-8 py-3.5 bg-verde-musgo hover:bg-white hover:text-verde-musgo border-2 border-verde-musgo text-white text-base sm:text-lg font-bold rounded-xl shadow-xs cursor-pointer transition text-center"
             >
               {textoBotaoPrincipal}
-            </Link>
+            </button>
           )
         ) : (
           <div className="mt-4 flex flex-col sm:flex-row justify-center gap-3 w-full max-w-sm">

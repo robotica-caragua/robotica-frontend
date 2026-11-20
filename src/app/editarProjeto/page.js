@@ -1,5 +1,6 @@
 'use client'
 
+import { Select } from '@/components/Select'
 import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import {
@@ -12,12 +13,12 @@ import {
   MdOutlineImage,
   MdOutlineAddAPhoto,
   MdOutlineSave,
-  MdOutlineDelete
+  MdOutlineDelete,
+  MdClose
 } from 'react-icons/md'
-import { IoIosArrowDown } from 'react-icons/io'
 import { AdminSidebar } from '@/components/AdminSidebar'
 import { ModalConfirmacao } from '@/components/ModalConfirmacao'
-import { apiCategorias, apiEscolas, apiProjetos } from '@/services/api'
+import { apiCategorias, apiEscolas, apiProjetos, arquivoParaDataUrl } from '@/services/api'
 
 function ConteudoEditarProjeto() {
   const router = useRouter()
@@ -29,7 +30,9 @@ function ConteudoEditarProjeto() {
   const [categoria, setCategoria] = useState('')
   const [escola, setEscola] = useState('')
   const [descricao, setDescricao] = useState('')
+  const [imagensExistentes, setImagensExistentes] = useState([])
   const [arquivos, setArquivos] = useState([])
+  const [novosPreviews, setNovosPreviews] = useState([])
   const [categoriasLista, setCategoriasLista] = useState([])
   const [escolasLista, setEscolasLista] = useState([])
   const [carregando, setCarregando] = useState(true)
@@ -63,6 +66,13 @@ function ConteudoEditarProjeto() {
           setCategoria(proj.categories?.[0] || '')
           setEscola(proj.school?.name || '')
           setDescricao(proj.description || '')
+          const atuais =
+            Array.isArray(proj.images) && proj.images.length > 0
+              ? proj.images
+              : proj.imageUrl
+                ? [proj.imageUrl]
+                : []
+          setImagensExistentes(atuais)
         }
       })
       .finally(() => {
@@ -74,9 +84,23 @@ function ConteudoEditarProjeto() {
     }
   }, [idParam])
 
-  function handleArquivos(e) {
-    const lista = Array.from(e.target.files || [])
-    setArquivos(lista)
+  async function handleArquivos(e) {
+    const limiteRestante = Math.max(0, 10 - imagensExistentes.length - arquivos.length)
+    const lista = Array.from(e.target.files || []).slice(0, limiteRestante)
+    if (lista.length === 0) return
+    const novasUrls = await Promise.all(lista.map(arquivoParaDataUrl)).catch(() => [])
+    setArquivos((prev) => [...prev, ...lista])
+    setNovosPreviews((prev) => [...prev, ...novasUrls])
+    e.target.value = ''
+  }
+
+  function removerImagemExistente(indice) {
+    setImagensExistentes((prev) => prev.filter((_, idx) => idx !== indice))
+  }
+
+  function removerNovoArquivo(indice) {
+    setArquivos((prev) => prev.filter((_, idx) => idx !== indice))
+    setNovosPreviews((prev) => prev.filter((_, idx) => idx !== indice))
   }
 
   async function handleSalvar(e) {
@@ -100,22 +124,16 @@ function ConteudoEditarProjeto() {
 
     setSalvando(true)
     try {
+      const novasImagens =
+        arquivos.length > 0 ? await Promise.all(arquivos.map(arquivoParaDataUrl)) : []
+      const todasImagens = [...imagensExistentes, ...novasImagens]
+
       await apiProjetos.atualizar(idProjeto, {
         name: nome.trim(),
         description: descricao.trim(),
-        schoolId
+        schoolId,
+        images: todasImagens
       })
-      if (arquivos.length > 0 && idProjeto) {
-        try {
-          const reader = new FileReader()
-          reader.onload = (ev) => {
-            if (ev.target?.result) {
-              window.localStorage.setItem(`foto_projeto_${idProjeto}`, ev.target.result)
-            }
-          }
-          reader.readAsDataURL(arquivos[0])
-        } catch {}
-      }
       setModal({ aberto: true, tipo: 'sucesso', mensagemErro: '' })
     } catch (err) {
       setModal({
@@ -161,15 +179,17 @@ function ConteudoEditarProjeto() {
   }
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen">
+    <div className="flex flex-col lg:flex-row min-h-screen w-full">
       <AdminSidebar variant="professor" />
 
-      <div className="flex flex-1 flex-col px-4 sm:px-6 lg:px-10 pb-16">
-        <main className="mx-auto flex w-full max-w-6xl flex-col gap-6 pt-8 lg:pt-12">
+      <div className="flex flex-1 flex-col pb-16">
+        <main className="w-full max-w-[1040px] mx-auto flex flex-col gap-6 py-8 lg:py-10 px-6 sm:px-10 lg:px-14">
           {/* Cabeçalho */}
           <div>
-            <h1 className="text-2xl font-bold text-verde-escuro">Editar Projeto</h1>
-            <p className="mt-1 text-sm text-verde-musgo">
+            <h1 className="text-3xl sm:text-4xl font-bold text-verde-escuro leading-tight">
+              Editar Projeto
+            </h1>
+            <p className="mt-1 text-sm sm:text-base text-verde-musgo">
               Atualize as informações, descrição ou mídias do projeto da sua turma.
             </p>
           </div>
@@ -201,7 +221,7 @@ function ConteudoEditarProjeto() {
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-medium text-verde-escuro">Categorias</label>
                   <div className="relative">
-                    <select
+                    <Select
                       value={categoria}
                       onChange={(e) => setCategoria(e.target.value)}
                       className="w-full appearance-none rounded-lg border border-verde-musgo bg-input-bg px-4 py-3 pr-10 text-sm text-verde-musgo focus:outline-none cursor-pointer"
@@ -215,15 +235,14 @@ function ConteudoEditarProjeto() {
                       {categoria && !categoriasLista.includes(categoria) && (
                         <option value={categoria}>{categoria}</option>
                       )}
-                    </select>
-                    <IoIosArrowDown className="pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 text-lg text-verde-musgo" />
+                    </Select>
                   </div>
                 </div>
 
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-medium text-verde-escuro">Nome da Escola</label>
                   <div className="relative">
-                    <select
+                    <Select
                       value={escola}
                       onChange={(e) => setEscola(e.target.value)}
                       className="w-full appearance-none rounded-lg border border-verde-musgo bg-input-bg px-4 py-3 pr-10 text-sm text-verde-musgo focus:outline-none cursor-pointer"
@@ -239,8 +258,7 @@ function ConteudoEditarProjeto() {
                       {escola && !escolasLista.some((e) => e.name === escola) && (
                         <option value={escola}>{escola}</option>
                       )}
-                    </select>
-                    <IoIosArrowDown className="pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 text-lg text-verde-musgo" />
+                    </Select>
                   </div>
                 </div>
               </section>
@@ -294,26 +312,67 @@ function ConteudoEditarProjeto() {
                     Enviar mídias do projeto
                   </p>
                   <p className="mt-1 text-xs text-verde-musgo">
-                    Formatos aceitos: JPG, PNG, MP4 ou MOV.
+                    Formatos aceitos: JPG, PNG ou WEBP.
                     <br />
-                    Tamanho máximo: 10MB (fotos) e 500MB (vídeos).
+                    Tamanho máximo: 5MB por foto (até 10 imagens).
                   </p>
 
                   <label className="mt-5 rounded-md bg-verde-limao px-5 py-2 text-xs font-bold uppercase text-verde-escuro hover:brightness-95 cursor-pointer">
-                    Selecionar Arquivos
+                    Selecionar Imagens
                     <input
                       type="file"
                       multiple
-                      accept=".jpg,.jpeg,.png,.mp4,.mov"
+                      accept="image/jpeg,image/png,image/webp"
                       onChange={handleArquivos}
                       className="hidden"
                     />
                   </label>
 
-                  {arquivos.length > 0 && (
-                    <p className="mt-3 text-xs font-semibold text-verde-escuro">
-                      {arquivos.length} arquivo(s) selecionado(s)
-                    </p>
+                  {(imagensExistentes.length > 0 || novosPreviews.length > 0) && (
+                    <div className="mt-6 w-full grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                      {imagensExistentes.map((src, idx) => (
+                        <div
+                          key={`existente-${idx}`}
+                          className="relative aspect-video rounded-xl overflow-hidden border border-verde-musgo/40 bg-white"
+                        >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={src}
+                            alt={`Imagem salva ${idx + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removerImagemExistente(idx)}
+                            aria-label={`Remover imagem salva ${idx + 1}`}
+                            className="absolute top-1.5 right-1.5 size-6 rounded-full bg-vermelho text-white flex items-center justify-center shadow-sm hover:opacity-90 cursor-pointer"
+                          >
+                            <MdClose size={14} />
+                          </button>
+                        </div>
+                      ))}
+                      {novosPreviews.map((src, idx) => (
+                        <div
+                          key={`nova-${idx}`}
+                          className="relative aspect-video rounded-xl overflow-hidden border border-verde-musgo bg-white"
+                        >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={src}
+                            alt={`Nova imagem ${idx + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removerNovoArquivo(idx)}
+                            aria-label={`Remover nova imagem ${idx + 1}`}
+                            className="absolute top-1.5 right-1.5 size-6 rounded-full bg-vermelho text-white flex items-center justify-center shadow-sm hover:opacity-90 cursor-pointer"
+                          >
+                            <MdClose size={14} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
                   )}
                 </div>
               </section>
@@ -358,7 +417,7 @@ function ConteudoEditarProjeto() {
             : modal.mensagemErro ||
               'Verifique se todos os campos foram preenchidos corretamente e tente salvar mais uma vez.'
         }
-        textoBotaoSucesso="Voltar para Projetos"
+        textoBotaoSucesso="Voltar"
         textoConfirmar={modal.tipo === 'confirmacao' ? 'Excluir' : undefined}
         onConfirmar={
           modal.tipo === 'confirmacao'

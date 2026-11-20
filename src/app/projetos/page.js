@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { Suspense, useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { CardProjeto } from '@/components/CardProjeto'
 import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
@@ -16,14 +17,19 @@ import { apiCategorias, apiEscolas, apiProjetos, mapearProjetoDaApi } from '@/se
 
 const ITENS_POR_PAGINA = 9
 
-export default function Projetos() {
+function ProjetosConteudo() {
+  const searchParams = useSearchParams()
+  const escolaUrl = searchParams.get('escola') || ''
+
   const [projetos, setProjetos] = useState([])
   const [categoriasApi, setCategoriasApi] = useState([])
   const [escolasApi, setEscolasApi] = useState([])
   const [carregando, setCarregando] = useState(true)
   const [busca, setBusca] = useState('')
   const [categoria, setCategoria] = useState('')
-  const [escola, setEscola] = useState('')
+  const [escolaSelecionada, setEscolaSelecionada] = useState(null)
+  const escola = escolaSelecionada !== null ? escolaSelecionada : escolaUrl
+  const setEscola = (valor) => setEscolaSelecionada(valor)
   const [ordenacao, setOrdenacao] = useState('recentes')
   const [paginaAtual, setPaginaAtual] = useState(1)
 
@@ -96,20 +102,18 @@ export default function Projetos() {
       <Header />
 
       <main className="grow flex flex-col items-center py-8 sm:py-12">
-        <div className="flex flex-wrap items-center justify-center gap-2 mb-3 text-center px-4">
-          <h1 className="font-extrabold text-3xl sm:text-4xl text-verde-escuro uppercase tracking-tight">
+        {/* Cabeçalho padronizado com Tutoriais */}
+        <section className="flex flex-col items-center text-center gap-2 mb-3 px-4">
+          <h1 className="font-extrabold text-3xl sm:text-4xl uppercase text-verde-escuro tracking-tight">
             Projetos <span className="text-verde-musgo">em Destaque!</span>
           </h1>
-        </div>
-
-        <div className="items-center justify-center text-center px-4 max-w-2xl mx-auto mb-8 sm:mb-10">
-          <p className="text-sm sm:text-base text-verde-musgo font-medium leading-relaxed">
+          <p className="text-sm sm:text-base text-verde-musgo font-medium max-w-2xl mx-auto leading-relaxed">
             Inspire-se com as invenções, protótipos e soluções sustentáveis criadas pelos alunos da
             nossa rede municipal.
           </p>
-        </div>
+        </section>
 
-        <div className="w-full md:w-[85%] lg:w-[75%] mx-auto px-4 flex flex-col lg:flex-row items-start gap-8">
+        <div className="w-full md:w-[85%] lg:w-[75%] max-w-[1200px] mx-auto px-4 flex flex-col lg:flex-row items-start gap-8 mt-6 sm:mt-8">
           <aside className="w-full lg:w-72 shrink-0 flex flex-col gap-5">
             <div className="flex flex-col gap-2 w-full">
               <SearchBar
@@ -123,14 +127,16 @@ export default function Projetos() {
               </p>
             </div>
 
-            <FilterCategory
-              value={categoria}
-              onChange={comReset(setCategoria)}
-              options={categorias}
-            />
-            <FilterSchool value={escola} onChange={comReset(setEscola)} options={escolas} />
+            <div className="flex flex-col gap-4">
+              <FilterCategory
+                value={categoria}
+                onChange={comReset(setCategoria)}
+                options={categorias}
+              />
+              <FilterSchool value={escola} onChange={comReset(setEscola)} options={escolas} />
+            </div>
 
-            <div className="hidden lg:block mt-2">
+            <div className="hidden lg:block">
               <BobIdea />
             </div>
           </aside>
@@ -191,5 +197,13 @@ export default function Projetos() {
 
       <Footer />
     </div>
+  )
+}
+
+export default function Projetos() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-branco-esverdeado/20" />}>
+      <ProjetosConteudo />
+    </Suspense>
   )
 }

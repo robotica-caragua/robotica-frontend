@@ -1,5 +1,6 @@
 'use client'
 
+import { Select } from '@/components/Select'
 import { Suspense, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
@@ -113,11 +114,29 @@ function CadastrarUsuarioConteudo() {
   }
 
   const handleTelefone = (e) => {
-    let valor = e.target.value.replace(/\D/g, '')
-    valor = valor.replace(/^(\d{2})(\d)/g, '+$1 ($2')
-    valor = valor.replace(/(\(\d{2})(\d)/g, '$1) $2')
-    valor = valor.replace(/(\d{5})(\d)/g, '$1-$2')
-    setTelefone(valor.substring(0, 19))
+    let digitos = e.target.value.replace(/\D/g, '')
+    if (digitos.length > 11 && digitos.startsWith('55')) {
+      digitos = digitos.slice(2)
+    }
+    digitos = digitos.slice(0, 11)
+
+    if (digitos.length === 0) {
+      setTelefone('')
+      return
+    }
+    if (digitos.length <= 2) {
+      setTelefone(`(${digitos}`)
+      return
+    }
+    if (digitos.length <= 6) {
+      setTelefone(`(${digitos.slice(0, 2)}) ${digitos.slice(2)}`)
+      return
+    }
+    if (digitos.length <= 10) {
+      setTelefone(`(${digitos.slice(0, 2)}) ${digitos.slice(2, 6)}-${digitos.slice(6)}`)
+      return
+    }
+    setTelefone(`(${digitos.slice(0, 2)}) ${digitos.slice(2, 7)}-${digitos.slice(7)}`)
   }
 
   const handleSubmit = async (e) => {
@@ -165,16 +184,16 @@ function CadastrarUsuarioConteudo() {
   }
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen bg-background relative">
+    <div className="flex flex-col lg:flex-row min-h-screen w-full bg-background relative">
       <SideBarAdmin />
 
       <main className="flex-1 flex flex-col">
-        <div className="w-full max-w-5xl mx-auto py-8 lg:py-12 px-4 sm:px-8 flex flex-col gap-10">
-          <section className="flex flex-col gap-2 items-center text-center">
-            <h2 className="text-verde-escuro text-2xl font-bold leading-tight">
+        <div className="w-full max-w-[1040px] mx-auto py-8 lg:py-10 px-6 sm:px-10 lg:px-14 flex flex-col gap-8">
+          <section className="flex flex-col gap-2">
+            <h1 className="text-verde-escuro text-3xl sm:text-4xl font-bold leading-tight">
               {idEdicao ? 'Editar Professor' : 'Cadastrar Novo Professor'}
-            </h2>
-            <p className="text-verde-musgo text-base sm:text-lg lg:text-xl font-normal">
+            </h1>
+            <p className="text-verde-musgo text-sm sm:text-base font-normal">
               Configure as credenciais e acessos do docente no sistema.
             </p>
           </section>
@@ -248,20 +267,23 @@ function CadastrarUsuarioConteudo() {
                   <label className="text-verde-musgo text-sm font-bold uppercase tracking-wide px-1">
                     Telefone
                   </label>
-                  <input
-                    type="text"
-                    value={telefone}
-                    onChange={handleTelefone}
-                    placeholder="+55 (00) 00000-0000"
-                    className="w-full px-4 py-3.5 bg-input-bg border border-verde-musgo rounded-xl text-verde-escuro placeholder-verde-escuro placeholder-opacity-50 focus:outline-none transition"
-                  />
+                  <div className="flex items-center w-full px-4 py-3.5 bg-input-bg border border-verde-musgo rounded-xl text-verde-escuro focus-within:ring-1 focus-within:ring-verde-musgo transition">
+                    <span className="font-semibold text-verde-escuro select-none mr-1.5">+55</span>
+                    <input
+                      type="text"
+                      value={telefone}
+                      onChange={handleTelefone}
+                      placeholder="(00) 00000-0000"
+                      className="w-full bg-transparent text-verde-escuro placeholder-verde-escuro placeholder-opacity-50 focus:outline-none"
+                    />
+                  </div>
                 </div>
 
                 <div className="flex flex-col gap-2 md:col-span-2">
                   <label className="text-verde-musgo text-sm font-bold uppercase tracking-wide px-1">
                     Escola Vinculada
                   </label>
-                  <select
+                  <Select
                     value={escola}
                     onChange={(e) => setEscola(e.target.value)}
                     className="w-full px-4 py-3.5 bg-input-bg border border-verde-musgo rounded-xl text-verde-escuro focus:outline-none appearance-none cursor-pointer"
@@ -274,7 +296,7 @@ function CadastrarUsuarioConteudo() {
                         {esc.name}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
               </div>
             </div>
@@ -422,7 +444,7 @@ function CadastrarUsuarioConteudo() {
             : mensagemErroApi ||
               'Verifique se todos os campos e requisitos da senha foram preenchidos corretamente e tente salvar mais uma vez.'
         }
-        textoBotaoVoltar="Voltar para Usuários"
+        textoBotaoVoltar="Voltar"
         hrefVoltar="/gestaoUsuarios"
         onTentarNovamente={() => setModal(null)}
       />

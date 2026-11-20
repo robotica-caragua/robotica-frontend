@@ -211,15 +211,17 @@ export default function PerfilPage() {
   }
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen">
+    <div className="flex flex-col lg:flex-row min-h-screen w-full">
       <AdminSidebar variant="professor" />
 
-      <div className="flex flex-1 flex-col px-4 sm:px-6 lg:px-10 pb-16">
-        <main className="mx-auto flex w-full max-w-6xl flex-col gap-6 pt-8 lg:pt-12">
+      <div className="flex flex-1 flex-col pb-16">
+        <main className="w-full max-w-[1040px] mx-auto flex flex-col gap-6 py-8 lg:py-10 px-6 sm:px-10 lg:px-14">
           {/* Cabeçalho */}
           <div>
-            <h1 className="text-2xl font-bold text-verde-escuro">Configurações de Perfil</h1>
-            <p className="mt-1 text-sm text-verde-musgo">
+            <h1 className="text-3xl sm:text-4xl font-bold text-verde-escuro leading-tight">
+              Configurações de Perfil
+            </h1>
+            <p className="mt-1 text-sm sm:text-base text-verde-musgo">
               Gerencie a identidade da sua conta, vínculos escolares e preferências de segurança.
             </p>
           </div>

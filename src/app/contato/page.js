@@ -6,10 +6,12 @@ import { Footer } from '@/components/Footer'
 import { FaArrowRight, FaChevronDown, FaChevronUp } from 'react-icons/fa'
 
 export default function Contato() {
-  const [faqAberto, setFaqAberto] = useState(null)
+  const [faqsAbertos, setFaqsAbertos] = useState([])
 
   const toggleFaq = (index) => {
-    setFaqAberto(faqAberto === index ? null : index)
+    setFaqsAbertos((prev) =>
+      prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
+    )
   }
 
   const faqs = [
@@ -39,17 +41,17 @@ export default function Contato() {
     <div className="flex flex-col min-h-screen bg-branco-esverdeado/20">
       <Header />
       <main className="grow flex flex-col items-center py-8 sm:py-12 px-4">
-        <div className="text-center max-w-2xl mx-auto mb-8 sm:mb-10">
+        <section className="flex flex-col items-center text-center gap-2 mb-3 px-4">
           <h1 className="font-extrabold text-3xl sm:text-4xl text-verde-escuro uppercase tracking-tight">
             Envie sua mensagem <span className="text-verde-musgo">para nós!</span>
           </h1>
-          <p className="mt-2 text-sm sm:text-base text-verde-musgo font-medium leading-relaxed">
+          <p className="text-sm sm:text-base text-verde-musgo font-medium max-w-2xl mx-auto leading-relaxed">
             Dúvidas, sugestões ou parcerias? Entre em contato com a equipe do Conexão Robótica.
           </p>
-        </div>
+        </section>
 
         {/* formulário */}
-        <div className="w-full max-w-4xl bg-white rounded-3xl border border-stone-200 p-6 sm:p-10 shadow-xs">
+        <div className="w-full max-w-4xl bg-white rounded-3xl border border-stone-200 p-6 sm:p-10 shadow-xs mt-6 sm:mt-8">
           <form className="flex flex-col gap-6" onSubmit={(e) => e.preventDefault()}>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div className="flex flex-col gap-1.5">
@@ -132,12 +134,12 @@ export default function Contato() {
         {/* FAQ */}
         <section className="w-full max-w-4xl mt-16 sm:mt-20 mb-8">
           <h2 className="text-center text-verde-escuro text-xl sm:text-2xl font-extrabold uppercase tracking-tight mb-8">
-            Perguntas Frequentes
+            Perguntas <span className="text-verde-musgo">Frequentes</span>
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
             {faqs.map((faq, index) => {
-              const isOpen = faqAberto === index
+              const isOpen = faqsAbertos.includes(index)
               return (
                 <div
                   key={index}

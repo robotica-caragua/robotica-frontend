@@ -128,16 +128,18 @@ export default function DashboardPage() {
   ]
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen">
+    <div className="flex flex-col lg:flex-row min-h-screen w-full bg-background relative">
       <AdminSidebar />
 
-      <div className="flex flex-1 flex-col px-4 sm:px-6 lg:px-10 pb-16">
-        <main className="mx-auto flex w-full max-w-6xl flex-col gap-8 pt-6 sm:pt-12">
+      <div className="flex flex-1 flex-col pb-16">
+        <main className="w-full max-w-[1040px] mx-auto flex flex-col gap-8 py-8 lg:py-10 px-6 sm:px-10 lg:px-14">
           {/* Cabeçalho */}
           <div className="flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-verde-escuro">Visão Geral da Rede</h1>
-              <p className="mt-1 text-sm sm:text-base text-verde-musgo">
+            <div className="max-w-[600px]">
+              <h1 className="text-3xl sm:text-4xl font-bold text-verde-escuro leading-tight">
+                Visão Geral da Rede
+              </h1>
+              <p className="mt-2 text-sm sm:text-base text-verde-musgo">
                 Acompanhe o engajamento e os números globais.
               </p>
             </div>
@@ -145,7 +147,7 @@ export default function DashboardPage() {
             <div className="flex flex-col gap-2.5">
               <Link
                 href="/cadastrarUsuario"
-                className="flex w-48 items-center justify-center gap-2 rounded-lg bg-verde-musgo px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:brightness-90 cursor-pointer"
+                className="flex w-52 items-center justify-center gap-2 rounded-lg bg-verde-musgo hover:bg-white hover:text-verde-musgo border border-verde-musgo px-5 py-3 text-sm font-bold text-white shadow-sm transition cursor-pointer"
               >
                 <MdAdd size={18} />
                 Novo Professor
@@ -153,7 +155,7 @@ export default function DashboardPage() {
 
               <Link
                 href="/cadastrarEscola"
-                className="flex w-48 items-center justify-center gap-2 rounded-lg border border-b-3 border-verde-musgo bg-white px-5 py-2 text-sm font-semibold text-verde-musgo hover:bg-verde-pastel"
+                className="flex w-52 items-center justify-center gap-2 rounded-lg border border-b-3 border-verde-musgo bg-white hover:bg-verde-pastel px-5 py-2.5 text-sm font-bold text-verde-musgo transition"
               >
                 <MdOutlineApartment size={18} />
                 Nova Escola
@@ -166,25 +168,29 @@ export default function DashboardPage() {
             {cards.map(({ label, value, icon: Icon }) => (
               <div
                 key={label}
-                className="relative flex flex-col justify-between overflow-hidden rounded-2xl bg-white p-5 shadow-sm"
+                className="relative flex flex-col justify-between overflow-hidden rounded-2xl bg-white p-6 shadow-md"
               >
                 <Icon
-                  size={44}
+                  size={52}
                   className="pointer-events-none absolute top-3 right-3 text-verde-escuro/10"
                 />
-                <p className="text-[11px] font-bold uppercase tracking-wide text-verde-musgo">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-verde-musgo">
                   {label}
                 </p>
-                <p className="mt-2 mb-4 text-2xl font-bold text-verde-escuro">{value}</p>
-                <div className="h-1 w-full rounded-full bg-verde-oliva" />
+                <p className="mt-2 mb-4 text-3xl sm:text-4xl font-extrabold text-verde-escuro">
+                  {value}
+                </p>
+                <div className="h-1 w-full rounded-full bg-verde-limao" />
               </div>
             ))}
           </div>
 
           {/* Últimas Movimentações */}
-          <section className="rounded-2xl border border-verde-musgo/60 bg-white py-6">
+          <section className="rounded-2xl border border-verde-musgo bg-white py-6 shadow-sm">
             <div className="flex items-center justify-between border-b border-verde-escuro/10 px-6 pb-4">
-              <h2 className="text-lg font-bold text-verde-escuro">Últimas Movimentações</h2>
+              <h2 className="text-lg sm:text-xl font-bold text-verde-escuro">
+                Últimas Movimentações
+              </h2>
               <Link
                 href="/projetos"
                 className="text-xs font-bold text-verde-musgo hover:underline cursor-pointer"
@@ -198,14 +204,14 @@ export default function DashboardPage() {
                 Carregando movimentações da rede...
               </p>
             ) : movimentacoes.length > 0 ? (
-              <ul className="divide-y divide-verde-escuro/5 px-6">
+              <ul className="divide-y divide-verde-escuro/10 px-6">
                 {movimentacoes.map((item) => {
                   const Icone = iconesMovimentacao[item.tipo] || MdOutlineBuild
 
                   return (
                     <li key={item.id} className="flex items-center justify-between gap-4 py-5">
                       <div className="flex items-start gap-4">
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-verde-oliva text-verde-escuro">
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-verde-limao text-verde-escuro">
                           <Icone size={20} />
                         </div>
                         <div className="text-sm text-verde-escuro">

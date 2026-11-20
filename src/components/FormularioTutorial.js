@@ -1,5 +1,6 @@
 'use client'
 
+import { Select } from '@/components/Select'
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -20,7 +21,6 @@ import {
   MdOutlineVideoCall,
   MdOutlineImage,
   MdOutlineAddAPhoto,
-  MdKeyboardArrowDown,
   MdFormatBold,
   MdFormatItalic,
   MdFormatListBulleted,
@@ -202,24 +202,15 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
       difficulty: converterNivelParaDificuldade(form.nivel),
       schoolId,
       materialsNeeded: materiais.map((m) => m.nome.slice(0, 80)),
-      tutorialUrl: dadosIniciais.tutorialUrl
+      tutorialUrl: dadosIniciais.tutorialUrl,
+      ...(imagemPreview ? { images: [imagemPreview] } : {})
     }
 
     try {
       if (ehEdicao && dadosIniciais.id) {
         await apiTutoriais.atualizar(dadosIniciais.id, payload)
-        if (imagemPreview) {
-          try {
-            window.localStorage.setItem(`foto_tutorial_${dadosIniciais.id}`, imagemPreview)
-          } catch {}
-        }
       } else {
-        const criado = await apiTutoriais.criar(payload)
-        if (imagemPreview && criado?.id) {
-          try {
-            window.localStorage.setItem(`foto_tutorial_${criado.id}`, imagemPreview)
-          } catch {}
-        }
+        await apiTutoriais.criar(payload)
       }
       setMensagemErroApi('')
       setModal('sucesso')
@@ -244,17 +235,17 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
   const rotuloVideo = video?.name || nomeVideoInicial
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen bg-background relative">
+    <div className="flex flex-col lg:flex-row min-h-screen w-full bg-background relative">
       <SideBarProfessor />
 
       <main className="flex-1 flex flex-col">
-        <div className="w-full max-w-5xl mx-auto py-8 sm:py-10 px-4 sm:px-6 lg:px-8 flex flex-col gap-8">
+        <div className="w-full max-w-[1040px] mx-auto py-8 lg:py-10 px-6 sm:px-10 lg:px-14 flex flex-col gap-8">
           {/* Cabeçalho */}
-          <section className="flex flex-col gap-2.5">
-            <h1 className="text-verde-escuro text-2xl font-bold leading-tight">
+          <section className="flex flex-col gap-2">
+            <h1 className="text-verde-escuro text-3xl sm:text-4xl font-bold leading-tight">
               {ehEdicao ? 'Editar Tutorial' : 'Criar Novo Tutorial'}
             </h1>
-            <p className="text-verde-musgo text-base sm:text-xl font-normal">
+            <p className="text-verde-musgo text-sm sm:text-base font-normal">
               {ehEdicao
                 ? 'Atualize as informações, adicione novos passos ou altere os materiais do seu protótipo.'
                 : 'Transforme o trabalho da sua turma em um tutorial para toda a nossa rede.'}
@@ -290,7 +281,7 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
                       Categorias
                     </label>
                     <div className="relative">
-                      <select
+                      <Select
                         id="categoria-tutorial"
                         value={form.categoria}
                         onChange={atualizar('categoria')}
@@ -308,11 +299,7 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
                           !categorias.some((cat) => cat.name === form.categoria) && (
                             <option value={form.categoria}>{form.categoria}</option>
                           )}
-                      </select>
-                      <MdKeyboardArrowDown
-                        size={26}
-                        className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-verde-escuro"
-                      />
+                      </Select>
                     </div>
                   </div>
 
@@ -350,7 +337,7 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
                     Nome da Escola
                   </label>
                   <div className="relative">
-                    <select
+                    <Select
                       id="escola-tutorial"
                       value={form.escola}
                       onChange={atualizar('escola')}
@@ -367,11 +354,7 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
                       {form.escola && !escolas.some((esc) => esc.name === form.escola) && (
                         <option value={form.escola}>{form.escola}</option>
                       )}
-                    </select>
-                    <MdKeyboardArrowDown
-                      size={26}
-                      className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-verde-escuro"
-                    />
+                    </Select>
                   </div>
                 </div>
               </div>
@@ -687,7 +670,7 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
             : mensagemErroApi ||
               'Verifique se todos os campos foram preenchidos corretamente e tente salvar mais uma vez.'
         }
-        textoBotaoVoltar="Voltar para Tutoriais"
+        textoBotaoVoltar="Voltar"
         hrefVoltar="/gestaoTutoriais"
         onTentarNovamente={() => setModal(null)}
       />

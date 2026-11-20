@@ -43,7 +43,7 @@ export function AdminSidebar({ variant = 'admin' }) {
   const links = variant === 'professor' ? professorLinks : adminLinks
 
   return (
-    <aside className="w-full lg:w-60 shrink-0 flex flex-col border-b lg:border-b-0 lg:border-r border-verde-pastel bg-input-bg px-4 sm:px-5 py-4 lg:py-6">
+    <aside className="w-full lg:w-64 shrink-0 flex flex-col border-b lg:border-b-0 lg:border-r border-verde-pastel bg-input-bg px-4 sm:px-5 py-4 lg:py-6">
       {/* Topo com Logo padrão Conexão Robótica */}
       <div className="flex items-center justify-between lg:mb-8">
         <Link href="/" className="block w-fit px-1">

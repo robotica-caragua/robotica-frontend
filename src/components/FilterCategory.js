@@ -1,32 +1,24 @@
-import { IoIosArrowDown } from 'react-icons/io'
+import { Select } from '@/components/Select'
 
 export function FilterCategory({ value, onChange, options = [] }) {
   return (
-    <div className="flex flex-col gap-2 w-full">
-      <label
-        htmlFor="categoria"
-        className="text-verde-escuro text-xl font-medium tracking-wide ml-1"
-      >
+    <div className="flex flex-col gap-1 w-full font-sans">
+      <label htmlFor="categoria" className="block text-verde-escuro text-xl font-medium">
         Categoria
       </label>
-      <div className="relative">
-        <select
-          id="categoria"
-          value={value}
-          onChange={(e) => onChange?.(e.target.value)}
-          className="w-full appearance-none bg-white text-verde-musgo text-base font-normal px-4 py-3 rounded-lg outline outline-2 outline-offset-[-2px] outline-verde-musgo cursor-pointer"
-        >
-          <option value="">Todas as Categorias</option>
-          {options.map((opcao) => (
-            <option key={opcao} value={opcao}>
-              {opcao}
-            </option>
-          ))}
-        </select>
-        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-verde-musgo">
-          <IoIosArrowDown size={24} />
-        </div>
-      </div>
+      <Select
+        id="categoria"
+        value={value}
+        onChange={(e) => onChange?.(e.target.value)}
+        className="w-full h-13 rounded-lg border-2 border-verde-musgo bg-white px-5 text-verde-musgo text-base font-normal focus:outline-none"
+      >
+        <option value="">Todas as Categorias</option>
+        {options.map((opcao) => (
+          <option key={opcao} value={opcao}>
+            {opcao}
+          </option>
+        ))}
+      </Select>
     </div>
   )
 }
