@@ -13,13 +13,13 @@ import { correspondeBusca } from '@/utils/filtros'
 
 function Filtro({ label, value, onChange, children }) {
   return (
-    <label className="flex flex-col border-l border-verde-musgo/20 pl-6">
+    <label className="flex flex-col w-full sm:w-auto border-t sm:border-t-0 sm:border-l border-verde-musgo/20 pt-3 sm:pt-0 sm:pl-6">
       <span className="text-xs font-bold uppercase text-verde-escuro">{label}</span>
       <div className="relative">
         <select
           value={value}
           onChange={onChange}
-          className="appearance-none bg-transparent pr-14 text-sm text-verde-musgo focus:outline-none cursor-pointer"
+          className="w-full appearance-none bg-transparent pr-14 text-sm text-verde-musgo focus:outline-none cursor-pointer"
         >
           {children}
         </select>
@@ -129,7 +129,8 @@ export default function GestaoEscolas() {
         aberto: true,
         tipo: 'erro',
         titulo: 'Erro ao excluir escola',
-        mensagem: err?.message || 'Não foi possível excluir a escola. Verifique se o servidor está ativo.',
+        mensagem:
+          err?.message || 'Não foi possível excluir a escola. Verifique se o servidor está ativo.',
         escolaParaExcluir: null
       })
     }
@@ -152,9 +153,7 @@ export default function GestaoEscolas() {
           {/* Título da página */}
           <div className="mb-2 flex flex-wrap items-center justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-verde-escuro">
-                Gestão de Escolas
-              </h1>
+              <h1 className="text-2xl font-bold text-verde-escuro">Gestão de Escolas</h1>
               <p className="mt-1 max-w-sm text-sm sm:text-base text-verde-musgo">
                 Administre as unidades da rede conectadas ao sistema.
               </p>
@@ -179,9 +178,9 @@ export default function GestaoEscolas() {
           </div>
 
           {/* Busca e filtros */}
-          <div className="flex flex-wrap items-center gap-6 rounded-2xl border border-b-4 border-verde-musgo bg-white px-5 py-4">
-            <div className="flex flex-1 items-center gap-3">
-              <IoSearchSharp className="text-xl text-verde-musgo" />
+          <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 sm:gap-6 rounded-2xl border border-b-4 border-verde-musgo bg-white px-5 py-4">
+            <div className="flex flex-1 items-center gap-3 min-w-[200px]">
+              <IoSearchSharp className="text-xl text-verde-musgo shrink-0" />
               <input
                 type="text"
                 value={busca}
@@ -211,7 +210,7 @@ export default function GestaoEscolas() {
           </div>
 
           {/* Atividade recente */}
-          <section className="rounded-2xl border border-verde-musgo bg-white px-8 py-6">
+          <section className="rounded-2xl border border-verde-musgo bg-white px-5 sm:px-8 py-6">
             <h2 className="mb-5 text-xl font-bold text-verde-escuro">Atividade Recente</h2>
             {atividadesRecentes.length > 0 ? (
               <ul className="flex flex-col gap-4">
@@ -271,7 +270,11 @@ export default function GestaoEscolas() {
           mensagem={modal.mensagem}
           textoConfirmar="Excluir"
           textoCancelar="Cancelar"
-          onConfirmar={modal.tipo === 'confirmacao' ? handleConfirmarExclusao : () => setModal((prev) => ({ ...prev, aberto: false }))}
+          onConfirmar={
+            modal.tipo === 'confirmacao'
+              ? handleConfirmarExclusao
+              : () => setModal((prev) => ({ ...prev, aberto: false }))
+          }
           onCancelar={() => setModal((prev) => ({ ...prev, aberto: false }))}
         />
       )}

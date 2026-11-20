@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useEffect, useState } from 'react'
+import { Suspense, useMemo } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
@@ -89,14 +89,10 @@ const eventosMock = [
 function DetalhesEventoConteudo() {
   const searchParams = useSearchParams()
   const id = searchParams.get('id')
-  const [evento, setEvento] = useState(eventosMock[0])
-
-  useEffect(() => {
-    if (id) {
-      const encontrado = eventosMock.find((e) => e.id === id) || eventosMock[0]
-      setEvento(encontrado)
-    }
-  }, [id])
+  const evento = useMemo(
+    () => (id ? eventosMock.find((e) => e.id === id) || eventosMock[0] : eventosMock[0]),
+    [id]
+  )
 
   return (
     <main className="grow flex flex-col items-center py-8 sm:py-12 px-4 sm:px-6 bg-branco-esverdeado/30 min-h-screen">

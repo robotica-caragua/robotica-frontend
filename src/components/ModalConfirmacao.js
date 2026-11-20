@@ -24,7 +24,6 @@ export function ModalConfirmacao({
 
   const ehSucesso = tipo === 'sucesso'
   const ehConfirmacao = tipo === 'confirmacao' || tipo === 'excluir'
-  const ehErro = tipo === 'erro' || tipo === 'negativa'
 
   const tituloFormatado =
     titulo ||
@@ -38,7 +37,10 @@ export function ModalConfirmacao({
         : 'Não foi possível concluir')
 
   const textoBotaoPrincipal =
-    textoConfirmar || textoBotaoSucesso || textoBotaoVoltar || (ehSucesso ? 'Continuar' : 'Entendido')
+    textoConfirmar ||
+    textoBotaoSucesso ||
+    textoBotaoVoltar ||
+    (ehSucesso ? 'Continuar' : 'Entendido')
 
   return (
     <div

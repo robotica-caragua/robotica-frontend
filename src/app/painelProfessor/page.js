@@ -38,7 +38,13 @@ export default function PainelProfessor() {
   const [busca, setBusca] = useState('')
   const [publicacoes, setPublicacoes] = useState([])
   const [carregando, setCarregando] = useState(true)
-  const [modal, setModal] = useState({ aberto: false, tipo: 'confirmacao', titulo: '', mensagem: '', pubParaExcluir: null })
+  const [modal, setModal] = useState({
+    aberto: false,
+    tipo: 'confirmacao',
+    titulo: '',
+    mensagem: '',
+    pubParaExcluir: null
+  })
   const [nomeProfessor, setNomeProfessor] = useState(() => obterUsuario()?.name || 'Professor(a)')
   const [nomeEscola, setNomeEscola] = useState('Rede Municipal de Caraguatatuba')
 
@@ -278,8 +284,8 @@ export default function PainelProfessor() {
                         !pub.visivel ? 'opacity-60' : ''
                       }`}
                     >
-                      <div className="flex items-center gap-5">
-                        <div className="relative w-32 h-20 shrink-0 rounded-lg overflow-hidden bg-gray-200">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-5 w-full sm:w-auto">
+                        <div className="relative w-full sm:w-32 h-36 sm:h-20 shrink-0 rounded-lg overflow-hidden bg-gray-200">
                           <Image src={pub.imagem} alt={pub.titulo} fill className="object-cover" />
                         </div>
 
@@ -409,7 +415,11 @@ export default function PainelProfessor() {
           mensagem={modal.mensagem}
           textoConfirmar="Excluir"
           textoCancelar="Cancelar"
-          onConfirmar={modal.tipo === 'confirmacao' ? handleConfirmarExclusaoPublicacao : () => setModal((prev) => ({ ...prev, aberto: false }))}
+          onConfirmar={
+            modal.tipo === 'confirmacao'
+              ? handleConfirmarExclusaoPublicacao
+              : () => setModal((prev) => ({ ...prev, aberto: false }))
+          }
           onCancelar={() => setModal((prev) => ({ ...prev, aberto: false }))}
         />
       )}

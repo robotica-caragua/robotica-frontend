@@ -40,9 +40,7 @@ export function Card({
         <h3 className="text-base sm:text-lg font-bold text-verde-escuro uppercase leading-tight truncate">
           {title}
         </h3>
-        <p className="text-xs sm:text-sm text-stone-500 font-normal line-clamp-2">
-          {description}
-        </p>
+        <p className="text-xs sm:text-sm text-stone-500 font-normal line-clamp-2">{description}</p>
 
         <div className="mt-auto pt-3 border-t border-stone-200 flex items-center justify-between">
           <button

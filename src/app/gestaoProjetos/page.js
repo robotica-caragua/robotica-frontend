@@ -6,12 +6,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { SideBarProfessor } from '@/components/SideBarProfessor'
 import { ModalConfirmacao } from '@/components/ModalConfirmacao'
-import {
-  apiCategorias,
-  apiEscolas,
-  apiProjetos,
-  mapearProjetoDaApi
-} from '@/services/api'
+import { apiProjetos, mapearProjetoDaApi } from '@/services/api'
 import { IoSearchOutline, IoAddOutline } from 'react-icons/io5'
 import {
   MdKeyboardArrowDown,
@@ -32,38 +27,38 @@ export default function GestaoProjetos() {
   const [escola, setEscola] = useState('')
   const [modal, setModal] = useState({ aberto: false, tipo: null, mensagem: '', titulo: '' })
 
-  const carregarProjetos = async () => {
-    setCarregando(true)
-    try {
-      const [listaProjetos, listaCategorias, listaEscolas] = await Promise.all([
-        apiProjetos.listar().catch(() => []),
-        apiCategorias.listar().catch(() => []),
-        apiEscolas.listar().catch(() => [])
-      ])
-
-      const dados = (Array.isArray(listaProjetos) ? listaProjetos : []).map((item, idx) => {
-        const mapeado = mapearProjetoDaApi(item)
-        return {
-          id: item.id,
-          titulo: item.name || mapeado.titulo,
-          descricao: item.description || mapeado.descricao,
-          imagem: idx % 2 === 0 ? containerImg : semaforo,
-          status: 'publicado',
-          visivel: true,
-          escola: item.school?.name || mapeado.escola || 'Rede Municipal',
-          categorias: mapeado.categorias || [],
-          curtidas: item.likes || mapeado.curtidas || 0,
-          infoData: `Atualizado em ${new Date(item.updatedAt || item.createdAt || Date.now()).toLocaleDateString('pt-BR')}`
-        }
-      })
-      setProjetos(dados)
-    } finally {
-      setCarregando(false)
-    }
-  }
-
   useEffect(() => {
-    carregarProjetos()
+    let ativo = true
+
+    apiProjetos
+      .listar()
+      .catch(() => [])
+      .then((listaProjetos) => {
+        if (!ativo) return
+        const dados = (Array.isArray(listaProjetos) ? listaProjetos : []).map((item, idx) => {
+          const mapeado = mapearProjetoDaApi(item)
+          return {
+            id: item.id,
+            titulo: item.name || mapeado.titulo,
+            descricao: item.description || mapeado.descricao,
+            imagem: idx % 2 === 0 ? containerImg : semaforo,
+            status: 'publicado',
+            visivel: true,
+            escola: item.school?.name || mapeado.escola || 'Rede Municipal',
+            categorias: mapeado.categorias || [],
+            curtidas: item.likes || mapeado.curtidas || 0,
+            infoData: `Atualizado em ${new Date(item.updatedAt || item.createdAt || Date.now()).toLocaleDateString('pt-BR')}`
+          }
+        })
+        setProjetos(dados)
+      })
+      .finally(() => {
+        if (ativo) setCarregando(false)
+      })
+
+    return () => {
+      ativo = false
+    }
   }, [])
 
   const opcoesCategoria = useMemo(() => {
@@ -92,9 +87,7 @@ export default function GestaoProjetos() {
   }, [projetos, busca, categoria, escola])
 
   const alternarVisibilidade = (id) => {
-    setProjetos((lista) =>
-      lista.map((p) => (p.id === id ? { ...p, visivel: !p.visivel } : p))
-    )
+    setProjetos((lista) => lista.map((p) => (p.id === id ? { ...p, visivel: !p.visivel } : p)))
   }
 
   const excluirProjeto = (proj) => {
@@ -337,9 +330,15 @@ export default function GestaoProjetos() {
           textoBotaoVoltar="Continuar"
           hrefVoltar="/gestaoProjetos"
           textoConfirmar={modal.tipo === 'confirmacao' ? 'Excluir' : undefined}
-          onConfirmar={modal.tipo === 'confirmacao' ? handleConfirmarExclusaoProjeto : () => setModal({ aberto: false, tipo: null, mensagem: '', titulo: '' })}
+          onConfirmar={
+            modal.tipo === 'confirmacao'
+              ? handleConfirmarExclusaoProjeto
+              : () => setModal({ aberto: false, tipo: null, mensagem: '', titulo: '' })
+          }
           onCancelar={() => setModal({ aberto: false, tipo: null, mensagem: '', titulo: '' })}
-          onTentarNovamente={() => setModal({ aberto: false, tipo: null, mensagem: '', titulo: '' })}
+          onTentarNovamente={() =>
+            setModal({ aberto: false, tipo: null, mensagem: '', titulo: '' })
+          }
         />
       )}
     </div>

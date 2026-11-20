@@ -104,8 +104,8 @@ export default function Projetos() {
 
         <div className="items-center justify-center text-center px-4 max-w-2xl mx-auto mb-8 sm:mb-10">
           <p className="text-sm sm:text-base text-verde-musgo font-medium leading-relaxed">
-            Inspire-se com as invenções, protótipos e soluções sustentáveis
-            criadas pelos alunos da nossa rede municipal.
+            Inspire-se com as invenções, protótipos e soluções sustentáveis criadas pelos alunos da
+            nossa rede municipal.
           </p>
         </div>
 
@@ -180,7 +180,11 @@ export default function Projetos() {
 
         {totalPaginas > 1 && (
           <div className="mt-10">
-            <Page currentPage={paginaAtual} totalPages={totalPaginas} onPageChange={setPaginaAtual} />
+            <Page
+              currentPage={paginaAtual}
+              totalPages={totalPaginas}
+              onPageChange={setPaginaAtual}
+            />
           </div>
         )}
       </main>

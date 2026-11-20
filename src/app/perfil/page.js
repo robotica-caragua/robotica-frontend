@@ -218,9 +218,7 @@ export default function PerfilPage() {
         <main className="mx-auto flex w-full max-w-6xl flex-col gap-6 pt-8 lg:pt-12">
           {/* Cabeçalho */}
           <div>
-            <h1 className="text-2xl font-bold text-verde-escuro">
-              Configurações de Perfil
-            </h1>
+            <h1 className="text-2xl font-bold text-verde-escuro">Configurações de Perfil</h1>
             <p className="mt-1 text-sm text-verde-musgo">
               Gerencie a identidade da sua conta, vínculos escolares e preferências de segurança.
             </p>

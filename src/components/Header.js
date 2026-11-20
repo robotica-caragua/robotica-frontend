@@ -22,7 +22,10 @@ export function Header() {
   }, [menuAberto])
 
   return (
-    <header id="topo" className="w-full md:w-[85%] lg:w-[75%] mx-auto my-3 sm:my-4 lg:my-6 px-4 sm:px-6">
+    <header
+      id="topo"
+      className="w-full md:w-[85%] lg:w-[75%] mx-auto my-3 sm:my-4 lg:my-6 px-4 sm:px-6"
+    >
       <div className="h-16 flex items-center justify-between flex-row-reverse lg:flex-row">
         {/* Logo (à direita no mobile conforme Figma, à esquerda no desktop) */}
         <Link href="/" className="block w-fit shrink-0">

@@ -8,7 +8,13 @@ export function Footer() {
     <footer className="w-full max-w-[100vw] mx-auto items-center justify-between mt-8 bg-verde-pastel pt-8 pb-6">
       <div className="flex items-center gap-4 justify-between px-6 max-w-7xl mx-auto">
         <div className="w-10"></div>
-        <Image src={Logo} alt="Logo Conexão Robótica" width={180} height={50} className="w-36 sm:w-44 h-auto" />
+        <Image
+          src={Logo}
+          alt="Logo Conexão Robótica"
+          width={180}
+          height={50}
+          className="w-36 sm:w-44 h-auto"
+        />
         <Link
           href="#topo"
           aria-label="Voltar ao topo da página"

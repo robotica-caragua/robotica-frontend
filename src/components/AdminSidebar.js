@@ -77,7 +77,8 @@ export function AdminSidebar({ variant = 'admin' }) {
             const isActive =
               pathname === href ||
               (href === '/dashboard' && pathname === '/admin') ||
-              (href === '/gestaoProjetos' && (pathname.includes('projeto') || pathname.includes('Projeto'))) ||
+              (href === '/gestaoProjetos' &&
+                (pathname.includes('projeto') || pathname.includes('Projeto'))) ||
               (href === '/gestaoTutoriais' && pathname.includes('Tutorial')) ||
               (href === '/grupos' && (pathname.includes('grupo') || pathname.includes('Equipe'))) ||
               (href === '/gestaoUsuarios' && pathname.includes('Usuario')) ||

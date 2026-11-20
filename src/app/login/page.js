@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Button } from '@/components/Button'
 import { Header } from '@/components/Header'
 import Image from 'next/image'
 import Link from 'next/link'

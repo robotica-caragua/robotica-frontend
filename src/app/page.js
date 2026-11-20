@@ -14,7 +14,6 @@ import working from '../assets/working.png'
 import { Header } from '@/components/Header'
 import { CardEvento } from '@/components/CardEvento'
 import { Footer } from '@/components/Footer'
-import { apiProjetos, apiTutoriais } from '@/services/api'
 
 const pillars = [
   { title: 'ROBÓTICA ACESSÍVEL', Icon: FaRobot },
@@ -95,7 +94,7 @@ const escolasHomePadrao = [
 ]
 
 export default function HomePage() {
-  const [destaques, setDestaques] = useState(eventosHomePadrao)
+  const destaques = eventosHomePadrao
   const [indiceInicial, setIndiceInicial] = useState(0)
   const [palavraAtiva, setPalavraAtiva] = useState(0)
 
@@ -284,7 +283,8 @@ export default function HomePage() {
             </InfoItem>
 
             <InfoItem Icon={ImBooks} title="Educação Inclusiva">
-              Portal totalmente acessível para garantir que a tecnologia chegue a todos os estudantes.
+              Portal totalmente acessível para garantir que a tecnologia chegue a todos os
+              estudantes.
             </InfoItem>
           </div>
         </div>

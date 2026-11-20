@@ -27,7 +27,13 @@ export default function GestaoTutoriais() {
   const [categoriasApi, setCategoriasApi] = useState([])
   const [escolasApi, setEscolasApi] = useState([])
   const [carregando, setCarregando] = useState(true)
-  const [modal, setModal] = useState({ aberto: false, tipo: 'confirmacao', titulo: '', mensagem: '', tutorialParaExcluir: null })
+  const [modal, setModal] = useState({
+    aberto: false,
+    tipo: 'confirmacao',
+    titulo: '',
+    mensagem: '',
+    tutorialParaExcluir: null
+  })
   const [busca, setBusca] = useState('')
   const [nivel, setNivel] = useState('')
   const [categoria, setCategoria] = useState('')
@@ -97,22 +103,22 @@ export default function GestaoTutoriais() {
       titulo: 'Excluir Tutorial?',
       mensagem: `Deseja realmente remover o tutorial "${tutorial.titulo}"?`,
       tutorialParaExcluir: tutorial
-    });
-  };
+    })
+  }
 
   const handleConfirmarExclusaoTutorial = async () => {
-    if (!modal.tutorialParaExcluir) return;
-    const tut = modal.tutorialParaExcluir;
+    if (!modal.tutorialParaExcluir) return
+    const tut = modal.tutorialParaExcluir
     try {
-      await apiTutoriais.excluir(tut.id);
-      setTutoriais((prev) => prev.filter((item) => item.id !== tut.id));
+      await apiTutoriais.excluir(tut.id)
+      setTutoriais((prev) => prev.filter((item) => item.id !== tut.id))
       setModal({
         aberto: true,
         tipo: 'sucesso',
         titulo: 'Tutorial excluído com sucesso!',
         mensagem: `O tutorial "${tut.titulo}" foi removido do catálogo.`,
         tutorialParaExcluir: null
-      });
+      })
     } catch (err) {
       setModal({
         aberto: true,
@@ -120,9 +126,9 @@ export default function GestaoTutoriais() {
         titulo: 'Erro ao excluir tutorial',
         mensagem: err?.message || 'Não foi possível excluir o tutorial.',
         tutorialParaExcluir: null
-      });
+      })
     }
-  };
+  }
 
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-background relative">
@@ -376,7 +382,11 @@ export default function GestaoTutoriais() {
           mensagem={modal.mensagem}
           textoConfirmar="Excluir"
           textoCancelar="Cancelar"
-          onConfirmar={modal.tipo === 'confirmacao' ? handleConfirmarExclusaoTutorial : () => setModal((prev) => ({ ...prev, aberto: false }))}
+          onConfirmar={
+            modal.tipo === 'confirmacao'
+              ? handleConfirmarExclusaoTutorial
+              : () => setModal((prev) => ({ ...prev, aberto: false }))
+          }
           onCancelar={() => setModal((prev) => ({ ...prev, aberto: false }))}
         />
       )}
