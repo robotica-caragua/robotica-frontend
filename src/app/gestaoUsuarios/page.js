@@ -182,7 +182,7 @@ export default function GestaoUsuarios() {
     <div className="flex flex-col lg:flex-row min-h-screen w-full bg-background relative">
       <SideBarAdmin />
 
-      <main className="flex-1 flex flex-col">
+      <main className="flex-1 flex flex-col pb-16">
         <div className="w-full max-w-[1040px] mx-auto py-8 lg:py-10 px-6 sm:px-10 lg:px-14 flex flex-col gap-6 sm:gap-8">
           <div className="flex flex-wrap justify-between items-end gap-4">
             <section className="flex flex-col gap-2 max-w-[600px]">

@@ -8,14 +8,12 @@ import { useRouter } from 'next/navigation'
 import { SideBarProfessor } from '@/components/SideBarProfessor'
 import { ModalConfirmacao } from '@/components/ModalConfirmacao'
 import { apiCategorias, apiEscolas, apiProjetos, mapearProjetoDaApi } from '@/services/api'
-import { IoSearchOutline, IoAddOutline, IoSettingsOutline } from 'react-icons/io5'
+import { IoAddOutline } from 'react-icons/io5'
 import {
   MdOutlineEdit,
   MdOutlineVisibility,
   MdOutlineVisibilityOff,
-  MdOutlineDeleteOutline,
-  MdOutlineNotificationsNone,
-  MdPersonOutline
+  MdOutlineDeleteOutline
 } from 'react-icons/md'
 import semaforo from '@/assets/semaforo.png'
 import containerImg from '@/assets/container.png'
@@ -26,7 +24,6 @@ export default function GestaoProjetos() {
   const [categoriasApi, setCategoriasApi] = useState([])
   const [escolasApi, setEscolasApi] = useState([])
   const [carregando, setCarregando] = useState(true)
-  const [busca, setBusca] = useState('')
   const [categoria, setCategoria] = useState('')
   const [escola, setEscola] = useState('')
   const [modal, setModal] = useState({ aberto: false, tipo: null, mensagem: '', titulo: '' })
@@ -86,17 +83,11 @@ export default function GestaoProjetos() {
 
   const projetosFiltrados = useMemo(() => {
     return projetos.filter((proj) => {
-      const termo = busca.toLowerCase().trim()
-      const bateuBusca =
-        !termo ||
-        proj.titulo.toLowerCase().includes(termo) ||
-        proj.descricao.toLowerCase().includes(termo) ||
-        proj.escola.toLowerCase().includes(termo)
       const bateuCat = !categoria || proj.categorias.includes(categoria)
       const bateuEscola = !escola || proj.escola === escola
-      return bateuBusca && bateuCat && bateuEscola
+      return bateuCat && bateuEscola
     })
-  }, [projetos, busca, categoria, escola])
+  }, [projetos, categoria, escola])
 
   const alternarVisibilidade = (id) => {
     setProjetos((lista) => lista.map((p) => (p.id === id ? { ...p, visivel: !p.visivel } : p)))
@@ -140,53 +131,8 @@ export default function GestaoProjetos() {
     <div className="flex flex-col lg:flex-row min-h-screen w-full bg-background relative">
       <SideBarProfessor />
 
-      <main className="flex-1 flex flex-col">
-        {/* Top Bar alinhada ao Figma */}
-        <header className="w-full px-6 sm:px-10 lg:px-14 pt-6 pb-2 flex items-center justify-between gap-4">
-          <div className="relative w-full max-w-[350px]">
-            <IoSearchOutline
-              size={18}
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-verde-escuro pointer-events-none"
-            />
-            <input
-              type="search"
-              value={busca}
-              onChange={(e) => setBusca(e.target.value)}
-              placeholder="Pesquisar projetos..."
-              aria-label="Pesquisar projetos"
-              className="w-full h-9 pl-11 pr-4 bg-input-bg border border-verde-musgo rounded-full text-sm font-semibold text-verde-escuro placeholder:text-verde-escuro/80 focus:outline-none focus:ring-1 focus:ring-verde-musgo"
-            />
-          </div>
-
-          <div className="flex items-center gap-4 shrink-0">
-            <button
-              type="button"
-              aria-label="Notificações"
-              className="relative p-1.5 text-verde-escuro hover:text-verde-musgo transition cursor-pointer"
-            >
-              <MdOutlineNotificationsNone size={22} />
-              <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-vermelho" />
-            </button>
-
-            <Link
-              href="/perfil"
-              aria-label="Configurações de Perfil"
-              className="p-1.5 text-verde-escuro hover:text-verde-musgo transition"
-            >
-              <IoSettingsOutline size={20} />
-            </Link>
-
-            <Link
-              href="/perfil"
-              aria-label="Meu Perfil"
-              className="size-10 rounded-full border-2 border-verde-musgo bg-verde-pastel flex items-center justify-center text-verde-escuro hover:brightness-95 transition overflow-hidden"
-            >
-              <MdPersonOutline size={22} />
-            </Link>
-          </div>
-        </header>
-
-        <div className="w-full max-w-[1040px] mx-auto py-6 lg:py-8 px-6 sm:px-10 lg:px-14 flex flex-col gap-6 sm:gap-8">
+      <main className="flex-1 flex flex-col pb-16">
+        <div className="w-full max-w-[1040px] mx-auto py-8 lg:py-10 px-6 sm:px-10 lg:px-14 flex flex-col gap-6 sm:gap-8">
           {/* Cabeçalho */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
             <section className="flex flex-col gap-2 max-w-[600px]">
