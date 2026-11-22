@@ -88,61 +88,62 @@ export function AdminSidebar({ variant = 'admin' }) {
           </div>
         </div>
 
-      <div
-        className={`${
-          menuAberto ? 'flex mt-3' : 'hidden'
-        } lg:flex flex-1 flex-col justify-between gap-4`}
-      >
-        <nav className="flex-1 flex flex-col gap-1.5">
-          {links.map(({ href, label, icon: Icon }) => {
-            const isActive =
-              pathname === href ||
-              (href === '/dashboard' && pathname === '/admin') ||
-              (href === '/gestaoProjetos' &&
-                (pathname.includes('projeto') || pathname.includes('Projeto'))) ||
-              (href === '/gestaoTutoriais' && pathname.includes('Tutorial')) ||
-              (href === '/grupos' && (pathname.includes('grupo') || pathname.includes('Equipe'))) ||
-              (href === '/gestaoUsuarios' && pathname.includes('Usuario')) ||
-              (href === '/escolas' && (pathname.includes('Escola') || pathname === '/escolas')) ||
-              (href === '/gestaoEventos' && pathname.includes('Evento'))
+        <div
+          className={`${
+            menuAberto ? 'flex mt-3' : 'hidden'
+          } lg:flex flex-1 flex-col justify-between gap-4`}
+        >
+          <nav className="flex-1 flex flex-col gap-1.5">
+            {links.map(({ href, label, icon: Icon }) => {
+              const isActive =
+                pathname === href ||
+                (href === '/dashboard' && pathname === '/admin') ||
+                (href === '/gestaoProjetos' &&
+                  (pathname.includes('projeto') || pathname.includes('Projeto'))) ||
+                (href === '/gestaoTutoriais' && pathname.includes('Tutorial')) ||
+                (href === '/grupos' &&
+                  (pathname.includes('grupo') || pathname.includes('Equipe'))) ||
+                (href === '/gestaoUsuarios' && pathname.includes('Usuario')) ||
+                (href === '/escolas' && (pathname.includes('Escola') || pathname === '/escolas')) ||
+                (href === '/gestaoEventos' && pathname.includes('Evento'))
 
-            return (
-              <Link
-                key={href}
-                href={href}
-                onClick={() => setMenuAberto(false)}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all relative ${
-                  isActive
-                    ? 'sidebar-active-item bg-verde-limao text-verde-escuro shadow-xs'
-                    : 'text-verde-escuro dark:text-[#93A298] hover:bg-verde-pastel/60 dark:hover:bg-[#1E2822] dark:hover:text-[#EDF2EE]'
-                }`}
-              >
-                <Icon
-                  size={20}
-                  className={`shrink-0 ${
-                    isActive ? 'text-verde-escuro' : 'text-verde-escuro dark:text-[#93A298]'
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  onClick={() => setMenuAberto(false)}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all relative ${
+                    isActive
+                      ? 'sidebar-active-item bg-verde-limao text-verde-escuro shadow-xs'
+                      : 'text-verde-escuro dark:text-[#93A298] hover:bg-verde-pastel/60 dark:hover:bg-[#1E2822] dark:hover:text-[#EDF2EE]'
                   }`}
-                />
-                <span className="truncate">{label}</span>
-                {isActive && (
-                  <span className="dark:hidden w-1 h-5 absolute left-0 top-1/2 -translate-y-1/2 bg-verde-escuro rounded-r-sm" />
-                )}
-              </Link>
-            )
-          })}
-        </nav>
+                >
+                  <Icon
+                    size={20}
+                    className={`shrink-0 ${
+                      isActive ? 'text-verde-escuro' : 'text-verde-escuro dark:text-[#93A298]'
+                    }`}
+                  />
+                  <span className="truncate">{label}</span>
+                  {isActive && (
+                    <span className="dark:hidden w-1 h-5 absolute left-0 top-1/2 -translate-y-1/2 bg-verde-escuro rounded-r-sm" />
+                  )}
+                </Link>
+              )
+            })}
+          </nav>
 
-        <div className="mt-4 pt-3 border-t border-verde-musgo/20 dark:border-[#232E26] flex flex-col gap-2">
-          <Link
-            href="/contato"
-            onClick={() => setMenuAberto(false)}
-            className="flex items-center gap-2.5 px-3 py-1.5 text-xs font-semibold text-verde-escuro dark:text-[#93A298] hover:bg-verde-pastel/60 dark:hover:bg-[#1E2822] dark:hover:text-[#EDF2EE] rounded-lg transition"
-          >
-            <MdOutlineHelpOutline size={18} />
-            Suporte
-          </Link>
+          <div className="mt-4 pt-3 border-t border-verde-musgo/20 dark:border-[#232E26] flex flex-col gap-2">
+            <Link
+              href="/contato"
+              onClick={() => setMenuAberto(false)}
+              className="flex items-center gap-2.5 px-3 py-1.5 text-xs font-semibold text-verde-escuro dark:text-[#93A298] hover:bg-verde-pastel/60 dark:hover:bg-[#1E2822] dark:hover:text-[#EDF2EE] rounded-lg transition"
+            >
+              <MdOutlineHelpOutline size={18} />
+              Suporte
+            </Link>
+          </div>
         </div>
-      </div>
       </aside>
 
       {/* Botão de tema e avatar com iniciais no canto superior direito (desktop) */}

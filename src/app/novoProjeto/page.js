@@ -41,31 +41,28 @@ export default function NovoProjetoPage() {
   useEffect(() => {
     let ativo = true
 
-    Promise.all([
-      apiCategorias.listar().catch(() => []),
-      apiEscolas.listar().catch(() => [])
-    ]).then(([cats, escs]) => {
-      if (!ativo) return
+    Promise.all([apiCategorias.listar().catch(() => []), apiEscolas.listar().catch(() => [])]).then(
+      ([cats, escs]) => {
+        if (!ativo) return
 
-      if (Array.isArray(cats)) {
-        setCategoriasLista(
-          cats
-            .map((c) => (typeof c === 'string' ? c : c?.name || c?.nome || ''))
-            .filter(Boolean)
-        )
-      }
+        if (Array.isArray(cats)) {
+          setCategoriasLista(
+            cats.map((c) => (typeof c === 'string' ? c : c?.name || c?.nome || '')).filter(Boolean)
+          )
+        }
 
-      if (Array.isArray(escs)) {
-        setEscolasLista(escs)
-        const usuario = obterUsuario()
-        const escolaDoUsuario = usuario?.schoolId
-          ? escs.find((item) => Number(item.id) === Number(usuario.schoolId))
-          : null
-        if (escolaDoUsuario?.name) {
-          setEscola((prev) => prev || escolaDoUsuario.name)
+        if (Array.isArray(escs)) {
+          setEscolasLista(escs)
+          const usuario = obterUsuario()
+          const escolaDoUsuario = usuario?.schoolId
+            ? escs.find((item) => Number(item.id) === Number(usuario.schoolId))
+            : null
+          if (escolaDoUsuario?.name) {
+            setEscola((prev) => prev || escolaDoUsuario.name)
+          }
         }
       }
-    })
+    )
 
     return () => {
       ativo = false

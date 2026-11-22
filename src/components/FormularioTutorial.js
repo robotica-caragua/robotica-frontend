@@ -74,29 +74,28 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
   useEffect(() => {
     let ativo = true
 
-    Promise.all([
-      apiCategorias.listar().catch(() => []),
-      apiEscolas.listar().catch(() => [])
-    ]).then(([listaCategorias, listaEscolas]) => {
-      if (!ativo) return
+    Promise.all([apiCategorias.listar().catch(() => []), apiEscolas.listar().catch(() => [])]).then(
+      ([listaCategorias, listaEscolas]) => {
+        if (!ativo) return
 
-      if (Array.isArray(listaCategorias)) {
-        setCategorias(listaCategorias)
-      }
+        if (Array.isArray(listaCategorias)) {
+          setCategorias(listaCategorias)
+        }
 
-      if (Array.isArray(listaEscolas)) {
-        setEscolas(listaEscolas)
-        if (!ehEdicao) {
-          const usuario = obterUsuario()
-          const escolaDoUsuario = usuario?.schoolId
-            ? listaEscolas.find((item) => Number(item.id) === Number(usuario.schoolId))
-            : null
-          if (escolaDoUsuario?.name) {
-            setForm((prev) => (prev.escola ? prev : { ...prev, escola: escolaDoUsuario.name }))
+        if (Array.isArray(listaEscolas)) {
+          setEscolas(listaEscolas)
+          if (!ehEdicao) {
+            const usuario = obterUsuario()
+            const escolaDoUsuario = usuario?.schoolId
+              ? listaEscolas.find((item) => Number(item.id) === Number(usuario.schoolId))
+              : null
+            if (escolaDoUsuario?.name) {
+              setForm((prev) => (prev.escola ? prev : { ...prev, escola: escolaDoUsuario.name }))
+            }
           }
         }
       }
-    })
+    )
 
     return () => {
       ativo = false
