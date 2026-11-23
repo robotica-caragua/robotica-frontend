@@ -9,6 +9,7 @@ import { RiCommunityLine } from 'react-icons/ri'
 import Image from 'next/image'
 import Link from 'next/link'
 import homeBot from '../assets/home.png'
+import homeBotMobile from '../assets/home-mobile.png'
 import ligacoes from '../assets/fundo.png'
 import working from '../assets/working.png'
 import { Header } from '@/components/Header'
@@ -132,7 +133,7 @@ export default function HomePage() {
       <Header />
 
       {/* Hero Section */}
-      <main className="relative min-h-[560px] lg:min-h-[640px] overflow-hidden bg-branco-esverdeado flex items-center">
+      <main className="relative min-h-[285px] sm:min-h-[520px] lg:min-h-[640px] overflow-hidden bg-branco-esverdeado flex items-center">
         <div className="pointer-events-none absolute right-0 top-0 z-0 h-full w-[70%] block">
           <Image
             src={ligacoes}
@@ -144,7 +145,19 @@ export default function HomePage() {
         </div>
 
         <div className="pointer-events-none absolute inset-0 z-10 mx-auto w-full max-w-[1440px]">
-          <div className="pointer-events-none absolute right-[-20px] sm:right-2 xl:right-10 top-12 sm:top-1/2 z-10 sm:-translate-y-1/2 block w-40 h-40 sm:w-64 sm:h-64 md:w-80 md:h-80 lg:w-120 lg:h-120 xl:w-140 xl:h-140 opacity-85 sm:opacity-95 lg:opacity-100">
+          {/* Personagem Mobile (igual ao Figma Mobile) */}
+          <div className="pointer-events-none absolute right-[-35px] top-1/2 -translate-y-1/2 z-10 block sm:hidden w-[204px] h-[240px] -rotate-[17.94deg]">
+            <Image
+              src={homeBotMobile}
+              alt="Ilustração principal de robótica"
+              fill
+              priority
+              className="object-contain"
+            />
+          </div>
+
+          {/* Personagem Tablet / Desktop */}
+          <div className="pointer-events-none absolute sm:right-2 xl:right-10 sm:top-1/2 z-10 sm:-translate-y-1/2 hidden sm:block sm:w-64 sm:h-64 md:w-80 md:h-80 lg:w-120 lg:h-120 xl:w-140 xl:h-140 sm:opacity-95 lg:opacity-100">
             <Image
               src={homeBot}
               alt="Ilustração principal de robótica"
@@ -155,10 +168,10 @@ export default function HomePage() {
           </div>
         </div>
 
-        <section className="relative z-20 w-full md:w-[85%] lg:w-[75%] max-w-[1200px] mx-auto px-4 sm:px-6 py-10 lg:py-0">
-          <div className="max-w-xl">
+        <section className="relative z-20 w-full md:w-[85%] lg:w-[75%] max-w-[1200px] mx-auto px-5 sm:px-6 py-6 sm:py-10 lg:py-0">
+          <div className="max-w-[230px] sm:max-w-xl">
             {/* Título com transição da cor verde mais clara em loop e tamanho equilibrado */}
-            <h1 className="font-bold uppercase leading-tight text-3xl sm:text-5xl md:text-6xl">
+            <h1 className="font-bold uppercase leading-tight text-[26px] sm:text-5xl md:text-6xl">
               <span
                 className={`block transition-colors duration-700 ${
                   palavraAtiva === 0 ? 'text-verde-oliva' : 'text-verde-escuro'
@@ -182,17 +195,17 @@ export default function HomePage() {
               </span>
             </h1>
 
-            <p className="mt-4 sm:mt-6 max-w-xl text-verde-escuro/85 dark:text-[#B7C4BB] text-base sm:text-xl leading-relaxed">
+            <p className="mt-3 sm:mt-6 max-w-[220px] sm:max-w-xl text-verde-escuro/85 dark:text-[#B7C4BB] text-xs sm:text-xl leading-snug sm:leading-relaxed">
               Conectando escolas, estudantes e a comunidade de Caraguatatuba através da tecnologia.
             </p>
 
             {/* Botão de explorar projetos com hover em verde musgo */}
             <Link
               href="/projetos"
-              className="mt-6 sm:mt-8 flex h-13 sm:h-14 w-full max-w-[260px] sm:w-72 cursor-pointer items-center justify-between rounded-xl border-2 border-verde-musgo bg-white px-5 text-base sm:text-lg font-bold text-verde-musgo transition hover:bg-verde-musgo hover:text-white shadow-xs"
+              className="mt-5 sm:mt-8 flex h-11 sm:h-14 w-full max-w-[210px] sm:max-w-[260px] sm:w-72 cursor-pointer items-center justify-between rounded-xl border sm:border-2 border-verde-musgo bg-white px-4 sm:px-5 text-sm sm:text-lg font-bold text-verde-musgo transition hover:bg-verde-musgo hover:text-white shadow-xs"
             >
               <span>Explorar Projetos</span>
-              <MdArrowForward size={24} />
+              <MdArrowForward size={20} className="sm:w-6 sm:h-6" />
             </Link>
           </div>
         </section>
