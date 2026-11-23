@@ -210,8 +210,8 @@ function CadastrarEventoConteudo() {
     <div className="flex flex-col lg:flex-row min-h-screen w-full bg-background relative">
       <SideBarAdmin />
 
-      <div className="flex-1 flex flex-col">
-        <main className="w-full max-w-[1040px] mx-auto py-8 lg:py-10 px-6 sm:px-10 lg:px-14 flex flex-col gap-8">
+      <div className="flex-1 flex flex-col pb-16">
+        <main className="w-full max-w-[1040px] mx-auto py-8 lg:py-10 px-6 sm:px-10 lg:px-14 flex flex-col gap-6 sm:gap-8">
           <section className="flex flex-col gap-2">
             <h1 className="text-verde-escuro text-3xl sm:text-4xl font-bold leading-tight">
               {idEdicao ? 'Editar Evento' : 'Criar Novo Evento'}

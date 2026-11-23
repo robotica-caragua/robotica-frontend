@@ -10,7 +10,8 @@ import {
   apiCategorias,
   apiEscolas,
   apiTutoriais,
-  converterNivelParaDificuldade
+  converterNivelParaDificuldade,
+  obterUsuario
 } from '@/services/api'
 import { IoClose, IoArrowForward } from 'react-icons/io5'
 import {
@@ -72,26 +73,34 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
 
   useEffect(() => {
     let ativo = true
-    apiCategorias
-      .listar()
-      .then((lista) => {
-        if (!ativo || !Array.isArray(lista)) return
-        setCategorias(lista)
-      })
-      .catch(() => {})
 
-    apiEscolas
-      .listar()
-      .then((lista) => {
-        if (!ativo || !Array.isArray(lista)) return
-        setEscolas(lista)
-      })
-      .catch(() => {})
+    Promise.all([apiCategorias.listar().catch(() => []), apiEscolas.listar().catch(() => [])]).then(
+      ([listaCategorias, listaEscolas]) => {
+        if (!ativo) return
+
+        if (Array.isArray(listaCategorias)) {
+          setCategorias(listaCategorias)
+        }
+
+        if (Array.isArray(listaEscolas)) {
+          setEscolas(listaEscolas)
+          if (!ehEdicao) {
+            const usuario = obterUsuario()
+            const escolaDoUsuario = usuario?.schoolId
+              ? listaEscolas.find((item) => Number(item.id) === Number(usuario.schoolId))
+              : null
+            if (escolaDoUsuario?.name) {
+              setForm((prev) => (prev.escola ? prev : { ...prev, escola: escolaDoUsuario.name }))
+            }
+          }
+        }
+      }
+    )
 
     return () => {
       ativo = false
     }
-  }, [])
+  }, [ehEdicao])
 
   const atualizar = (campo) => (e) => {
     setForm((prev) => ({ ...prev, [campo]: e.target.value }))
@@ -238,8 +247,8 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
     <div className="flex flex-col lg:flex-row min-h-screen w-full bg-background relative">
       <SideBarProfessor />
 
-      <main className="flex-1 flex flex-col">
-        <div className="w-full max-w-[1040px] mx-auto py-8 lg:py-10 px-6 sm:px-10 lg:px-14 flex flex-col gap-8">
+      <main className="flex-1 flex flex-col pb-16">
+        <div className="w-full max-w-[1040px] mx-auto py-8 lg:py-10 px-6 sm:px-10 lg:px-14 flex flex-col gap-6 sm:gap-8">
           {/* Cabeçalho */}
           <section className="flex flex-col gap-2">
             <h1 className="text-verde-escuro text-3xl sm:text-4xl font-bold leading-tight">

@@ -7,18 +7,16 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { SideBarProfessor } from '@/components/SideBarProfessor'
 import { ModalConfirmacao } from '@/components/ModalConfirmacao'
-import { correspondeBusca, opcoesUnicas } from '@/utils/filtros'
+import { opcoesUnicas } from '@/utils/filtros'
 import { apiCategorias, apiEscolas, apiTutoriais, mapearTutorialDaApi } from '@/services/api'
 import semaforo from '@/assets/semaforo.png'
 import containerImg from '@/assets/container.png'
-import { IoSearchOutline, IoAddOutline, IoSettingsOutline } from 'react-icons/io5'
+import { IoAddOutline } from 'react-icons/io5'
 import {
   MdOutlineEdit,
   MdOutlineVisibilityOff,
   MdOutlineVisibility,
-  MdOutlineDeleteOutline,
-  MdOutlineNotificationsNone,
-  MdPersonOutline
+  MdOutlineDeleteOutline
 } from 'react-icons/md'
 
 const opcoesNivel = ['Iniciante', 'Intermediário', 'Avançado']
@@ -36,7 +34,6 @@ export default function GestaoTutoriais() {
     mensagem: '',
     tutorialParaExcluir: null
   })
-  const [busca, setBusca] = useState('')
   const [nivel, setNivel] = useState('')
   const [categoria, setCategoria] = useState('')
   const [escola, setEscola] = useState('')
@@ -86,12 +83,11 @@ export default function GestaoTutoriais() {
     () =>
       tutoriais.filter(
         (t) =>
-          correspondeBusca(busca, t.titulo, t.categoria, t.nivel, t.escola) &&
           (!nivel || t.nivel === nivel) &&
           (!categoria || t.categoria === categoria) &&
           (!escola || t.escola === escola)
       ),
-    [tutoriais, busca, nivel, categoria, escola]
+    [tutoriais, nivel, categoria, escola]
   )
 
   const alternarVisibilidade = (id) => {
@@ -136,53 +132,8 @@ export default function GestaoTutoriais() {
     <div className="flex flex-col lg:flex-row min-h-screen w-full bg-background relative">
       <SideBarProfessor />
 
-      <main className="flex-1 flex flex-col">
-        {/* Top Bar alinhada ao Figma */}
-        <header className="w-full px-6 sm:px-10 lg:px-14 pt-6 pb-2 flex items-center justify-between gap-4">
-          <div className="relative w-full max-w-[350px]">
-            <IoSearchOutline
-              size={18}
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-verde-escuro pointer-events-none"
-            />
-            <input
-              type="search"
-              value={busca}
-              onChange={(e) => setBusca(e.target.value)}
-              placeholder="Pesquisar projetos..."
-              aria-label="Pesquisar tutoriais"
-              className="w-full h-9 pl-11 pr-4 bg-input-bg border border-verde-musgo rounded-full text-sm font-semibold text-verde-escuro placeholder:text-verde-escuro/80 focus:outline-none focus:ring-1 focus:ring-verde-musgo"
-            />
-          </div>
-
-          <div className="flex items-center gap-4 shrink-0">
-            <button
-              type="button"
-              aria-label="Notificações"
-              className="relative p-1.5 text-verde-escuro hover:text-verde-musgo transition cursor-pointer"
-            >
-              <MdOutlineNotificationsNone size={22} />
-              <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-vermelho" />
-            </button>
-
-            <Link
-              href="/perfil"
-              aria-label="Configurações de Perfil"
-              className="p-1.5 text-verde-escuro hover:text-verde-musgo transition"
-            >
-              <IoSettingsOutline size={20} />
-            </Link>
-
-            <Link
-              href="/perfil"
-              aria-label="Meu Perfil"
-              className="size-10 rounded-full border-2 border-verde-musgo bg-verde-pastel flex items-center justify-center text-verde-escuro hover:brightness-95 transition overflow-hidden"
-            >
-              <MdPersonOutline size={22} />
-            </Link>
-          </div>
-        </header>
-
-        <div className="w-full max-w-[1040px] mx-auto py-6 lg:py-8 px-6 sm:px-10 lg:px-14 flex flex-col gap-6 sm:gap-8">
+      <main className="flex-1 flex flex-col pb-16">
+        <div className="w-full max-w-[1040px] mx-auto py-8 lg:py-10 px-6 sm:px-10 lg:px-14 flex flex-col gap-6 sm:gap-8">
           {/* Cabeçalho da página */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
             <section className="flex flex-col gap-2 max-w-[600px]">
@@ -209,7 +160,7 @@ export default function GestaoTutoriais() {
             <div className="flex-1 flex flex-col gap-1">
               <label
                 htmlFor="filtro-nivel"
-                className="text-verde-musgo text-base font-bold uppercase tracking-wide"
+                className="text-verde-musgo text-xs sm:text-sm font-bold uppercase tracking-wide"
               >
                 Nível
               </label>
@@ -218,7 +169,7 @@ export default function GestaoTutoriais() {
                   id="filtro-nivel"
                   value={nivel}
                   onChange={(e) => setNivel(e.target.value)}
-                  className="w-full appearance-none bg-transparent text-verde-musgo text-base font-medium pr-7 focus:outline-none cursor-pointer"
+                  className="w-full appearance-none bg-transparent text-verde-musgo text-sm sm:text-base font-medium pr-7 focus:outline-none cursor-pointer"
                 >
                   <option value="">Todos os Níveis</option>
                   {opcoesNivel.map((op) => (
@@ -235,7 +186,7 @@ export default function GestaoTutoriais() {
             <div className="flex-1 flex flex-col gap-1">
               <label
                 htmlFor="filtro-categoria"
-                className="text-verde-musgo text-base font-bold uppercase tracking-wide"
+                className="text-verde-musgo text-xs sm:text-sm font-bold uppercase tracking-wide"
               >
                 Categoria
               </label>
@@ -244,7 +195,7 @@ export default function GestaoTutoriais() {
                   id="filtro-categoria"
                   value={categoria}
                   onChange={(e) => setCategoria(e.target.value)}
-                  className="w-full appearance-none bg-transparent text-verde-musgo text-base font-medium pr-7 focus:outline-none cursor-pointer"
+                  className="w-full appearance-none bg-transparent text-verde-musgo text-sm sm:text-base font-medium pr-7 focus:outline-none cursor-pointer"
                 >
                   <option value="">Todas as Categorias</option>
                   {opcoesCategoria.map((op) => (
@@ -261,7 +212,7 @@ export default function GestaoTutoriais() {
             <div className="flex-1 flex flex-col gap-1">
               <label
                 htmlFor="filtro-escola"
-                className="text-verde-musgo text-base font-bold uppercase tracking-wide"
+                className="text-verde-musgo text-xs sm:text-sm font-bold uppercase tracking-wide"
               >
                 Escola
               </label>
@@ -270,7 +221,7 @@ export default function GestaoTutoriais() {
                   id="filtro-escola"
                   value={escola}
                   onChange={(e) => setEscola(e.target.value)}
-                  className="w-full appearance-none bg-transparent text-verde-musgo text-base font-medium pr-7 focus:outline-none cursor-pointer"
+                  className="w-full appearance-none bg-transparent text-verde-musgo text-sm sm:text-base font-medium pr-7 focus:outline-none cursor-pointer"
                 >
                   <option value="">Todas as Escolas</option>
                   {opcoesEscola.map((op) => (

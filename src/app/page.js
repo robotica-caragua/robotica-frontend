@@ -139,7 +139,7 @@ export default function HomePage() {
             alt="Fundo decorativo"
             fill
             priority
-            className="object-cover object-center opacity-15"
+            className="object-cover object-center opacity-15 dark:invert dark:opacity-10"
           />
         </div>
 
@@ -182,7 +182,7 @@ export default function HomePage() {
               </span>
             </h1>
 
-            <p className="mt-4 sm:mt-6 max-w-xl text-black text-base sm:text-xl leading-relaxed">
+            <p className="mt-4 sm:mt-6 max-w-xl text-verde-escuro/85 dark:text-[#B7C4BB] text-base sm:text-xl leading-relaxed">
               Conectando escolas, estudantes e a comunidade de Caraguatatuba através da tecnologia.
             </p>
 

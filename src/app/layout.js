@@ -1,5 +1,6 @@
 import './globals.css'
 import { PageTitleUpdater } from '@/components/PageTitleUpdater'
+import { RouteGuard } from '@/components/RouteGuard'
 
 export const metadata = {
   title: {
@@ -15,12 +16,27 @@ export const metadata = {
   }
 }
 
+const scriptTemaInicial = `
+(function() {
+  try {
+    var tema = window.localStorage.getItem('biobot_theme');
+    if (tema === 'dark') {
+      document.documentElement.classList.add('dark');
+      document.documentElement.style.colorScheme = 'dark';
+    }
+  } catch (e) {}
+})();
+`
+
 export default function RootLayout({ children }) {
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: scriptTemaInicial }} />
+      </head>
       <body className="font-sans bg-branco-creme text-verde-escuro antialiased overflow-x-hidden">
         <PageTitleUpdater />
-        {children}
+        <RouteGuard>{children}</RouteGuard>
       </body>
     </html>
   )

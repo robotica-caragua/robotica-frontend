@@ -31,6 +31,9 @@ export function salvarSessao({ accessToken, user }) {
   }
   if (user) {
     window.localStorage.setItem(CHAVE_USUARIO, JSON.stringify(user))
+    if (user.role) {
+      document.cookie = `role=${encodeURIComponent(user.role)}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`
+    }
   }
 }
 
@@ -39,6 +42,7 @@ export function limparSessao() {
   window.localStorage.removeItem(CHAVE_TOKEN)
   window.localStorage.removeItem(CHAVE_USUARIO)
   document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax'
+  document.cookie = 'role=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax'
 }
 
 async function tentarRenovarToken() {
@@ -322,7 +326,7 @@ export const apiTutoriais = {
       const queryString = params.toString() ? `?${params.toString()}` : ''
 
       const dados = await requisicaoApi(`/tutorials${queryString}`, { autenticado: false })
-      return dados.tutorials || []
+      return extrairLista(dados, ['tutorials'])
     })
   },
 
@@ -400,15 +404,84 @@ export const apiTutoriais = {
   }
 }
 
+function extrairLista(dados, chaves = []) {
+  if (Array.isArray(dados)) return dados
+  if (!dados || typeof dados !== 'object') return []
+  for (const chave of [...chaves, 'data', 'items', 'results']) {
+    if (Array.isArray(dados[chave])) return dados[chave]
+  }
+  return []
+}
+
+const ESCOLAS_FALLBACK = [
+  {
+    id: 3,
+    name: 'EMEF Profª Maria Aparecida De Carvalho',
+    address: 'R. Seishi Yoshimoto, 120 - Getuba, Caraguatatuba - SP, 11676-403'
+  },
+  {
+    id: 4,
+    name: 'EMEF Prof. Luiz Ribeiro Muniz',
+    address: 'R. Analândia, 355 - Martim de Sá, Caraguatatuba - SP, 11662-320'
+  },
+  {
+    id: 5,
+    name: 'EMEF Prof. Luiz Silvar do Prado',
+    address: 'R. José Pedro de Oliveira Barbosa, 805 - Jardim Casa Branca, Caraguatatuba - SP'
+  },
+  {
+    id: 6,
+    name: 'EMEF Profª Maria Thereza de Souza Castro',
+    address: 'R. Seishi Yoshimoto, 120 - Getuba, Caraguatatuba - SP, 11676-403'
+  }
+]
+
 // ==========================================
 // Endpoints de Categorias (/categories)
 // ==========================================
 export const apiCategorias = {
   async listar() {
-    return listarComVazioEm404(async () => {
-      const dados = await requisicaoApi('/categories', { autenticado: false })
-      return dados.categories || []
-    })
+    let lista = []
+    try {
+      const dados = await requisicaoApi('/categories').catch(async (err) => {
+        if (err?.status === 401 || err?.status === 403) {
+          return await requisicaoApi('/categories', { autenticado: false })
+        }
+        throw err
+      })
+      lista = extrairLista(dados, ['categories'])
+    } catch (err) {
+      if (err?.status !== 404 && err?.status !== 401 && err?.status !== 403) {
+        lista = []
+      }
+    }
+
+    const mapa = new Map()
+    for (const item of lista) {
+      const nome = item?.name || item?.nome || item?.title
+      if (!nome) continue
+      const chave = item.id ?? nome.toLowerCase()
+      if (!mapa.has(chave)) {
+        mapa.set(chave, { ...item, id: item.id, name: nome })
+      }
+    }
+
+    // Se /categories veio vazio, extrai categorias reais vinculadas aos tutoriais do banco
+    if (mapa.size === 0) {
+      const tutoriais = await apiTutoriais.listar().catch(() => [])
+      for (const t of tutoriais) {
+        const cat = t?.category
+        const nome = cat?.name || t?.categoria
+        if (!nome) continue
+        const id = cat?.id ?? t?.categoryId
+        const chave = id ?? nome.toLowerCase()
+        if (!mapa.has(chave)) {
+          mapa.set(chave, { id, name: nome })
+        }
+      }
+    }
+
+    return Array.from(mapa.values())
   },
 
   async criar(name) {
@@ -416,7 +489,7 @@ export const apiCategorias = {
       method: 'POST',
       body: { name }
     })
-    return dados.category
+    return dados.category || dados
   }
 }
 
@@ -425,53 +498,69 @@ export const apiCategorias = {
 // ==========================================
 export const apiEscolas = {
   async listar() {
+    let lista = []
+
     try {
-      return await listarComVazioEm404(async () => {
-        const dados = await requisicaoApi('/schools').catch(async (err) => {
-          if (err?.status === 401 || err?.status === 403) {
-            return await requisicaoApi('/public/schools', { autenticado: false })
-          }
-          throw err
-        })
-        return dados.schools || []
-      })
+      const dados = await requisicaoApi('/schools')
+      lista = extrairLista(dados, ['schools'])
     } catch (err) {
-      // Se o usuário não for ADMIN (401/403), extrai dinamicamente as escolas vinculadas aos tutoriais públicos da API
-      if (err?.status === 401 || err?.status === 403) {
-        const tutoriais = await apiTutoriais.listar().catch(() => [])
-        const mapa = new Map()
-        for (const t of tutoriais) {
-          if (t.school?.id && !mapa.has(t.school.id)) {
-            mapa.set(t.school.id, t.school)
-          }
-        }
-        if (mapa.size > 0) return Array.from(mapa.values())
-        return [
-          {
-            id: 3,
-            name: 'EMEF Profª Maria Aparecida De Carvalho',
-            address: 'R. Seishi Yoshimoto, 120 - Getuba, Caraguatatuba - SP, 11676-403'
-          },
-          {
-            id: 4,
-            name: 'EMEF Prof. Luiz Ribeiro Muniz',
-            address: 'R. Analândia, 355 - Martim de Sá, Caraguatatuba - SP, 11662-320'
-          },
-          {
-            id: 5,
-            name: 'EMEF Prof. Luiz Silvar do Prado',
-            address:
-              'R. José Pedro de Oliveira Barbosa, 805 - Jardim Casa Branca, Caraguatatuba - SP'
-          },
-          {
-            id: 6,
-            name: 'EMEF Profª Maria Thereza de Souza Castro',
-            address: 'R. Seishi Yoshimoto, 120 - Getuba, Caraguatatuba - SP, 11676-403'
-          }
-        ]
+      // Para usuários não-ADMIN (401/403) ou 404, tenta /public/schools sem engolir o fallback
+      if (err?.status === 401 || err?.status === 403 || err?.status === 404) {
+        const dadosPublicos = await requisicaoApi('/public/schools', {
+          autenticado: false
+        }).catch(() => null)
+        lista = extrairLista(dadosPublicos, ['schools'])
+      } else {
+        lista = []
       }
-      throw err
     }
+
+    const mapa = new Map()
+    const adicionarEscola = (esc) => {
+      const obj = esc?.school || esc
+      const nome = obj?.name || obj?.nome
+      if (!nome) return
+      const chave = obj.id ?? nome.toLowerCase()
+      if (!mapa.has(chave)) {
+        mapa.set(chave, {
+          ...obj,
+          id: obj.id,
+          name: nome,
+          address: obj.address || obj.endereco || ''
+        })
+      }
+    }
+
+    for (const esc of lista) adicionarEscola(esc)
+
+    // Se /schools é restrito a ADMIN e veio vazio para TEACHER/público,
+    // coleta escolas reais vinculadas ao usuário autenticado, tutoriais e projetos da API
+    if (mapa.size === 0) {
+      const usuarioLocal = obterUsuario()
+      if (usuarioLocal?.school) adicionarEscola(usuarioLocal.school)
+      if (Array.isArray(usuarioLocal?.schools)) {
+        usuarioLocal.schools.forEach(adicionarEscola)
+      }
+
+      const [meUser, tutoriais, projetos] = await Promise.all([
+        obterToken() ? apiAuth.me().catch(() => null) : Promise.resolve(null),
+        apiTutoriais.listar().catch(() => []),
+        apiProjetos.listar().catch(() => [])
+      ])
+
+      if (meUser?.school) adicionarEscola(meUser.school)
+      if (Array.isArray(meUser?.schools)) meUser.schools.forEach(adicionarEscola)
+
+      for (const t of Array.isArray(tutoriais) ? tutoriais : []) {
+        if (t?.school) adicionarEscola(t.school)
+      }
+      for (const p of Array.isArray(projetos) ? projetos : []) {
+        if (p?.school) adicionarEscola(p.school)
+      }
+    }
+
+    if (mapa.size > 0) return Array.from(mapa.values())
+    return ESCOLAS_FALLBACK
   },
 
   async buscarPorId(id) {
@@ -506,13 +595,8 @@ export const apiEscolas = {
 export const apiUsuarios = {
   async listar() {
     return listarComVazioEm404(async () => {
-      const dados = await requisicaoApi('/users').catch(async (err) => {
-        if (err?.status === 401 || err?.status === 403) {
-          return await requisicaoApi('/public/users', { autenticado: false })
-        }
-        throw err
-      })
-      return dados.users || []
+      const dados = await requisicaoApi('/users')
+      return extrairLista(dados, ['users'])
     })
   },
 
@@ -569,7 +653,7 @@ export const apiProjetos = {
         }
         throw err
       })
-      return dados.projects || []
+      return extrairLista(dados, ['projects'])
     })
   },
 

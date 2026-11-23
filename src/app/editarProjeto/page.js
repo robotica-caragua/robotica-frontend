@@ -179,11 +179,11 @@ function ConteudoEditarProjeto() {
   }
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen w-full">
+    <div className="flex flex-col lg:flex-row min-h-screen w-full bg-background relative">
       <AdminSidebar variant="professor" />
 
       <div className="flex flex-1 flex-col pb-16">
-        <main className="w-full max-w-[1040px] mx-auto flex flex-col gap-6 py-8 lg:py-10 px-6 sm:px-10 lg:px-14">
+        <main className="w-full max-w-[1040px] mx-auto flex flex-col gap-6 sm:gap-8 py-8 lg:py-10 px-6 sm:px-10 lg:px-14">
           {/* Cabeçalho */}
           <div>
             <h1 className="text-3xl sm:text-4xl font-bold text-verde-escuro leading-tight">

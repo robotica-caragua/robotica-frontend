@@ -1,12 +1,11 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { SideBarProfessor } from '@/components/SideBarProfessor'
 import { ModalConfirmacao } from '@/components/ModalConfirmacao'
-import { correspondeBusca } from '@/utils/filtros'
 import semaforo from '@/assets/semaforo.png'
 import containerImg from '@/assets/container.png'
 import {
@@ -22,13 +21,7 @@ import {
   obterToken,
   obterUsuario
 } from '@/services/api'
-import {
-  IoSearchOutline,
-  IoAddOutline,
-  IoArrowForward,
-  IoOpenOutline,
-  IoSettingsOutline
-} from 'react-icons/io5'
+import { IoAddOutline, IoArrowForward, IoOpenOutline } from 'react-icons/io5'
 import {
   MdOutlineLocationOn,
   MdOutlineFolder,
@@ -38,9 +31,7 @@ import {
   MdOutlineVisibilityOff,
   MdOutlineVisibility,
   MdOutlineDeleteOutline,
-  MdOutlineCampaign,
-  MdOutlineNotificationsNone,
-  MdPersonOutline
+  MdOutlineCampaign
 } from 'react-icons/md'
 
 function formatarNomeProfessor(usuario) {
@@ -61,7 +52,6 @@ function formatarNomeProfessor(usuario) {
 
 export default function PainelProfessor() {
   const router = useRouter()
-  const [busca, setBusca] = useState('')
   const [publicacoes, setPublicacoes] = useState([])
   const [avisos, setAvisos] = useState([])
   const [carregando, setCarregando] = useState(true)
@@ -170,12 +160,6 @@ export default function PainelProfessor() {
   const totalRascunhos = publicacoes.filter((p) => p.status === 'rascunho').length
   const totalVisualizacoes = publicacoes.reduce((acc, p) => acc + (p.visualizacoes || 0), 0)
 
-  const publicacoesFiltradas = useMemo(
-    () =>
-      publicacoes.filter((pub) => correspondeBusca(busca, pub.titulo, pub.status, pub.infoData)),
-    [busca, publicacoes]
-  )
-
   const alternarVisibilidade = (chaveUnica) => {
     setPublicacoes((prev) =>
       prev.map((p) => (p.chaveUnica === chaveUnica ? { ...p, visivel: !p.visivel } : p))
@@ -232,72 +216,28 @@ export default function PainelProfessor() {
     <div className="flex flex-col lg:flex-row min-h-screen w-full bg-background relative">
       <SideBarProfessor />
 
-      <main className="flex-1 flex flex-col">
-        {/* Top Bar alinhada ao Figma */}
-        <header className="w-full px-6 sm:px-10 lg:px-14 pt-6 pb-2 flex items-center justify-between gap-4">
-          <div className="relative w-full max-w-[350px]">
-            <IoSearchOutline
-              size={18}
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-verde-escuro pointer-events-none"
-            />
-            <input
-              type="search"
-              value={busca}
-              onChange={(e) => setBusca(e.target.value)}
-              placeholder="Pesquisar projetos..."
-              aria-label="Pesquisar projetos"
-              className="w-full h-9 pl-11 pr-4 bg-input-bg border border-verde-musgo rounded-full text-sm font-semibold text-verde-escuro placeholder:text-verde-escuro/80 focus:outline-none focus:ring-1 focus:ring-verde-musgo"
-            />
-          </div>
-
-          <div className="flex items-center gap-4 shrink-0">
-            <button
-              type="button"
-              aria-label="Notificações"
-              className="relative p-1.5 text-verde-escuro hover:text-verde-musgo transition cursor-pointer"
-            >
-              <MdOutlineNotificationsNone size={22} />
-              <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-vermelho" />
-            </button>
-
-            <Link
-              href="/perfil"
-              aria-label="Configurações de Perfil"
-              className="p-1.5 text-verde-escuro hover:text-verde-musgo transition"
-            >
-              <IoSettingsOutline size={20} />
-            </Link>
-
-            <Link
-              href="/perfil"
-              aria-label="Meu Perfil"
-              className="size-10 rounded-full border-2 border-verde-musgo bg-verde-pastel flex items-center justify-center text-verde-escuro hover:brightness-95 transition overflow-hidden"
-            >
-              <MdPersonOutline size={22} />
-            </Link>
-          </div>
-        </header>
-
-        <div className="w-full max-w-[1040px] mx-auto py-6 lg:py-8 px-6 sm:px-10 lg:px-14 flex flex-col gap-8 lg:gap-10">
+      <main className="flex-1 flex flex-col pb-16">
+        <div className="w-full max-w-[1040px] mx-auto py-8 lg:py-10 px-6 sm:px-10 lg:px-14 flex flex-col gap-6 sm:gap-8">
           {/* Saudação e botão Nova Publicação */}
-          <section className="flex flex-col gap-2">
-            <h1 className="text-verde-escuro text-3xl sm:text-4xl font-bold leading-tight">
-              Olá, {nomeProfessor}!
-            </h1>
-            <div className="flex items-center gap-2 text-verde-musgo font-bold text-base sm:text-lg">
-              <MdOutlineLocationOn size={22} />
-              <span>{nomeEscola}</span>
-            </div>
-            <div className="flex justify-end pt-1">
-              <Link
-                href="/cadastrarTutorial"
-                className="px-5 sm:px-6 py-2.5 sm:py-3 bg-verde-musgo hover:bg-white hover:text-verde-musgo border border-verde-musgo text-white text-sm sm:text-base font-bold rounded-lg shadow-sm flex items-center gap-2 sm:gap-3 transition"
-              >
-                <IoAddOutline size={20} />
-                Nova Publicação
-              </Link>
-            </div>
-          </section>
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+            <section className="flex flex-col gap-2">
+              <h1 className="text-verde-escuro text-3xl sm:text-4xl font-bold leading-tight">
+                Olá, {nomeProfessor}!
+              </h1>
+              <div className="flex items-center gap-2 text-verde-musgo font-semibold text-sm sm:text-base">
+                <MdOutlineLocationOn size={20} className="shrink-0" />
+                <span>{nomeEscola}</span>
+              </div>
+            </section>
+
+            <Link
+              href="/cadastrarTutorial"
+              className="shrink-0 px-6 py-3 bg-verde-musgo hover:bg-white hover:text-verde-musgo border border-verde-musgo text-white text-sm sm:text-base font-bold rounded-lg shadow-sm flex items-center gap-2 transition"
+            >
+              <IoAddOutline size={20} />
+              Nova Publicação
+            </Link>
+          </div>
 
           {/* Cards de métricas */}
           <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -308,7 +248,9 @@ export default function PainelProfessor() {
               <span className="pt-2 text-verde-escuro text-2xl sm:text-3xl font-bold">
                 {String(totalPublicados).padStart(2, '0')}
               </span>
-              <span className="text-verde-musgo text-base">Projetos Publicados</span>
+              <span className="text-verde-musgo text-xs sm:text-sm font-semibold">
+                Projetos Publicados
+              </span>
             </div>
 
             <div className="p-6 bg-white rounded-2xl border border-verde-musgo shadow-sm flex flex-col gap-2">
@@ -318,7 +260,9 @@ export default function PainelProfessor() {
               <span className="pt-2 text-verde-escuro text-2xl sm:text-3xl font-bold">
                 {String(totalRascunhos).padStart(2, '0')}
               </span>
-              <span className="text-verde-musgo text-base">Rascunhos em Edição</span>
+              <span className="text-verde-musgo text-xs sm:text-sm font-semibold">
+                Rascunhos em Edição
+              </span>
             </div>
 
             <div className="p-6 bg-white rounded-2xl border border-verde-musgo shadow-sm flex flex-col gap-2">
@@ -328,32 +272,34 @@ export default function PainelProfessor() {
               <span className="pt-2 text-verde-escuro text-2xl sm:text-3xl font-bold">
                 {String(totalVisualizacoes).padStart(2, '0')}
               </span>
-              <span className="text-verde-musgo text-base">Visualizações na Rede</span>
+              <span className="text-verde-musgo text-xs sm:text-sm font-semibold">
+                Visualizações na Rede
+              </span>
             </div>
           </section>
 
           {/* Publicações Recentes */}
           <section className="flex flex-col gap-5">
             <div className="flex flex-wrap items-center justify-between gap-2 px-1">
-              <h2 className="text-verde-musgo text-2xl sm:text-3xl font-bold">
+              <h2 className="text-verde-escuro text-xl sm:text-2xl font-bold">
                 Publicações Recentes
               </h2>
               <Link
                 href="/gestaoProjetos"
-                className="flex items-center gap-1.5 text-verde-musgo hover:text-verde-escuro text-sm sm:text-base font-bold transition"
+                className="flex items-center gap-1.5 text-verde-musgo hover:text-verde-escuro text-sm font-bold transition"
               >
                 Ver todos os projetos
                 <IoArrowForward size={18} />
               </Link>
             </div>
 
-            <div className="flex flex-col gap-5">
+            <div className="flex flex-col gap-4">
               {carregando ? (
-                <p className="py-8 text-center text-verde-musgo font-medium">
+                <p className="py-8 text-center text-sm text-verde-musgo font-medium">
                   Carregando publicações...
                 </p>
-              ) : publicacoesFiltradas.length > 0 ? (
-                publicacoesFiltradas.map((pub) => {
+              ) : publicacoes.length > 0 ? (
+                publicacoes.map((pub) => {
                   const ehRascunho = pub.status === 'rascunho'
                   return (
                     <article
@@ -385,7 +331,7 @@ export default function PainelProfessor() {
                             </span>
                           </div>
 
-                          <h3 className="text-verde-escuro text-xl font-normal leading-snug max-w-md">
+                          <h3 className="text-verde-escuro text-base sm:text-lg font-bold leading-snug max-w-md">
                             {pub.titulo}
                           </h3>
                         </div>
@@ -451,20 +397,18 @@ export default function PainelProfessor() {
                   )
                 })
               ) : (
-                <p className="py-8 text-center text-verde-musgo font-medium">
-                  {busca
-                    ? `Nenhuma publicação encontrada para "${busca}".`
-                    : 'Nenhuma publicação cadastrada ainda.'}
+                <p className="py-8 text-center text-sm text-verde-musgo font-medium">
+                  Nenhuma publicação cadastrada ainda.
                 </p>
               )}
             </div>
           </section>
 
           {/* Avisos da Administração */}
-          <section className="p-6 bg-white rounded-2xl border border-verde-musgo shadow-sm flex flex-col gap-5">
-            <div className="flex items-center gap-2.5 text-verde-musgo">
-              <MdOutlineCampaign size={28} />
-              <h2 className="text-xl sm:text-2xl font-bold">Avisos da Administração</h2>
+          <section className="p-6 sm:p-8 bg-white rounded-2xl border border-verde-musgo shadow-sm flex flex-col gap-5">
+            <div className="flex items-center gap-2.5 text-verde-escuro">
+              <MdOutlineCampaign size={24} className="text-verde-musgo shrink-0" />
+              <h2 className="text-lg sm:text-xl font-bold">Avisos da Administração</h2>
             </div>
 
             {carregando ? (
