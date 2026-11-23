@@ -145,7 +145,6 @@ export default function HomePage() {
         </div>
 
         <div className="pointer-events-none absolute inset-0 z-10 mx-auto w-full max-w-[1440px]">
-          {/* Personagem Mobile (igual ao Figma Mobile) */}
           <div className="pointer-events-none absolute right-[-35px] top-1/2 -translate-y-1/2 z-10 block sm:hidden w-[204px] h-[240px] -rotate-[17.94deg]">
             <Image
               src={homeBotMobile}
@@ -156,7 +155,6 @@ export default function HomePage() {
             />
           </div>
 
-          {/* Personagem Tablet / Desktop */}
           <div className="pointer-events-none absolute sm:right-2 xl:right-10 sm:top-1/2 z-10 sm:-translate-y-1/2 hidden sm:block sm:w-64 sm:h-64 md:w-80 md:h-80 lg:w-120 lg:h-120 xl:w-140 xl:h-140 sm:opacity-95 lg:opacity-100">
             <Image
               src={homeBot}
