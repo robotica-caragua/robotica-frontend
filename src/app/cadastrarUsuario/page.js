@@ -1,11 +1,11 @@
 'use client'
 
-import { Select } from '@/components/Select'
 import { Suspense, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { SideBarAdmin } from '@/components/SideBarAdmin'
 import { ModalConfirmacao } from '@/components/ModalConfirmacao'
+import { MultiSelectEscolas } from '@/components/MultiSelectEscolas'
 import { apiEscolas, apiUsuarios } from '@/services/api'
 import {
   IoClose,
@@ -14,7 +14,7 @@ import {
   IoRadioButtonOffOutline
 } from 'react-icons/io5'
 import { FaRegUser } from 'react-icons/fa6'
-import { MdLockOutline } from 'react-icons/md'
+import { MdLockOutline, MdOutlineAdminPanelSettings, MdOutlineSchool } from 'react-icons/md'
 
 const RequisitoItem = ({ atendido, texto }) => (
   <div
@@ -38,17 +38,20 @@ function CadastrarUsuarioConteudo() {
 
   const [mostrarSenha, setMostrarSenha] = useState(false)
   const [escolas, setEscolas] = useState([])
+  const [perfil, setPerfil] = useState('PROFESSOR') // 'PROFESSOR' | 'ADMINISTRADOR'
   const [nome, setNome] = useState('')
   const [matricula, setMatricula] = useState('')
-  const [escola, setEscola] = useState('')
-  const [ehAdmin, setEhAdmin] = useState(false)
+  const [escolasSelecionadas, setEscolasSelecionadas] = useState([])
   const [senha, setSenha] = useState('')
   const [cpf, setCpf] = useState('')
   const [telefone, setTelefone] = useState('')
+  const [dataNascimento, setDataNascimento] = useState('')
   const [email, setEmail] = useState('')
   const [erroEmail, setErroEmail] = useState('')
   const [modal, setModal] = useState(null) // 'sucesso' | 'erro' | null
   const [mensagemErroApi, setMensagemErroApi] = useState('')
+
+  const ehAdmin = perfil === 'ADMINISTRADOR'
 
   useEffect(() => {
     let ativo = true
@@ -65,11 +68,22 @@ function CadastrarUsuarioConteudo() {
         .buscarPorId(idEdicao)
         .then((user) => {
           if (!ativo || !user) return
+          const usuarioAdmin = user.role === 'ADMIN' || user.perfil === 'ADMINISTRADOR'
+          setPerfil(usuarioAdmin ? 'ADMINISTRADOR' : 'PROFESSOR')
           setNome(user.name || '')
           setEmail(user.email || '')
-          setMatricula(String(user.id).padStart(5, '0'))
-          setEhAdmin(user.role === 'ADMIN')
-          if (user.schoolId) setEscola(String(user.schoolId))
+          setMatricula(
+            user.matricula
+              ? String(user.matricula)
+              : usuarioAdmin
+                ? ''
+                : String(user.id).padStart(5, '0')
+          )
+          const vinculadas = Array.isArray(user.schools)
+            ? user.schools.map((s) => String(s.id))
+            : []
+          if (vinculadas.length === 0 && user.schoolId) vinculadas.push(String(user.schoolId))
+          setEscolasSelecionadas(vinculadas)
         })
         .catch(() => {})
     }
@@ -142,37 +156,54 @@ function CadastrarUsuarioConteudo() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+    const camposProfessorValidos = ehAdmin
+      ? true
+      : Boolean(matricula.trim()) && escolasSelecionadas.length > 0
+
     const valido = idEdicao
-      ? nome.trim() && regexEmail.test(email) && (!senha || senhaValida)
-      : nome.trim() &&
-        matricula.trim() &&
+      ? Boolean(nome.trim()) &&
+        regexEmail.test(email) &&
+        camposProfessorValidos &&
+        (!senha || senhaValida)
+      : Boolean(nome.trim()) &&
         regexEmail.test(email) &&
         cpf.length === 14 &&
-        escola &&
+        camposProfessorValidos &&
         senhaValida
 
     if (!valido) {
-      setMensagemErroApi('')
+      if (!ehAdmin && !matricula.trim()) {
+        setMensagemErroApi('Informe a matrícula para cadastrar um usuário com perfil Professor.')
+      } else if (!ehAdmin && escolasSelecionadas.length === 0) {
+        setMensagemErroApi('Selecione ao menos uma escola vinculada para o perfil Professor.')
+      } else {
+        setMensagemErroApi('')
+      }
       setModal('erro')
       return
     }
 
     try {
+      const payloadComum = {
+        name: nome.trim(),
+        email: email.trim().toLowerCase(),
+        role: ehAdmin ? 'ADMIN' : 'TEACHER',
+        perfil: ehAdmin ? 'ADMINISTRADOR' : 'PROFESSOR',
+        permissaoAdministrador: ehAdmin,
+        matricula: ehAdmin ? null : matricula.trim(),
+        schoolIds: ehAdmin ? [] : escolasSelecionadas.map(Number)
+      }
+
       if (idEdicao) {
         await apiUsuarios.atualizar(idEdicao, {
-          name: nome.trim(),
-          email: email.trim().toLowerCase(),
-          role: ehAdmin ? 'ADMIN' : 'TEACHER',
-          ...(escola ? { schoolId: Number(escola) } : {}),
+          ...payloadComum,
           ...(senha ? { password: senha } : {})
         })
       } else {
         await apiUsuarios.criar({
-          name: nome.trim(),
-          email: email.trim().toLowerCase(),
-          password: senha,
-          role: ehAdmin ? 'ADMIN' : 'TEACHER',
-          schoolId: Number(escola)
+          ...payloadComum,
+          password: senha
         })
       }
       setMensagemErroApi('')
@@ -191,14 +222,83 @@ function CadastrarUsuarioConteudo() {
         <div className="w-full max-w-[1040px] mx-auto py-8 lg:py-10 px-6 sm:px-10 lg:px-14 flex flex-col gap-6 sm:gap-8">
           <section className="flex flex-col gap-2">
             <h1 className="text-verde-escuro text-3xl sm:text-4xl font-bold leading-tight">
-              {idEdicao ? 'Editar Professor' : 'Cadastrar Novo Professor'}
+              {idEdicao ? 'Editar Usuário' : 'Cadastrar Novo Usuário'}
             </h1>
             <p className="text-verde-musgo text-sm sm:text-base font-normal">
-              Configure as credenciais e acessos do docente no sistema.
+              Configure o perfil, dados pessoais e credenciais de acesso no sistema.
             </p>
           </section>
 
           <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-6 w-full">
+            {/* Seletor de Perfil no Topo */}
+            <div className="w-full p-6 sm:p-8 bg-white rounded-2xl shadow-sm border border-verde-musgo flex flex-col gap-4">
+              <div className="flex flex-col gap-1">
+                <span className="text-verde-escuro text-base sm:text-lg font-bold uppercase tracking-wide">
+                  Perfil de Acesso
+                </span>
+                <span className="text-verde-musgo text-xs sm:text-sm">
+                  Selecione o tipo de conta para exibir apenas os campos necessários.
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <button
+                  type="button"
+                  onClick={() => setPerfil('PROFESSOR')}
+                  aria-pressed={!ehAdmin}
+                  className={`flex items-center gap-3.5 p-4 rounded-xl border-2 text-left transition cursor-pointer ${
+                    !ehAdmin
+                      ? 'bg-verde-limao border-verde-musgo text-verde-escuro shadow-xs'
+                      : 'bg-input-bg border-verde-musgo/40 text-verde-escuro hover:bg-verde-pastel/60'
+                  }`}
+                >
+                  <div
+                    className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${
+                      !ehAdmin
+                        ? 'bg-verde-escuro text-verde-limao'
+                        : 'bg-verde-pastel text-verde-musgo'
+                    }`}
+                  >
+                    <MdOutlineSchool size={22} />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-sm sm:text-base font-bold">Professor</span>
+                    <span className="text-xs text-verde-escuro/80">
+                      Docente vinculado a uma ou mais unidades escolares
+                    </span>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setPerfil('ADMINISTRADOR')}
+                  aria-pressed={ehAdmin}
+                  className={`flex items-center gap-3.5 p-4 rounded-xl border-2 text-left transition cursor-pointer ${
+                    ehAdmin
+                      ? 'bg-verde-limao border-verde-musgo text-verde-escuro shadow-xs'
+                      : 'bg-input-bg border-verde-musgo/40 text-verde-escuro hover:bg-verde-pastel/60'
+                  }`}
+                >
+                  <div
+                    className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${
+                      ehAdmin
+                        ? 'bg-verde-escuro text-verde-limao'
+                        : 'bg-verde-pastel text-verde-musgo'
+                    }`}
+                  >
+                    <MdOutlineAdminPanelSettings size={22} />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-sm sm:text-base font-bold">Administrador</span>
+                    <span className="text-xs text-verde-escuro/80">
+                      Gestão geral da rede sem matrícula docente ou vínculo escolar
+                    </span>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            {/* Dados Pessoais */}
             <div className="w-full p-6 sm:p-8 bg-white rounded-2xl shadow-sm border border-verde-musgo flex flex-col gap-6">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 bg-verde-pastel rounded-lg flex justify-center items-center text-verde-musgo shrink-0">
@@ -216,21 +316,27 @@ function CadastrarUsuarioConteudo() {
                     type="text"
                     value={nome}
                     onChange={(e) => setNome(e.target.value)}
-                    placeholder="Digite o nome completo do professor..."
+                    placeholder={
+                      ehAdmin
+                        ? 'Digite o nome completo do administrador...'
+                        : 'Digite o nome completo do professor...'
+                    }
                     className="w-full h-12 px-4 bg-input-bg border border-verde-musgo rounded-xl text-sm sm:text-base text-verde-escuro placeholder:text-verde-escuro/60 focus:outline-none focus:ring-1 focus:ring-verde-musgo transition"
                   />
                 </div>
 
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-verde-escuro text-sm font-semibold">Matrícula</label>
-                  <input
-                    type="text"
-                    value={matricula}
-                    onChange={(e) => setMatricula(e.target.value)}
-                    placeholder="Digite a matrícula..."
-                    className="w-full h-12 px-4 bg-input-bg border border-verde-musgo rounded-xl text-sm sm:text-base text-verde-escuro placeholder:text-verde-escuro/60 focus:outline-none focus:ring-1 focus:ring-verde-musgo transition"
-                  />
-                </div>
+                {!ehAdmin && (
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-verde-escuro text-sm font-semibold">Matrícula</label>
+                    <input
+                      type="text"
+                      value={matricula}
+                      onChange={(e) => setMatricula(e.target.value)}
+                      placeholder="Digite a matrícula..."
+                      className="w-full h-12 px-4 bg-input-bg border border-verde-musgo rounded-xl text-sm sm:text-base text-verde-escuro placeholder:text-verde-escuro/60 focus:outline-none focus:ring-1 focus:ring-verde-musgo transition"
+                    />
+                  </div>
+                )}
 
                 <div className="flex flex-col gap-1.5">
                   <label className="text-verde-escuro text-sm font-semibold">E-mail</label>
@@ -271,28 +377,34 @@ function CadastrarUsuarioConteudo() {
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-1.5 md:col-span-2">
+                <div className="flex flex-col gap-1.5">
                   <label className="text-verde-escuro text-sm font-semibold">
-                    Escola Vinculada
+                    Data de Nascimento
                   </label>
-                  <Select
-                    value={escola}
-                    onChange={(e) => setEscola(e.target.value)}
-                    className="w-full h-12 px-4 pr-10 bg-input-bg border border-verde-musgo rounded-xl text-sm sm:text-base text-verde-escuro focus:outline-none focus:ring-1 focus:ring-verde-musgo appearance-none cursor-pointer transition"
-                  >
-                    <option value="" disabled>
-                      Selecione a unidade onde o professor lecionará as oficinas...
-                    </option>
-                    {escolas.map((esc) => (
-                      <option key={esc.id} value={String(esc.id)}>
-                        {esc.name}
-                      </option>
-                    ))}
-                  </Select>
+                  <input
+                    type="date"
+                    value={dataNascimento}
+                    onChange={(e) => setDataNascimento(e.target.value)}
+                    className="w-full h-12 px-4 bg-input-bg border border-verde-musgo rounded-xl text-sm sm:text-base text-verde-escuro focus:outline-none focus:ring-1 focus:ring-verde-musgo transition"
+                  />
                 </div>
+
+                {!ehAdmin && (
+                  <div className="flex flex-col gap-1.5 md:col-span-2">
+                    <label className="text-verde-escuro text-sm font-semibold">
+                      Escola(s) Vinculada(s)
+                    </label>
+                    <MultiSelectEscolas
+                      escolas={escolas}
+                      selecionadas={escolasSelecionadas}
+                      onChange={setEscolasSelecionadas}
+                    />
+                  </div>
+                )}
               </div>
             </div>
 
+            {/* Credenciais */}
             <div className="p-6 sm:p-8 bg-white rounded-2xl shadow-sm border border-verde-musgo flex flex-col gap-6">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 bg-verde-pastel rounded-lg flex justify-center items-center text-verde-musgo shrink-0">
@@ -303,101 +415,75 @@ function CadastrarUsuarioConteudo() {
                 </h3>
               </div>
 
-              <div className="flex flex-col md:flex-row gap-6 items-start w-full">
-                <div className="flex flex-col gap-1.5 w-full md:flex-1">
-                  <label className="text-verde-escuro text-sm font-semibold">
-                    Senha temporária
-                  </label>
+              <div className="flex flex-col gap-1.5 w-full">
+                <label className="text-verde-escuro text-sm font-semibold">Senha temporária</label>
 
-                  <div className="relative">
-                    <input
-                      type={mostrarSenha ? 'text' : 'password'}
-                      placeholder="Digite a senha..."
-                      value={senha}
-                      onChange={(e) => setSenha(e.target.value)}
-                      className="w-full h-12 px-4 pe-12 bg-input-bg border border-verde-musgo rounded-xl text-sm sm:text-base text-verde-escuro placeholder:text-verde-escuro/60 focus:outline-none focus:ring-1 focus:ring-verde-musgo transition"
-                    />
+                <div className="relative">
+                  <input
+                    type={mostrarSenha ? 'text' : 'password'}
+                    placeholder="Digite a senha..."
+                    value={senha}
+                    onChange={(e) => setSenha(e.target.value)}
+                    className="w-full h-12 px-4 pe-12 bg-input-bg border border-verde-musgo rounded-xl text-sm sm:text-base text-verde-escuro placeholder:text-verde-escuro/60 focus:outline-none focus:ring-1 focus:ring-verde-musgo transition"
+                  />
 
-                    <button
-                      type="button"
-                      onClick={() => setMostrarSenha(!mostrarSenha)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-verde-musgo hover:text-verde-escuro transition"
-                      aria-label="Alternar visibilidade da senha"
-                    >
-                      {mostrarSenha ? (
-                        <svg
-                          className="shrink-0 size-5"
-                          width="24"
-                          height="24"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
-                          <circle cx="12" cy="12" r="3" />
-                        </svg>
-                      ) : (
-                        <svg
-                          className="shrink-0 size-5"
-                          width="24"
-                          height="24"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
-                          <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" />
-                          <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" />
-                          <line x1="2" x2="22" y1="2" y2="22" />
-                        </svg>
-                      )}
-                    </button>
-                  </div>
-
-                  <span className="text-verde-musgo opacity-75 text-xs px-1 mb-2">
-                    O usuário deverá alterar a senha no primeiro acesso.
-                  </span>
-
-                  {/* Requisitos senha */}
-                  <div className="flex flex-col gap-2 p-4 bg-input-bg rounded-xl border border-verde-musgo border-opacity-20">
-                    <span className="text-verde-escuro text-sm font-bold mb-1">
-                      A senha deve conter:
-                    </span>
-                    <div className="grid grid-cols-2 gap-y-3 gap-x-4">
-                      <RequisitoItem atendido={validacoes.tamanho} texto="Mínimo 8 caracteres" />
-                      <RequisitoItem atendido={validacoes.maiuscula} texto="1 letra maiúscula" />
-                      <RequisitoItem atendido={validacoes.numero} texto="1 número" />
-                      <RequisitoItem atendido={validacoes.especial} texto="1 caractere especial" />
-                    </div>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setMostrarSenha(!mostrarSenha)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-verde-musgo hover:text-verde-escuro transition"
+                    aria-label="Alternar visibilidade da senha"
+                  >
+                    {mostrarSenha ? (
+                      <svg
+                        className="shrink-0 size-5"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+                        <circle cx="12" cy="12" r="3" />
+                      </svg>
+                    ) : (
+                      <svg
+                        className="shrink-0 size-5"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
+                        <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" />
+                        <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" />
+                        <line x1="2" x2="22" y1="2" y2="22" />
+                      </svg>
+                    )}
+                  </button>
                 </div>
 
-                {/* Toggle permissões de admin */}
-                <div className="flex-1 max-w-lg p-5 bg-input-bg rounded-2xl border border-verde-musgo flex justify-between items-center mt-7">
-                  <div className="flex flex-col">
-                    <span className="text-verde-escuro text-base font-bold">
-                      Permissões de Administrador
-                    </span>
-                    <span className="text-verde-musgo text-sm">
-                      Acesso completo a todos os controles.
-                    </span>
-                  </div>
+                <span className="text-verde-musgo opacity-75 text-xs px-1 mb-2">
+                  O usuário deverá alterar a senha no primeiro acesso.
+                </span>
 
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={ehAdmin}
-                      onChange={(e) => setEhAdmin(e.target.checked)}
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-verde-oliva"></div>
-                  </label>
+                {/* Requisitos senha */}
+                <div className="flex flex-col gap-2 p-4 bg-input-bg rounded-xl border border-verde-musgo border-opacity-20">
+                  <span className="text-verde-escuro text-sm font-bold mb-1">
+                    A senha deve conter:
+                  </span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-4">
+                    <RequisitoItem atendido={validacoes.tamanho} texto="Mínimo 8 caracteres" />
+                    <RequisitoItem atendido={validacoes.maiuscula} texto="1 letra maiúscula" />
+                    <RequisitoItem atendido={validacoes.numero} texto="1 número" />
+                    <RequisitoItem atendido={validacoes.especial} texto="1 caractere especial" />
+                  </div>
                 </div>
               </div>
             </div>
@@ -414,7 +500,7 @@ function CadastrarUsuarioConteudo() {
                 type="submit"
                 className="w-full sm:w-auto px-6 py-3.5 bg-verde-musgo hover:bg-white hover:text-verde-musgo hover:border hover:border-verde-musgo text-white text-sm sm:text-base font-bold uppercase tracking-wider rounded-xl flex items-center justify-center gap-3 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-xs"
               >
-                {idEdicao ? 'Salvar Alterações' : 'Cadastrar Professor'}
+                {idEdicao ? 'Salvar Alterações' : 'Cadastrar Novo Usuário'}
                 <IoArrowForward size={22} />
               </button>
             </div>
@@ -427,14 +513,14 @@ function CadastrarUsuarioConteudo() {
         tituloPrincipal={
           modal === 'sucesso'
             ? idEdicao
-              ? 'Professor atualizado com'
-              : 'Professor cadastrado com'
+              ? 'Usuário atualizado com'
+              : 'Usuário cadastrado com'
             : 'Não foi possível salvar'
         }
-        tituloDestaque={modal === 'sucesso' ? 'sucesso!' : 'o professor!'}
+        tituloDestaque={modal === 'sucesso' ? 'sucesso!' : 'o usuário!'}
         mensagem={
           modal === 'sucesso'
-            ? 'Os dados do professor foram registrados no servidor!'
+            ? 'Os dados do usuário foram registrados no servidor!'
             : mensagemErroApi ||
               'Verifique se todos os campos e requisitos da senha foram preenchidos corretamente e tente salvar mais uma vez.'
         }

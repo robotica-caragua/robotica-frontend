@@ -45,22 +45,45 @@ export function limparSessao() {
   document.cookie = 'role=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax'
 }
 
+const ROTAS_AUTH_SEM_REFRESH = new Set([
+  '/auth/login',
+  '/auth/register',
+  '/auth/google',
+  '/auth/refresh',
+  '/auth/logout',
+  '/auth/forgot-password',
+  '/auth/reset-password'
+])
+
+function caminoPermiteRefresh(caminho) {
+  const limpo = String(caminho || '').split('?')[0]
+  return !ROTAS_AUTH_SEM_REFRESH.has(limpo)
+}
+
+let promessaRefreshEmAndamento = null
+
 async function tentarRenovarToken() {
-  try {
-    const resposta = await fetch(`${API_BASE_URL}/auth/refresh`, {
-      method: 'POST',
-      credentials: 'include'
-    })
-    if (!resposta.ok) return null
-    const dados = await resposta.json()
-    if (dados?.accessToken) {
-      salvarSessao({ accessToken: dados.accessToken, user: dados.user })
-      return dados.accessToken
+  if (promessaRefreshEmAndamento) return promessaRefreshEmAndamento
+  promessaRefreshEmAndamento = (async () => {
+    try {
+      const resposta = await fetch(`${API_BASE_URL}/auth/refresh`, {
+        method: 'POST',
+        credentials: 'include'
+      })
+      if (!resposta.ok) return null
+      const dados = await resposta.json()
+      if (dados?.accessToken) {
+        salvarSessao({ accessToken: dados.accessToken, user: dados.user })
+        return dados.accessToken
+      }
+      return null
+    } catch {
+      return null
+    } finally {
+      promessaRefreshEmAndamento = null
     }
-    return null
-  } catch {
-    return null
-  }
+  })()
+  return promessaRefreshEmAndamento
 }
 
 export async function requisicaoApi(
@@ -87,7 +110,7 @@ export async function requisicaoApi(
     cache: 'no-store'
   })
 
-  if (resposta.status === 401 && autenticado && tentarRefresh && !caminho.startsWith('/auth/')) {
+  if (resposta.status === 401 && autenticado && tentarRefresh && caminoPermiteRefresh(caminho)) {
     const novoToken = await tentarRenovarToken()
     if (novoToken) {
       cabecalhos.Authorization = `Bearer ${novoToken}`
@@ -235,6 +258,9 @@ export function mapearProjetoDaApi(projeto, imagemPadrao) {
 // ==========================================
 // Endpoints de Autenticação (/auth/*)
 // ==========================================
+let promessaMeEmAndamento = null
+let cacheMeRecente = { user: null, timestamp: 0 }
+
 export const apiAuth = {
   async login({ email, password }) {
     const dados = await requisicaoApi('/auth/login', {
@@ -242,6 +268,7 @@ export const apiAuth = {
       body: { email, password },
       autenticado: false
     })
+    cacheMeRecente = { user: dados?.user || null, timestamp: Date.now() }
     salvarSessao(dados)
     return dados
   },
@@ -252,6 +279,7 @@ export const apiAuth = {
       body: { idToken },
       autenticado: false
     })
+    cacheMeRecente = { user: dados?.user || null, timestamp: Date.now() }
     salvarSessao(dados)
     return dados
   },
@@ -271,16 +299,31 @@ export const apiAuth = {
     try {
       await requisicaoApi('/auth/logout', { method: 'POST', tentarRefresh: false })
     } finally {
+      cacheMeRecente = { user: null, timestamp: 0 }
       limparSessao()
     }
   },
 
-  async me() {
-    const dados = await requisicaoApi('/auth/me')
-    if (dados?.user) {
-      salvarSessao({ user: dados.user })
+  async me({ forcar = false } = {}) {
+    if (!forcar && cacheMeRecente.user && Date.now() - cacheMeRecente.timestamp < 2000) {
+      return cacheMeRecente.user
     }
-    return dados.user
+    if (!forcar && promessaMeEmAndamento) {
+      return promessaMeEmAndamento
+    }
+    promessaMeEmAndamento = (async () => {
+      try {
+        const dados = await requisicaoApi('/auth/me')
+        if (dados?.user) {
+          cacheMeRecente = { user: dados.user, timestamp: Date.now() }
+          salvarSessao({ user: dados.user })
+        }
+        return dados.user
+      } finally {
+        promessaMeEmAndamento = null
+      }
+    })()
+    return promessaMeEmAndamento
   },
 
   async concluirOnboarding({ schoolId, roboticsGroupId }) {
@@ -413,29 +456,6 @@ function extrairLista(dados, chaves = []) {
   return []
 }
 
-const ESCOLAS_FALLBACK = [
-  {
-    id: 3,
-    name: 'EMEF Profª Maria Aparecida De Carvalho',
-    address: 'R. Seishi Yoshimoto, 120 - Getuba, Caraguatatuba - SP, 11676-403'
-  },
-  {
-    id: 4,
-    name: 'EMEF Prof. Luiz Ribeiro Muniz',
-    address: 'R. Analândia, 355 - Martim de Sá, Caraguatatuba - SP, 11662-320'
-  },
-  {
-    id: 5,
-    name: 'EMEF Prof. Luiz Silvar do Prado',
-    address: 'R. José Pedro de Oliveira Barbosa, 805 - Jardim Casa Branca, Caraguatatuba - SP'
-  },
-  {
-    id: 6,
-    name: 'EMEF Profª Maria Thereza de Souza Castro',
-    address: 'R. Seishi Yoshimoto, 120 - Getuba, Caraguatatuba - SP, 11676-403'
-  }
-]
-
 // ==========================================
 // Endpoints de Categorias (/categories)
 // ==========================================
@@ -496,71 +516,76 @@ export const apiCategorias = {
 // ==========================================
 // Endpoints de Escolas (/schools)
 // ==========================================
+function normalizarEscola(esc) {
+  return {
+    ...esc,
+    id: esc.id,
+    name: esc.name,
+    address: esc.address || esc.endereco || '',
+    description: esc.description || ''
+  }
+}
+
 export const apiEscolas = {
+  // Todas as escolas cadastradas (ADMIN usa /schools; demais perfis usam /public/schools).
+  // Sem dados mockados: se a API não retornar nada, a lista é vazia.
   async listar() {
     let lista = []
-
     try {
       const dados = await requisicaoApi('/schools')
       lista = extrairLista(dados, ['schools'])
     } catch (err) {
-      // Para usuários não-ADMIN (401/403) ou 404, tenta /public/schools sem engolir o fallback
       if (err?.status === 401 || err?.status === 403 || err?.status === 404) {
         const dadosPublicos = await requisicaoApi('/public/schools', {
           autenticado: false
         }).catch(() => null)
         lista = extrairLista(dadosPublicos, ['schools'])
-      } else {
-        lista = []
       }
     }
+    return lista
+      .filter((esc) => esc?.id !== null && esc?.id !== undefined && esc?.name)
+      .map(normalizarEscola)
+  },
+
+  // Escolas às quais o usuário logado está vinculado (relação N:N retornada por /auth/me).
+  // É a única fonte para os seletores de escola de Projetos e Tutoriais.
+  // Administradores não possuem vínculo escolar: para eles, todas as escolas cadastradas.
+  async listarDoUsuarioLogado() {
+    const usuario = (await apiAuth.me().catch(() => null)) || obterUsuario()
+    if (!usuario) return []
+    if (usuario.role === 'ADMIN') return apiEscolas.listar()
 
     const mapa = new Map()
-    const adicionarEscola = (esc) => {
+    const adicionar = (esc) => {
       const obj = esc?.school || esc
-      const nome = obj?.name || obj?.nome
-      if (!nome) return
-      const chave = obj.id ?? nome.toLowerCase()
-      if (!mapa.has(chave)) {
-        mapa.set(chave, {
-          ...obj,
-          id: obj.id,
-          name: nome,
-          address: obj.address || obj.endereco || ''
-        })
+      if (!obj?.id || !obj?.name) return
+      mapa.set(Number(obj.id), normalizarEscola(obj))
+    }
+
+    if (Array.isArray(usuario.schools)) {
+      usuario.schools.forEach(adicionar)
+    }
+    if (usuario.school) {
+      adicionar(usuario.school)
+    }
+
+    // Se a relação N:N veio vazia ou há apenas schoolId legado, consulta /users/:id/school
+    if (
+      (mapa.size === 0 || (usuario.schoolId && !mapa.has(Number(usuario.schoolId)))) &&
+      usuario.id
+    ) {
+      const escolasEndpoint = await apiUsuarios.buscarEscolasDoUsuario(usuario.id).catch(() => [])
+      for (const esc of Array.isArray(escolasEndpoint) ? escolasEndpoint : []) {
+        adicionar(esc)
+      }
+      if (usuario.schoolId && !mapa.has(Number(usuario.schoolId))) {
+        const todas = await apiEscolas.listar().catch(() => [])
+        const encontrada = todas.find((e) => Number(e.id) === Number(usuario.schoolId))
+        if (encontrada) adicionar(encontrada)
       }
     }
 
-    for (const esc of lista) adicionarEscola(esc)
-
-    // Se /schools é restrito a ADMIN e veio vazio para TEACHER/público,
-    // coleta escolas reais vinculadas ao usuário autenticado, tutoriais e projetos da API
-    if (mapa.size === 0) {
-      const usuarioLocal = obterUsuario()
-      if (usuarioLocal?.school) adicionarEscola(usuarioLocal.school)
-      if (Array.isArray(usuarioLocal?.schools)) {
-        usuarioLocal.schools.forEach(adicionarEscola)
-      }
-
-      const [meUser, tutoriais, projetos] = await Promise.all([
-        obterToken() ? apiAuth.me().catch(() => null) : Promise.resolve(null),
-        apiTutoriais.listar().catch(() => []),
-        apiProjetos.listar().catch(() => [])
-      ])
-
-      if (meUser?.school) adicionarEscola(meUser.school)
-      if (Array.isArray(meUser?.schools)) meUser.schools.forEach(adicionarEscola)
-
-      for (const t of Array.isArray(tutoriais) ? tutoriais : []) {
-        if (t?.school) adicionarEscola(t.school)
-      }
-      for (const p of Array.isArray(projetos) ? projetos : []) {
-        if (p?.school) adicionarEscola(p.school)
-      }
-    }
-
-    if (mapa.size > 0) return Array.from(mapa.values())
-    return ESCOLAS_FALLBACK
+    return Array.from(mapa.values())
   },
 
   async buscarPorId(id) {
@@ -568,18 +593,26 @@ export const apiEscolas = {
     return dados.school
   },
 
-  async criar({ name, address }) {
+  async criar({ name, address, description }) {
     const dados = await requisicaoApi('/schools', {
       method: 'POST',
-      body: { name, ...(address ? { address } : {}) }
+      body: {
+        name,
+        ...(address ? { address } : {}),
+        ...(description ? { description } : {})
+      }
     })
     return dados.school
   },
 
-  async atualizar(id, { name, address }) {
+  async atualizar(id, { name, address, description }) {
     const dados = await requisicaoApi(`/schools/${id}`, {
       method: 'PUT',
-      body: { ...(name ? { name } : {}), ...(address !== undefined ? { address } : {}) }
+      body: {
+        ...(name ? { name } : {}),
+        ...(address !== undefined ? { address } : {}),
+        ...(description !== undefined ? { description } : {})
+      }
     })
     return dados.school
   },
@@ -610,9 +643,19 @@ export const apiUsuarios = {
     return dados.school?.school || dados.school
   },
 
-  async criar({ name, email, password, role = 'TEACHER', schoolId }) {
+  async buscarEscolasDoUsuario(id) {
+    const dados = await requisicaoApi(`/users/${id}/school`)
+    if (Array.isArray(dados?.schools)) return dados.schools
+    const unica = dados?.school?.school || dados?.school
+    return unica ? [unica] : []
+  },
+
+  async criar({ name, email, password, role = 'TEACHER', perfil, matricula, schoolId, schoolIds }) {
     const payload = { name, email, password, role }
-    if (schoolId) payload.schoolId = Number(schoolId)
+    if (perfil !== undefined) payload.perfil = perfil
+    if (matricula !== undefined) payload.matricula = matricula
+    if (Array.isArray(schoolIds)) payload.schoolIds = schoolIds.map(Number)
+    else if (schoolId) payload.schoolId = Number(schoolId)
     const dados = await requisicaoApi('/users', {
       method: 'POST',
       body: payload
@@ -622,16 +665,42 @@ export const apiUsuarios = {
 
   async atualizar(id, campos) {
     const payload = { ...campos }
+    if (Array.isArray(payload.schoolIds)) payload.schoolIds = payload.schoolIds.map(Number)
     if (payload.schoolId) payload.schoolId = Number(payload.schoolId)
     const dados = await requisicaoApi(`/users/${id}`, {
       method: 'PUT',
       body: payload
     })
+    cacheMeRecente = { user: null, timestamp: 0 }
     return dados.user
   },
 
   async excluir(id) {
     return requisicaoApi(`/users/${id}`, { method: 'DELETE' })
+  }
+}
+
+// ==========================================
+// Endpoints de Avisos da Administração (/announcements)
+// ==========================================
+export const apiAvisos = {
+  async listar() {
+    return listarComVazioEm404(async () => {
+      const dados = await requisicaoApi('/announcements')
+      return extrairLista(dados, ['announcements'])
+    })
+  },
+
+  async criar({ title, message }) {
+    const dados = await requisicaoApi('/announcements', {
+      method: 'POST',
+      body: { title, message }
+    })
+    return dados.announcement
+  },
+
+  async excluir(id) {
+    return requisicaoApi(`/announcements/${id}`, { method: 'DELETE' })
   }
 }
 

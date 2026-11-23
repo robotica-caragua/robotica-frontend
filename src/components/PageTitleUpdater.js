@@ -28,11 +28,12 @@ const titulosPorRota = {
   '/dashboard': 'BioBot | Painel do Administrador',
   '/admin': 'BioBot | Painel do Administrador',
   '/gestaoUsuarios': 'BioBot | Gestão de Usuários',
-  '/cadastrarUsuario': 'BioBot | Cadastrar Professor',
+  '/cadastrarUsuario': 'BioBot | Cadastrar Novo Usuário',
   '/escolas': 'BioBot | Gestão de Escolas',
   '/cadastrarEscola': 'BioBot | Cadastrar Escola',
   '/gestaoEventos': 'BioBot | Gestão de Eventos',
   '/cadastrarEvento': 'BioBot | Cadastrar Evento',
+  '/gestaoAvisos': 'BioBot | Avisos da Administração',
   '/unauthorized': 'BioBot | Acesso Restrito'
 }
 
@@ -42,7 +43,11 @@ export function PageTitleUpdater() {
   useEffect(() => {
     const rotaNormalizada =
       pathname && pathname !== '/' ? pathname.replace(/\/+$/, '') : pathname || '/'
-    const titulo = titulosPorRota[rotaNormalizada] || 'BioBot | Página Não Encontrada'
+    const titulo =
+      titulosPorRota[rotaNormalizada] ||
+      (rotaNormalizada.startsWith('/admin/escolas/')
+        ? 'BioBot | Detalhes da Escola'
+        : 'BioBot | Página Não Encontrada')
     document.title = titulo
   }, [pathname])
 

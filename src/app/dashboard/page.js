@@ -150,7 +150,7 @@ export default function DashboardPage() {
                 className="flex w-52 items-center justify-center gap-2 rounded-lg bg-verde-musgo hover:bg-white hover:text-verde-musgo border border-verde-musgo px-5 py-3 text-sm font-bold text-white shadow-sm transition cursor-pointer"
               >
                 <MdAdd size={18} />
-                Novo Professor
+                Novo Usuário
               </Link>
 
               <Link

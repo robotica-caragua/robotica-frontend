@@ -60,19 +60,36 @@ export default function GestaoUsuarios() {
         if (!ativo) return
         const listaEscolas = Array.isArray(escolasApi) ? escolasApi : []
         const mapaEscolas = new Map(listaEscolas.map((e) => [Number(e.id), e.name]))
-        const primeiraEscola = listaEscolas[0]?.name || 'EMEF Prof. Luiz Ribeiro Muniz'
         const idsInativos = lerIdsInativos()
         setUsuarios(
           (Array.isArray(usuariosApi) ? usuariosApi : []).map((u) => {
             const estaInativo = idsInativos.has(Number(u.id)) || u.active === false
+            const ehAdmin = u.role === 'ADMIN' || u.perfil === 'ADMINISTRADOR'
+            const nomesVinculados = Array.isArray(u.schools)
+              ? u.schools.map((s) => s?.name || mapaEscolas.get(Number(s?.id))).filter(Boolean)
+              : []
+            const rotuloEscolas =
+              nomesVinculados.length > 0
+                ? nomesVinculados.join(', ')
+                : mapaEscolas.get(Number(u.schoolId)) ||
+                  (u.schoolId ? `Unidade #${u.schoolId}` : ehAdmin ? 'Administração Geral' : '—')
+            const matriculaReal =
+              u.matricula && String(u.matricula).trim()
+                ? String(u.matricula).trim().startsWith('#')
+                  ? String(u.matricula).trim()
+                  : `#${String(u.matricula).trim()}`
+                : ehAdmin
+                  ? '—'
+                  : u.id
+                    ? `#${String(u.id).padStart(5, '0')}`
+                    : '—'
             return {
               id: u.id,
               nome: u.name,
               email: u.email,
-              matricula: `#${String(u.id).padStart(5, '0')}`,
-              escola:
-                mapaEscolas.get(Number(u.schoolId)) ||
-                (u.schoolId ? `Unidade #${u.schoolId}` : primeiraEscola),
+              role: u.role,
+              matricula: matriculaReal,
+              escola: rotuloEscolas,
               status: estaInativo
                 ? 'Inativo'
                 : u.onboardingStatus === 'PENDING'
@@ -198,7 +215,7 @@ export default function GestaoUsuarios() {
               href="/cadastrarUsuario"
               className="px-6 py-3 bg-verde-musgo hover:bg-white hover:text-verde-musgo border border-verde-musgo text-white text-sm sm:text-base font-bold rounded-lg shadow-sm flex items-center gap-2 transition"
             >
-              <IoAddOutline size={20} /> Novo Professor
+              <IoAddOutline size={20} /> Novo Usuário
             </Link>
           </div>
 

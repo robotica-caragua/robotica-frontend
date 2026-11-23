@@ -10,8 +10,7 @@ import {
   apiCategorias,
   apiEscolas,
   apiTutoriais,
-  converterNivelParaDificuldade,
-  obterUsuario
+  converterNivelParaDificuldade
 } from '@/services/api'
 import { IoClose, IoArrowForward } from 'react-icons/io5'
 import {
@@ -74,28 +73,29 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
   useEffect(() => {
     let ativo = true
 
-    Promise.all([apiCategorias.listar().catch(() => []), apiEscolas.listar().catch(() => [])]).then(
-      ([listaCategorias, listaEscolas]) => {
-        if (!ativo) return
+    Promise.all([
+      apiCategorias.listar().catch(() => []),
+      apiEscolas.listarDoUsuarioLogado().catch(() => [])
+    ]).then(([listaCategorias, listaEscolas]) => {
+      if (!ativo) return
 
-        if (Array.isArray(listaCategorias)) {
-          setCategorias(listaCategorias)
-        }
-
-        if (Array.isArray(listaEscolas)) {
-          setEscolas(listaEscolas)
-          if (!ehEdicao) {
-            const usuario = obterUsuario()
-            const escolaDoUsuario = usuario?.schoolId
-              ? listaEscolas.find((item) => Number(item.id) === Number(usuario.schoolId))
-              : null
-            if (escolaDoUsuario?.name) {
-              setForm((prev) => (prev.escola ? prev : { ...prev, escola: escolaDoUsuario.name }))
-            }
-          }
-        }
+      if (Array.isArray(listaCategorias)) {
+        setCategorias(listaCategorias)
       }
-    )
+
+      if (Array.isArray(listaEscolas)) {
+        setEscolas(listaEscolas)
+        setForm((prev) => {
+          if (prev.escola && listaEscolas.some((item) => item.name === prev.escola)) {
+            return prev
+          }
+          if (listaEscolas.length === 1) {
+            return { ...prev, escola: listaEscolas[0].name }
+          }
+          return { ...prev, escola: '' }
+        })
+      }
+    })
 
     return () => {
       ativo = false
@@ -194,7 +194,7 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
     const catEncontrada = categorias.find((c) => c.name === form.categoria)
     const escEncontrada = escolas.find((s) => s.name === form.escola)
     const categoryId = catEncontrada?.id || dadosIniciais.categoryId || categorias[0]?.id
-    const schoolId = escEncontrada?.id || dadosIniciais.schoolId || escolas[0]?.id
+    const schoolId = escEncontrada?.id
 
     if (!categoryId || !schoolId) {
       setMensagemErroApi(
@@ -363,10 +363,13 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
                           {esc.name}
                         </option>
                       ))}
-                      {form.escola && !escolas.some((esc) => esc.name === form.escola) && (
-                        <option value={form.escola}>{form.escola}</option>
-                      )}
                     </Select>
+                    {escolas.length === 0 && (
+                      <p className="mt-2 text-xs sm:text-sm font-semibold text-vermelho">
+                        Você ainda não está vinculado a nenhuma escola. Peça à administração para
+                        vincular o seu perfil.
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -684,6 +687,14 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
         }
         textoBotaoVoltar="Voltar"
         hrefVoltar="/gestaoTutoriais"
+        onConfirmar={
+          modal === 'sucesso'
+            ? () => {
+                setModal(null)
+                router.push('/gestaoTutoriais')
+              }
+            : undefined
+        }
         onTentarNovamente={() => setModal(null)}
       />
     </div>

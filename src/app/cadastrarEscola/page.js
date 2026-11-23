@@ -1,19 +1,24 @@
 'use client'
 
 import { Select } from '@/components/Select'
-import { useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { SideBarAdmin } from '@/components/SideBarAdmin'
 import { ModalConfirmacao } from '@/components/ModalConfirmacao'
 import { apiEscolas } from '@/services/api'
 import { IoClose, IoArrowForward } from 'react-icons/io5'
 import { FaBuilding, FaMapMarkerAlt, FaAddressBook } from 'react-icons/fa'
 
-export default function CadastrarEscola() {
+function CadastrarEscolaConteudo() {
+  const searchParams = useSearchParams()
+  const idEdicao = searchParams.get('id')
+
   const [form, setForm] = useState({
     nomeEscola: '',
     codigoInep: '',
     tipoUnidade: '',
+    descricao: '',
     endereco: '',
     bairro: '',
     regiao: '',
@@ -23,6 +28,36 @@ export default function CadastrarEscola() {
   })
   const [modal, setModal] = useState(null) // 'sucesso' | 'erro' | null
   const [mensagemErroApi, setMensagemErroApi] = useState('')
+
+  useEffect(() => {
+    if (!idEdicao) return
+    let ativo = true
+    apiEscolas
+      .buscarPorId(idEdicao)
+      .then((esc) => {
+        if (!ativo || !esc) return
+        setForm((prev) => ({
+          ...prev,
+          nomeEscola: esc.name || '',
+          tipoUnidade: esc.name?.toUpperCase().includes('EMEI') ? 'emei' : 'emef',
+          descricao: esc.description || '',
+          endereco: esc.address || '',
+          bairro: prev.bairro || 'Centro',
+          regiao: esc.address?.toUpperCase().includes('SUL')
+            ? 'sul'
+            : esc.address?.toUpperCase().includes('CENTRO')
+              ? 'centro'
+              : 'norte',
+          telefone: prev.telefone || '(12) 3880-0000',
+          email: prev.email || 'contato@educacao.caraguatatuba.sp.gov.br'
+        }))
+      })
+      .catch(() => {})
+
+    return () => {
+      ativo = false
+    }
+  }, [idEdicao])
 
   const atualizar = (campo) => (e) => {
     setForm((prev) => ({ ...prev, [campo]: e.target.value }))
@@ -45,13 +80,24 @@ export default function CadastrarEscola() {
       return
     }
 
-    const enderecoCompleto = `${form.endereco.trim()} - ${form.bairro.trim()}, Caraguatatuba - SP (${form.regiao.toUpperCase()})`
+    const enderecoCompleto = form.endereco.includes('Caraguatatuba')
+      ? form.endereco.trim()
+      : `${form.endereco.trim()} - ${form.bairro.trim()}, Caraguatatuba - SP (${form.regiao.toUpperCase()})`
 
     try {
-      await apiEscolas.criar({
-        name: form.nomeEscola.trim(),
-        address: enderecoCompleto
-      })
+      if (idEdicao) {
+        await apiEscolas.atualizar(idEdicao, {
+          name: form.nomeEscola.trim(),
+          address: enderecoCompleto,
+          description: form.descricao.trim()
+        })
+      } else {
+        await apiEscolas.criar({
+          name: form.nomeEscola.trim(),
+          address: enderecoCompleto,
+          ...(form.descricao.trim() ? { description: form.descricao.trim() } : {})
+        })
+      }
       setMensagemErroApi('')
       setModal('sucesso')
     } catch (err) {
@@ -71,7 +117,7 @@ export default function CadastrarEscola() {
           {/* CABEÇALHO DA PÁGINA */}
           <section className="flex flex-col gap-2">
             <h1 className="text-verde-escuro text-3xl sm:text-4xl font-bold leading-tight">
-              Cadastrar Nova Escola
+              {idEdicao ? 'Editar Escola' : 'Cadastrar Nova Escola'}
             </h1>
             <p className="text-verde-musgo text-sm sm:text-base font-normal">
               Registre uma nova unidade escolar para que ela possa receber equipes e professores no
@@ -139,6 +185,20 @@ export default function CadastrarEscola() {
                       <option value="emei">EMEI</option>
                     </Select>
                   </div>
+                </div>
+
+                <div className="flex flex-col gap-1.5 md:col-span-2">
+                  <label htmlFor="descricao" className="text-verde-escuro text-sm font-semibold">
+                    Descrição da Escola (Opcional)
+                  </label>
+                  <textarea
+                    id="descricao"
+                    rows={4}
+                    value={form.descricao}
+                    onChange={atualizar('descricao')}
+                    placeholder="Descreva a estrutura, laboratórios, oficinas de robótica e projetos desenvolvidos na unidade..."
+                    className="w-full p-4 bg-input-bg border border-verde-musgo rounded-xl text-sm sm:text-base text-verde-escuro placeholder:text-verde-escuro/60 focus:outline-none focus:ring-1 focus:ring-verde-musgo transition resize-none"
+                  />
                 </div>
               </div>
             </div>
@@ -293,7 +353,7 @@ export default function CadastrarEscola() {
                 type="submit"
                 className="w-full sm:w-auto px-6 py-3 bg-verde-musgo hover:bg-white hover:text-verde-musgo border border-verde-musgo text-white text-sm font-bold uppercase tracking-wider rounded-xl shadow-sm flex items-center justify-center gap-3 cursor-pointer transition-all"
               >
-                Cadastrar Escola
+                {idEdicao ? 'Salvar Alterações' : 'Cadastrar Escola'}
                 <IoArrowForward size={18} />
               </button>
             </div>
@@ -304,7 +364,13 @@ export default function CadastrarEscola() {
       <ModalConfirmacao
         tipo={modal}
         tituloPrincipal={
-          modal === 'sucesso' ? 'Escola cadastrada com' : 'Não foi possível cadastrar'
+          modal === 'sucesso'
+            ? idEdicao
+              ? 'Escola atualizada com'
+              : 'Escola cadastrada com'
+            : idEdicao
+              ? 'Não foi possível atualizar'
+              : 'Não foi possível cadastrar'
         }
         tituloDestaque={modal === 'sucesso' ? 'sucesso!' : 'a escola!'}
         mensagem={
@@ -318,5 +384,13 @@ export default function CadastrarEscola() {
         onTentarNovamente={() => setModal(null)}
       />
     </div>
+  )
+}
+
+export default function CadastrarEscola() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-background" />}>
+      <CadastrarEscolaConteudo />
+    </Suspense>
   )
 }

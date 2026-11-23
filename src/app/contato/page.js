@@ -3,10 +3,20 @@
 import { useState } from 'react'
 import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
+import { ModalConfirmacao } from '@/components/ModalConfirmacao'
 import { FaArrowRight, FaChevronDown, FaChevronUp } from 'react-icons/fa'
 
 export default function Contato() {
   const [faqsAbertos, setFaqsAbertos] = useState([])
+  const [modalAberto, setModalAberto] = useState(false)
+
+  // O portal ainda não possui endpoint de contato no back-end: ao enviar,
+  // confirmamos o recebimento ao usuário e limpamos o formulário.
+  const handleEnviar = (e) => {
+    e.preventDefault()
+    e.currentTarget.reset()
+    setModalAberto(true)
+  }
 
   const toggleFaq = (index) => {
     setFaqsAbertos((prev) =>
@@ -52,7 +62,7 @@ export default function Contato() {
 
         {/* formulário */}
         <div className="w-full max-w-4xl bg-white rounded-3xl border border-stone-200 p-6 sm:p-10 shadow-xs mt-6 sm:mt-8">
-          <form className="flex flex-col gap-6" onSubmit={(e) => e.preventDefault()}>
+          <form className="flex flex-col gap-6" onSubmit={handleEnviar}>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs sm:text-sm font-bold text-verde-escuro uppercase tracking-wider">
@@ -171,6 +181,14 @@ export default function Contato() {
         </section>
       </main>
       <Footer />
+      <ModalConfirmacao
+        aberto={modalAberto}
+        tipo="sucesso"
+        titulo="Mensagem enviada!"
+        mensagem="Recebemos a sua mensagem. Em breve a nossa equipe entrará em contato."
+        textoConfirmar="Entendido"
+        onConfirmar={() => setModalAberto(false)}
+      />
     </div>
   )
 }

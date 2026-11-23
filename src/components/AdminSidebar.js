@@ -9,6 +9,7 @@ import {
   MdOutlinePeopleAlt,
   MdOutlineApartment,
   MdOutlineCalendarToday,
+  MdOutlineCampaign,
   MdOutlineHome,
   MdOutlineHelpOutline,
   MdOutlineBuild,
@@ -27,6 +28,7 @@ const adminLinks = [
   { href: '/gestaoUsuarios', label: 'Usuários', icon: MdOutlinePeopleAlt },
   { href: '/escolas', label: 'Escolas', icon: MdOutlineApartment },
   { href: '/gestaoEventos', label: 'Eventos', icon: MdOutlineCalendarToday },
+  { href: '/gestaoAvisos', label: 'Avisos', icon: MdOutlineCampaign },
   { href: '/', label: 'Portal Público', icon: MdOutlineHome }
 ]
 
@@ -104,8 +106,12 @@ export function AdminSidebar({ variant = 'admin' }) {
                 (href === '/grupos' &&
                   (pathname.includes('grupo') || pathname.includes('Equipe'))) ||
                 (href === '/gestaoUsuarios' && pathname.includes('Usuario')) ||
-                (href === '/escolas' && (pathname.includes('Escola') || pathname === '/escolas')) ||
-                (href === '/gestaoEventos' && pathname.includes('Evento'))
+                (href === '/escolas' &&
+                  (pathname.includes('Escola') ||
+                    pathname === '/escolas' ||
+                    pathname.startsWith('/admin/escolas'))) ||
+                (href === '/gestaoEventos' && pathname.includes('Evento')) ||
+                (href === '/gestaoAvisos' && pathname.includes('Aviso'))
 
               return (
                 <Link

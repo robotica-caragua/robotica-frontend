@@ -22,7 +22,7 @@ export const ordenacoes = [
   { valor: 'alfabetica', texto: 'Ordem Alfabética' }
 ]
 
-// Espera itens com `data` (ISO), `curtidas` e `titulo`.
+// Espera itens com `data` (ISO), `createdAt`/`updatedAt`, `id`, `curtidas` e `titulo`.
 export const ordenar = (itens, criterio) => {
   const copia = [...itens]
   switch (criterio) {
@@ -32,7 +32,12 @@ export const ordenar = (itens, criterio) => {
       return copia.sort((a, b) => a.titulo.localeCompare(b.titulo, 'pt-BR'))
     case 'recentes':
     default:
-      return copia.sort((a, b) => new Date(b.data) - new Date(a.data))
+      return copia.sort((a, b) => {
+        const tB = new Date(b.updatedAt || b.createdAt || b.data || 0).getTime()
+        const tA = new Date(a.updatedAt || a.createdAt || a.data || 0).getTime()
+        if (tB !== tA) return tB - tA
+        return Number(b.id || 0) - Number(a.id || 0)
+      })
   }
 }
 

@@ -8,7 +8,8 @@ const ROTAS_ADMIN = [
   '/escolas',
   '/cadastrarEscola',
   '/gestaoEventos',
-  '/cadastrarEvento'
+  '/cadastrarEvento',
+  '/gestaoAvisos'
 ]
 
 const ROTAS_AUTENTICADAS = [
@@ -73,7 +74,15 @@ export function proxy(request) {
   }
 
   if (payload.exp && payload.exp * 1000 < Date.now()) {
-    return redirecionarNaoAutorizado(request, true)
+    // Permite que o cliente renove o accessToken via refresh token cookie (/auth/refresh)
+    // sem derrubar a sessão nem causar loop de redirecionamento quando o token de 15m expira.
+    if (ehRotaAdmin) {
+      const role = String(payload.role || request.cookies.get('role')?.value || '').toUpperCase()
+      if (role !== 'ADMIN') {
+        return redirecionarNaoAutorizado(request)
+      }
+    }
+    return NextResponse.next()
   }
 
   if (ehRotaAdmin) {
@@ -104,6 +113,8 @@ export const config = {
     '/gestaoEventos/:path*',
     '/cadastrarEvento',
     '/cadastrarEvento/:path*',
+    '/gestaoAvisos',
+    '/gestaoAvisos/:path*',
     '/painelProfessor',
     '/painelProfessor/:path*',
     '/gestaoProjetos',

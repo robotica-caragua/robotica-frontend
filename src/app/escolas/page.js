@@ -68,8 +68,14 @@ export default function GestaoEscolas() {
 
       const docentesPorEscola = new Map()
       for (const u of Array.isArray(listaUsuarios) ? listaUsuarios : []) {
-        const sid = u.schoolId
-        if (sid) docentesPorEscola.set(Number(sid), (docentesPorEscola.get(Number(sid)) || 0) + 1)
+        const idsVinculados = new Set(
+          [u.schoolId, ...(Array.isArray(u.schools) ? u.schools.map((s) => s?.id) : [])]
+            .map(Number)
+            .filter((n) => Number.isInteger(n) && n > 0)
+        )
+        for (const sid of idsVinculados) {
+          docentesPorEscola.set(sid, (docentesPorEscola.get(sid) || 0) + 1)
+        }
       }
 
       setEscolas(
@@ -264,8 +270,8 @@ export default function GestaoEscolas() {
                 <CardEscolaAdmin
                   key={escola.id}
                   {...escola}
+                  hrefDetalhes={`/admin/escolas/${escola.id}`}
                   onExcluir={handleAbrirConfirmacaoExcluir}
-                  onVerMais={() => setEscolaSelecionada(escola)}
                 />
               ))}
 

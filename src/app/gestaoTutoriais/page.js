@@ -49,9 +49,13 @@ export default function GestaoTutoriais() {
       .then(([listaDaApi, listaCategorias, listaEscolas]) => {
         if (!ativo) return
         setTutoriais(
-          (Array.isArray(listaDaApi) ? listaDaApi : []).map((item, idx) =>
-            mapearTutorialDaApi(item, idx % 2 === 0 ? containerImg : semaforo)
-          )
+          (Array.isArray(listaDaApi) ? listaDaApi : [])
+            .map((item, idx) => mapearTutorialDaApi(item, idx % 2 === 0 ? containerImg : semaforo))
+            .sort(
+              (a, b) =>
+                new Date(b.updatedAt || b.createdAt || 0) -
+                  new Date(a.updatedAt || a.createdAt || 0) || Number(b.id) - Number(a.id)
+            )
         )
         setCategoriasApi(
           Array.isArray(listaCategorias) ? listaCategorias.map((c) => c.name).filter(Boolean) : []

@@ -29,29 +29,6 @@ import {
   obterUsuario
 } from '@/services/api'
 
-const ESCOLAS_PADRAO = [
-  {
-    id: 3,
-    name: 'EMEF Profª Maria Aparecida De Carvalho',
-    address: 'R. Seishi Yoshimoto, 120 - Getuba, Caraguatatuba - SP, 11676-403'
-  },
-  {
-    id: 4,
-    name: 'EMEF Prof. Luiz Ribeiro Muniz',
-    address: 'R. Analândia, 355 - Martim de Sá, Caraguatatuba - SP, 11662-320'
-  },
-  {
-    id: 5,
-    name: 'EMEF Prof. Luiz Silvar do Prado',
-    address: 'R. José Pedro de Oliveira Barbosa, 805 - Jardim Casa Branca, Caraguatatuba - SP'
-  },
-  {
-    id: 6,
-    name: 'EMEF Profª Maria Thereza de Souza Castro',
-    address: 'R. Seishi Yoshimoto, 120 - Getuba, Caraguatatuba - SP, 11676-403'
-  }
-]
-
 function normalizarVinculo(item, idx = 0) {
   const escolaObj = item?.school || item
   if (!escolaObj?.name) return null
@@ -85,8 +62,8 @@ function criarPerfilInicial(usuarioSalvo) {
 }
 
 export default function PerfilPage() {
-  const [perfil, setPerfil] = useState(() => criarPerfilInicial(obterUsuario()))
-  const [escolasDisponiveis, setEscolasDisponiveis] = useState(ESCOLAS_PADRAO)
+  const [perfil, setPerfil] = useState(() => criarPerfilInicial(null))
+  const [escolasDisponiveis, setEscolasDisponiveis] = useState([])
   const [editando, setEditando] = useState(false)
 
   // Modal de solicitação de novo vínculo
@@ -111,56 +88,23 @@ export default function PerfilPage() {
       apiTutoriais.listar().catch(() => []),
       apiProjetos.listar().catch(() => []),
       apiEscolas.listar().catch(() => [])
-    ]).then(async ([userApi, listaTutoriais, listaProjetos, listaEscolas]) => {
+    ]).then(([userApi, listaTutoriais, listaProjetos, listaEscolas]) => {
       if (!ativo) return
 
       const usuarioAtual = userApi || obterUsuario()
-      const escolasDaRede =
-        Array.isArray(listaEscolas) && listaEscolas.length > 0 ? listaEscolas : ESCOLAS_PADRAO
-
+      const escolasDaRede = Array.isArray(listaEscolas) ? listaEscolas : []
       setEscolasDisponiveis(escolasDaRede)
 
-      let vinculos = []
+      let vinculos = Array.isArray(usuarioAtual?.schools)
+        ? usuarioAtual.schools.map(normalizarVinculo).filter(Boolean)
+        : []
 
-      // 1. Tenta buscar pelo endpoint dedicado de escola do usuário
-      if (usuarioAtual?.id && obterToken()) {
-        const escDoUsuario = await apiUsuarios
-          .buscarEscolaDoUsuario(usuarioAtual.id)
-          .catch(() => null)
-
-        if (Array.isArray(escDoUsuario)) {
-          vinculos = escDoUsuario.map(normalizarVinculo).filter(Boolean)
-        } else if (escDoUsuario) {
-          const v = normalizarVinculo(escDoUsuario, 0)
-          if (v) vinculos = [v]
-        }
-      }
-
-      // 2. Verifica escolas diretamente no objeto do usuário (schools / school / schoolId)
-      if (vinculos.length === 0 && Array.isArray(usuarioAtual?.schools)) {
-        vinculos = usuarioAtual.schools.map(normalizarVinculo).filter(Boolean)
-      }
-
-      if (vinculos.length === 0 && usuarioAtual?.school) {
-        const v = normalizarVinculo(usuarioAtual.school, 0)
-        if (v) vinculos = [v]
-      }
-
+      // Contas antigas com apenas schoolId (sem registros em schools).
       if (vinculos.length === 0 && usuarioAtual?.schoolId) {
         const encontrada = escolasDaRede.find(
           (esc) => Number(esc.id) === Number(usuarioAtual.schoolId)
         )
-        if (encontrada) {
-          const v = normalizarVinculo(encontrada, 0)
-          if (v) vinculos = [v]
-        }
-      }
-
-      // 3. Fallback caso a conta ainda não retorne vínculo explícito da API
-      if (vinculos.length === 0 && escolasDaRede.length > 0) {
-        const escolaPadrao =
-          escolasDaRede.find((e) => e.name?.includes('Luiz Ribeiro Muniz')) || escolasDaRede[0]
-        const v = normalizarVinculo(escolaPadrao, 0)
+        const v = normalizarVinculo(encontrada, 0)
         if (v) vinculos = [v]
       }
 
@@ -257,10 +201,17 @@ export default function PerfilPage() {
     }
 
     try {
-      await apiUsuarios.atualizar(perfil.id, {
+      const idsEscolasAtuais = perfil.vinculos
+        .map((v) => Number(v.id))
+        .filter((id) => Number.isInteger(id) && id > 0)
+      const atualizado = await apiUsuarios.atualizar(perfil.id, {
         name: perfil.pessoal.nome,
-        email: perfil.pessoal.email
+        email: perfil.pessoal.email,
+        ...(idsEscolasAtuais.length > 0 ? { schoolIds: idsEscolasAtuais } : {})
       })
+      if (atualizado) {
+        apiAuth.me({ forcar: true }).catch(() => {})
+      }
       setEditando(false)
       setModal({
         aberto: true,
@@ -286,7 +237,7 @@ export default function PerfilPage() {
     setModalVinculoAberto(true)
   }
 
-  function handleSolicitarVinculo(e) {
+  async function handleSolicitarVinculo(e) {
     e.preventDefault()
 
     if (!escolaSelecionadaObj) {
@@ -294,14 +245,43 @@ export default function PerfilPage() {
       return
     }
 
-    setModalVinculoAberto(false)
-    setModal({
-      aberto: true,
-      tipo: 'sucesso',
-      titulo: 'Solicitação enviada com sucesso!',
-      mensagem: `Recebemos o seu pedido de vínculo com "${escolaSelecionadaObj.name}". Em breve um administrador iniciará o atendimento para analisar e liberar o seu acesso.`,
-      textoBotao: 'Entendido'
-    })
+    const novosIds = Array.from(
+      new Set([
+        ...perfil.vinculos.map((v) => Number(v.id)).filter((id) => Number.isInteger(id) && id > 0),
+        Number(escolaSelecionadaObj.id)
+      ])
+    )
+
+    try {
+      if (perfil.id && obterToken()) {
+        await apiUsuarios.atualizar(perfil.id, { schoolIds: novosIds })
+        await apiAuth.me({ forcar: true }).catch(() => null)
+      }
+      const novoVinculo = normalizarVinculo(escolaSelecionadaObj, perfil.vinculos.length)
+      setPerfil((prev) => {
+        const atualizados = novoVinculo ? [...prev.vinculos, novoVinculo] : prev.vinculos
+        return {
+          ...prev,
+          vinculos: atualizados,
+          impacto: {
+            ...prev.impacto,
+            eventos: atualizados.length
+          }
+        }
+      })
+      setModalVinculoAberto(false)
+      setModal({
+        aberto: true,
+        tipo: 'sucesso',
+        titulo: 'Vínculo adicionado com sucesso!',
+        mensagem: `A unidade "${escolaSelecionadaObj.name}" foi vinculada ao seu perfil e já está disponível nos formulários de projetos e tutoriais.`,
+        textoBotao: 'Entendido'
+      })
+    } catch (err) {
+      setErroSelecaoEscola(
+        err?.message || 'Não foi possível vincular a escola selecionada. Tente novamente.'
+      )
+    }
   }
 
   return (

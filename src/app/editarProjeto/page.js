@@ -44,7 +44,7 @@ function ConteudoEditarProjeto() {
 
     Promise.all([
       apiCategorias.listar().catch(() => []),
-      apiEscolas.listar().catch(() => []),
+      apiEscolas.listarDoUsuarioLogado().catch(() => []),
       idParam
         ? apiProjetos.buscarPorId(idParam).catch(() => null)
         : apiProjetos
@@ -64,7 +64,12 @@ function ConteudoEditarProjeto() {
           setIdProjeto(proj.id)
           setNome(proj.name || '')
           setCategoria(proj.categories?.[0] || '')
-          setEscola(proj.school?.name || '')
+          const listaEsc = Array.isArray(escs) ? escs : []
+          const nomeEscProj = proj.school?.name || ''
+          const vinculadaAoProj = listaEsc.find(
+            (e) => e.name === nomeEscProj || Number(e.id) === Number(proj.schoolId)
+          )
+          setEscola(vinculadaAoProj?.name || (listaEsc.length === 1 ? listaEsc[0].name : ''))
           setDescricao(proj.description || '')
           const atuais =
             Array.isArray(proj.images) && proj.images.length > 0
@@ -111,7 +116,7 @@ function ConteudoEditarProjeto() {
     }
 
     const escEncontrada = escolasLista.find((item) => item.name === escola)
-    const schoolId = escEncontrada?.id || escolasLista[0]?.id
+    const schoolId = escEncontrada?.id
 
     if (!idProjeto || !schoolId) {
       setModal({
@@ -432,12 +437,11 @@ function ConteudoEditarProjeto() {
             ? handleConfirmarExclusao
             : () => {
                 setModal({ aberto: false, tipo: 'sucesso', mensagemErro: '' })
-                router.push('/projetos')
+                router.push('/gestaoProjetos')
               }
         }
         onCancelar={() => {
           setModal({ aberto: false, tipo: 'sucesso', mensagemErro: '' })
-          router.push('/projetos')
         }}
         onTentarNovamente={() => setModal({ aberto: false, tipo: 'sucesso', mensagemErro: '' })}
       />

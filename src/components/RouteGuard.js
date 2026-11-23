@@ -12,7 +12,8 @@ const ROTAS_ADMIN = [
   '/escolas',
   '/cadastrarEscola',
   '/gestaoEventos',
-  '/cadastrarEvento'
+  '/cadastrarEvento',
+  '/gestaoAvisos'
 ]
 
 const ROTAS_AUTENTICADAS = [
@@ -40,7 +41,7 @@ export function RouteGuard({ children }) {
   const ehRotaAutenticada = correspondeRota(pathname, ROTAS_AUTENTICADAS)
   const rotaProtegida = ehRotaAdmin || ehRotaAutenticada
 
-  const [verificadoPath, setVerificadoPath] = useState(null)
+  const [bloqueadoPath, setBloqueadoPath] = useState(null)
 
   useEffect(() => {
     if (!rotaProtegida) return
@@ -65,14 +66,14 @@ export function RouteGuard({ children }) {
       .then((user) => {
         if (!ativo) return
         if (!user || (ehRotaAdmin && user.role !== 'ADMIN')) {
+          setBloqueadoPath(pathname)
           router.replace('/unauthorized')
-          return
         }
-        setVerificadoPath(pathname)
       })
       .catch((err) => {
         if (!ativo) return
         if (err?.status === 401 || err?.status === 403) {
+          setBloqueadoPath(pathname)
           limparSessao()
           router.replace('/unauthorized')
           return
@@ -80,10 +81,9 @@ export function RouteGuard({ children }) {
         // Se houver falha temporária de rede mas houver token/usuário válidos localmente,
         // ainda bloqueia rotas ADMIN para quem não é ADMIN
         if (ehRotaAdmin && usuarioSalvo?.role !== 'ADMIN') {
+          setBloqueadoPath(pathname)
           router.replace('/unauthorized')
-          return
         }
-        setVerificadoPath(pathname)
       })
 
     return () => {
@@ -91,7 +91,7 @@ export function RouteGuard({ children }) {
     }
   }, [pathname, rotaProtegida, ehRotaAdmin, router])
 
-  if (rotaProtegida && verificadoPath !== pathname) {
+  if (rotaProtegida && bloqueadoPath === pathname) {
     return null
   }
 
