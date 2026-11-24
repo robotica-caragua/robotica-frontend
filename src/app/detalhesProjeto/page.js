@@ -157,7 +157,7 @@ function DetalhesProjetoConteudo() {
           {/* galeria do projeto */}
           <div className="w-full flex-1 flex flex-col gap-3">
             <div className="flex items-center gap-2.5">
-              <div className="p-1.5 bg-[#E8F5D6] rounded-lg flex items-center justify-center">
+              <div className="p-1.5 bg-verde-pastel rounded-lg flex items-center justify-center">
                 <MdPhotoLibrary className="text-lg text-verde-musgo" />
               </div>
               <h2 className="text-verde-escuro text-lg sm:text-xl font-bold font-sans">
@@ -232,7 +232,7 @@ function DetalhesProjetoConteudo() {
                 {projeto.categorias.map((cat) => (
                   <span
                     key={cat}
-                    className="px-2.5 py-1 bg-[#E8F5D6] text-verde-musgo text-xs font-semibold rounded-lg"
+                    className="px-2.5 py-1 bg-verde-pastel text-verde-musgo text-xs font-semibold rounded-lg"
                   >
                     {cat}
                   </span>

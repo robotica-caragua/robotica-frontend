@@ -89,14 +89,26 @@ function ConteudoEditarProjeto() {
     }
   }, [idParam])
 
-  async function handleArquivos(e) {
+  async function processarListaArquivos(fileList) {
     const limiteRestante = Math.max(0, 10 - imagensExistentes.length - arquivos.length)
-    const lista = Array.from(e.target.files || []).slice(0, limiteRestante)
+    const lista = Array.from(fileList || [])
+      .filter((f) => /^image\/(jpeg|jpg|png|webp)$/i.test(f.type))
+      .slice(0, limiteRestante)
     if (lista.length === 0) return
     const novasUrls = await Promise.all(lista.map(arquivoParaDataUrl)).catch(() => [])
     setArquivos((prev) => [...prev, ...lista])
     setNovosPreviews((prev) => [...prev, ...novasUrls])
+  }
+
+  async function handleArquivos(e) {
+    await processarListaArquivos(e.target.files)
     e.target.value = ''
+  }
+
+  async function handleDropImagens(e) {
+    e.preventDefault()
+    e.stopPropagation()
+    await processarListaArquivos(e.dataTransfer?.files)
   }
 
   function removerImagemExistente(indice) {
@@ -314,13 +326,20 @@ function ConteudoEditarProjeto() {
                   </h2>
                 </div>
 
-                <div className="flex min-h-[200px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-verde-musgo bg-input-bg p-6 sm:p-8 text-center">
+                <div
+                  onDragOver={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                  }}
+                  onDrop={handleDropImagens}
+                  className="flex min-h-[200px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-verde-musgo bg-input-bg hover:bg-verde-pastel/30 transition p-6 sm:p-8 text-center"
+                >
                   <div className="flex size-12 items-center justify-center rounded-full bg-verde-limao text-verde-escuro">
                     <MdOutlineAddAPhoto size={24} />
                   </div>
 
                   <p className="mt-3 text-sm font-bold uppercase text-verde-escuro">
-                    Enviar mídias do projeto
+                    Arraste imagens para cá ou selecione do computador
                   </p>
                   <p className="mt-1 text-xs sm:text-sm text-verde-musgo">
                     Formatos aceitos: JPG, PNG ou WEBP.

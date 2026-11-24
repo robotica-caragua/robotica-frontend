@@ -171,13 +171,23 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
     setImagem(arquivo)
   }
 
+  const handleDropImagem = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    const arquivo = e.dataTransfer?.files?.[0]
+    if (arquivo) handleImagem(arquivo)
+  }
+
   const handleDropVideo = (e) => {
     e.preventDefault()
     handleVideo(e.dataTransfer.files?.[0])
   }
 
+  const [enviando, setEnviando] = useState(false)
+
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (enviando) return
     const valido =
       form.nome.trim() &&
       form.categoria &&
@@ -215,6 +225,7 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
       ...(imagemPreview ? { images: [imagemPreview] } : {})
     }
 
+    setEnviando(true)
     try {
       if (ehEdicao && dadosIniciais.id) {
         await apiTutoriais.atualizar(dadosIniciais.id, payload)
@@ -226,6 +237,8 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
     } catch (err) {
       setMensagemErroApi(err?.message || '')
       setModal('erro')
+    } finally {
+      setEnviando(false)
     }
   }
 
@@ -478,7 +491,7 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
                           checked={item.selecionado}
                           onChange={() => alternarMaterial(item.id)}
                           aria-label={`Selecionar ${item.nome}`}
-                          className="size-4 rounded border border-[#C3CAAD] bg-white accent-verde-musgo cursor-pointer"
+                          className="size-4 rounded border border-verde-musgo bg-white accent-verde-musgo cursor-pointer"
                         />
                       </div>
                       <div className="col-span-8 sm:col-span-9 text-sm font-medium text-verde-escuro">
@@ -490,7 +503,7 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
                           onClick={() => removerMaterial(item.id)}
                           title={`Remover ${item.nome}`}
                           aria-label={`Remover ${item.nome}`}
-                          className="p-1.5 text-[#434933] hover:text-vermelho transition cursor-pointer"
+                          className="p-1.5 text-verde-musgo hover:text-vermelho transition cursor-pointer"
                         >
                           <MdOutlineDeleteOutline size={18} />
                         </button>
@@ -505,7 +518,7 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
               </div>
 
               <div className="flex justify-end">
-                <span className="text-xs font-bold uppercase text-[#4C6700]">
+                <span className="text-xs font-bold uppercase text-verde-musgo">
                   {materiais.length}{' '}
                   {materiais.length === 1 ? 'componente listado' : 'componentes listados'}
                 </span>
@@ -517,6 +530,11 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
               <SecaoTitulo icone={MdOutlineImage} titulo="Foto de Capa do Tutorial" />
 
               <div
+                onDragOver={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                }}
+                onDrop={handleDropImagem}
                 onClick={() => imagemInputRef.current?.click()}
                 className="w-full min-h-[200px] bg-input-bg border-2 border-dashed border-verde-musgo rounded-2xl p-6 sm:p-8 flex flex-col items-center justify-center gap-3 text-center cursor-pointer hover:bg-verde-pastel/40 transition overflow-hidden"
               >
@@ -529,7 +547,7 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
                       className="max-h-52 w-auto object-contain rounded-xl shadow-sm"
                     />
                     <span className="text-xs font-bold text-verde-escuro uppercase">
-                      Clique para trocar a imagem
+                      Arraste outra imagem ou clique para trocar
                     </span>
                   </div>
                 ) : (
@@ -539,9 +557,9 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
                     </div>
                     <div className="flex flex-col gap-1">
                       <span className="text-verde-escuro text-sm font-bold uppercase">
-                        Enviar Imagem do Projeto
+                        Arraste a imagem para cá ou selecione do computador
                       </span>
-                      <span className="text-[#434933] text-xs sm:text-sm">
+                      <span className="text-verde-musgo text-xs sm:text-sm">
                         Formatos aceitos: JPG, PNG, WEBP.
                       </span>
                     </div>
@@ -586,7 +604,7 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
                   <span className="text-verde-escuro text-sm font-bold uppercase">
                     {rotuloVideo || 'Enviar Vídeo Tutorial'}
                   </span>
-                  <span className="text-[#434933] text-xs sm:text-sm">
+                  <span className="text-verde-musgo text-xs sm:text-sm">
                     Formatos aceitos: MP4 ou MOV. Tamanho máximo de 500MB.
                   </span>
                 </div>
@@ -626,10 +644,11 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <button
                     type="submit"
-                    className="h-12 bg-verde-limao hover:bg-verde-oliva rounded-xl text-verde-escuro text-sm font-bold uppercase flex items-center justify-center gap-2.5 transition cursor-pointer"
+                    disabled={enviando}
+                    className="h-12 bg-verde-limao hover:bg-verde-oliva rounded-xl text-verde-escuro text-sm font-bold uppercase flex items-center justify-center gap-2.5 transition cursor-pointer disabled:opacity-60"
                   >
                     <MdOutlineSave size={18} />
-                    Salvar Alterações
+                    {enviando ? 'Salvando...' : 'Salvar Alterações'}
                   </button>
 
                   <button
@@ -646,7 +665,7 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
               <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-2">
                 <Link
                   href="/gestaoTutoriais"
-                  className="flex items-center gap-2 px-5 py-3 rounded-xl text-[#3F674D] text-sm font-bold uppercase hover:bg-input-bg transition"
+                  className="flex items-center gap-2 px-5 py-3 rounded-xl text-verde-escuro text-sm font-bold uppercase hover:bg-input-bg transition"
                 >
                   <IoClose size={18} />
                   Cancelar
@@ -654,9 +673,10 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
 
                 <button
                   type="submit"
-                  className="px-6 py-3 bg-verde-musgo hover:bg-white hover:text-verde-musgo border border-verde-musgo text-white text-sm font-bold uppercase rounded-xl shadow-sm flex items-center gap-3 transition cursor-pointer"
+                  disabled={enviando}
+                  className="px-6 py-3 bg-verde-musgo hover:bg-white hover:text-verde-musgo border border-verde-musgo text-white text-sm font-bold uppercase rounded-xl shadow-sm flex items-center gap-3 transition cursor-pointer disabled:opacity-60"
                 >
-                  Publicar Tutorial
+                  {enviando ? 'Publicando...' : 'Publicar Tutorial'}
                   <IoArrowForward size={18} />
                 </button>
               </div>

@@ -2,7 +2,13 @@
 
 import { useEffect, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
-import { apiAuth, limparSessao, obterToken, obterUsuario } from '@/services/api'
+import {
+  apiAuth,
+  lerIdsUsuariosInativos,
+  limparSessao,
+  obterToken,
+  obterUsuario
+} from '@/services/api'
 
 const ROTAS_ADMIN = [
   '/admin',
@@ -13,7 +19,8 @@ const ROTAS_ADMIN = [
   '/cadastrarEscola',
   '/gestaoEventos',
   '/cadastrarEvento',
-  '/gestaoAvisos'
+  '/gestaoAvisos',
+  '/gestaoDuvidas'
 ]
 
 const ROTAS_AUTENTICADAS = [
@@ -56,31 +63,59 @@ export function RouteGuard({ children }) {
     }
 
     const usuarioSalvo = obterUsuario()
-    if (ehRotaAdmin && usuarioSalvo?.role && usuarioSalvo.role !== 'ADMIN') {
+    if (usuarioSalvo?.id && lerIdsUsuariosInativos().has(Number(usuarioSalvo.id))) {
+      limparSessao()
+      router.replace('/login')
+      return
+    }
+
+    const ehAdminSalvo =
+      usuarioSalvo?.role === 'ADMIN' ||
+      usuarioSalvo?.perfil === 'ADMINISTRADOR' ||
+      usuarioSalvo?.permissaoAdministrador === true
+
+    if (ehRotaAdmin && usuarioSalvo?.role && !ehAdminSalvo) {
       router.replace('/unauthorized')
       return
     }
 
+    if (pathname === '/painelProfessor' && ehAdminSalvo) {
+      router.replace('/dashboard')
+      return
+    }
+
     apiAuth
-      .me()
+      .me({ forcar: true })
       .then((user) => {
         if (!ativo) return
-        if (!user || (ehRotaAdmin && user.role !== 'ADMIN')) {
+        if (!user || (user.id && lerIdsUsuariosInativos().has(Number(user.id)))) {
+          setBloqueadoPath(pathname)
+          limparSessao()
+          router.replace('/login')
+          return
+        }
+        const ehAdmin =
+          user.role === 'ADMIN' ||
+          user.perfil === 'ADMINISTRADOR' ||
+          user.permissaoAdministrador === true
+        if (ehRotaAdmin && !ehAdmin) {
           setBloqueadoPath(pathname)
           router.replace('/unauthorized')
+          return
+        }
+        if (pathname === '/painelProfessor' && ehAdmin) {
+          router.replace('/dashboard')
         }
       })
       .catch((err) => {
         if (!ativo) return
-        if (err?.status === 401 || err?.status === 403) {
+        if (err?.status === 401 || err?.status === 403 || err?.status === 404) {
           setBloqueadoPath(pathname)
           limparSessao()
-          router.replace('/unauthorized')
+          router.replace('/login')
           return
         }
-        // Se houver falha temporária de rede mas houver token/usuário válidos localmente,
-        // ainda bloqueia rotas ADMIN para quem não é ADMIN
-        if (ehRotaAdmin && usuarioSalvo?.role !== 'ADMIN') {
+        if (ehRotaAdmin && !ehAdminSalvo) {
           setBloqueadoPath(pathname)
           router.replace('/unauthorized')
         }

@@ -2,11 +2,11 @@
 
 import { Suspense, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { SideBarAdmin } from '@/components/SideBarAdmin'
 import { ModalConfirmacao } from '@/components/ModalConfirmacao'
 import { MultiSelectEscolas } from '@/components/MultiSelectEscolas'
-import { apiEscolas, apiUsuarios } from '@/services/api'
+import { apiEscolas, apiUsuarios, limparSessao, obterUsuario } from '@/services/api'
 import {
   IoClose,
   IoArrowForward,
@@ -14,7 +14,12 @@ import {
   IoRadioButtonOffOutline
 } from 'react-icons/io5'
 import { FaRegUser } from 'react-icons/fa6'
-import { MdLockOutline, MdOutlineAdminPanelSettings, MdOutlineSchool } from 'react-icons/md'
+import {
+  MdLockOutline,
+  MdOutlineAdminPanelSettings,
+  MdOutlineDeleteOutline,
+  MdOutlineSchool
+} from 'react-icons/md'
 
 const RequisitoItem = ({ atendido, texto }) => (
   <div
@@ -33,6 +38,7 @@ const RequisitoItem = ({ atendido, texto }) => (
 )
 
 function CadastrarUsuarioConteudo() {
+  const router = useRouter()
   const searchParams = useSearchParams()
   const idEdicao = searchParams.get('id')
 
@@ -50,6 +56,9 @@ function CadastrarUsuarioConteudo() {
   const [erroEmail, setErroEmail] = useState('')
   const [modal, setModal] = useState(null) // 'sucesso' | 'erro' | null
   const [mensagemErroApi, setMensagemErroApi] = useState('')
+  const [modalExclusao, setModalExclusao] = useState(null) // 'confirmacao' | 'sucesso' | 'erro' | 'cancelado' | null
+  const [erroExclusaoApi, setErroExclusaoApi] = useState('')
+  const [excluindo, setExcluindo] = useState(false)
 
   const ehAdmin = perfil === 'ADMINISTRADOR'
 
@@ -64,28 +73,37 @@ function CadastrarUsuarioConteudo() {
       .catch(() => {})
 
     if (idEdicao) {
-      apiUsuarios
-        .buscarPorId(idEdicao)
-        .then((user) => {
-          if (!ativo || !user) return
-          const usuarioAdmin = user.role === 'ADMIN' || user.perfil === 'ADMINISTRADOR'
-          setPerfil(usuarioAdmin ? 'ADMINISTRADOR' : 'PROFESSOR')
-          setNome(user.name || '')
-          setEmail(user.email || '')
-          setMatricula(
-            user.matricula
-              ? String(user.matricula)
-              : usuarioAdmin
-                ? ''
-                : String(user.id).padStart(5, '0')
-          )
-          const vinculadas = Array.isArray(user.schools)
-            ? user.schools.map((s) => String(s.id))
-            : []
-          if (vinculadas.length === 0 && user.schoolId) vinculadas.push(String(user.schoolId))
-          setEscolasSelecionadas(vinculadas)
-        })
-        .catch(() => {})
+      Promise.all([
+        apiUsuarios.buscarPorId(idEdicao).catch(() => null),
+        apiUsuarios.buscarEscolasDoUsuario(idEdicao).catch(() => [])
+      ]).then(([user, escolasEndpoint]) => {
+        if (!ativo || !user) return
+        const usuarioAdmin = user.role === 'ADMIN' || user.perfil === 'ADMINISTRADOR'
+        setPerfil(usuarioAdmin ? 'ADMINISTRADOR' : 'PROFESSOR')
+        setNome(user.name || '')
+        setEmail(user.email || '')
+        setMatricula(
+          user.matricula
+            ? String(user.matricula)
+            : usuarioAdmin
+              ? ''
+              : String(user.id).padStart(5, '0')
+        )
+        const idsCombinados = new Set([
+          ...(Array.isArray(user.schoolIds) ? user.schoolIds.map(String) : []),
+          ...(Array.isArray(user.schools)
+            ? user.schools.map((s) => String(s?.id || s)).filter(Boolean)
+            : []),
+          ...(Array.isArray(escolasEndpoint)
+            ? escolasEndpoint.map((s) => String(s?.id || s)).filter(Boolean)
+            : []),
+          ...(user.schoolId ? [String(user.schoolId)] : [])
+        ])
+        idsCombinados.delete('undefined')
+        idsCombinados.delete('null')
+        idsCombinados.delete('0')
+        setEscolasSelecionadas(Array.from(idsCombinados))
+      })
     }
 
     return () => {
@@ -489,12 +507,29 @@ function CadastrarUsuarioConteudo() {
             </div>
 
             <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-4">
-              <Link
-                href="/gestaoUsuarios"
-                className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl text-verde-escuro font-bold uppercase hover:bg-input-bg transition cursor-pointer text-sm"
-              >
-                <IoClose size={20} /> Cancelar
-              </Link>
+              <div className="w-full sm:w-auto flex flex-col sm:flex-row items-center gap-3">
+                <Link
+                  href="/gestaoUsuarios"
+                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl text-verde-escuro font-bold uppercase hover:bg-input-bg transition cursor-pointer text-sm"
+                >
+                  <IoClose size={20} /> Cancelar
+                </Link>
+
+                {idEdicao && (
+                  <button
+                    type="button"
+                    disabled={excluindo}
+                    onClick={() => {
+                      setErroExclusaoApi('')
+                      setModalExclusao('confirmacao')
+                    }}
+                    className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl border-2 border-vermelho bg-white dark:bg-verde-pastel text-vermelho hover:bg-vermelho hover:text-white font-bold uppercase transition cursor-pointer text-sm disabled:opacity-50"
+                  >
+                    <MdOutlineDeleteOutline size={20} />
+                    {excluindo ? 'Excluindo...' : 'Excluir Usuário'}
+                  </button>
+                )}
+              </div>
 
               <button
                 type="submit"
@@ -527,6 +562,85 @@ function CadastrarUsuarioConteudo() {
         textoBotaoVoltar="Voltar"
         hrefVoltar="/gestaoUsuarios"
         onTentarNovamente={() => setModal(null)}
+      />
+
+      <ModalConfirmacao
+        aberto={Boolean(modalExclusao)}
+        tipo={
+          modalExclusao === 'confirmacao'
+            ? 'confirmacao'
+            : modalExclusao === 'erro'
+              ? 'erro'
+              : 'sucesso'
+        }
+        titulo={
+          modalExclusao === 'confirmacao'
+            ? 'Excluir Usuário?'
+            : modalExclusao === 'sucesso'
+              ? 'Usuário excluído com sucesso!'
+              : modalExclusao === 'cancelado'
+                ? 'Exclusão cancelada'
+                : 'Não foi possível excluir o usuário'
+        }
+        mensagem={
+          modalExclusao === 'confirmacao'
+            ? `Tem certeza que deseja excluir o usuário "${nome || email || idEdicao}"? Esta ação é irreversível e removerá permanentemente a conta e seus vínculos do sistema.`
+            : modalExclusao === 'sucesso'
+              ? 'O usuário foi excluído permanentemente do sistema.'
+              : modalExclusao === 'cancelado'
+                ? 'A exclusão foi cancelada e os dados do usuário permanecem inalterados.'
+                : erroExclusaoApi ||
+                  'Ocorreu um erro ao tentar excluir o usuário. Tente novamente em instantes.'
+        }
+        textoConfirmar={
+          modalExclusao === 'confirmacao'
+            ? 'Confirmar Exclusão'
+            : modalExclusao === 'sucesso'
+              ? 'Voltar para Gestão de Usuários'
+              : 'Entendido'
+        }
+        textoCancelar="Cancelar"
+        onConfirmar={
+          modalExclusao === 'confirmacao'
+            ? async () => {
+                if (!idEdicao || excluindo) return
+                setExcluindo(true)
+                const usuarioLogado = obterUsuario()
+                const ehProprioUsuario =
+                  usuarioLogado?.id && Number(usuarioLogado.id) === Number(idEdicao)
+                try {
+                  await apiUsuarios.excluir(idEdicao)
+                  if (ehProprioUsuario) {
+                    limparSessao()
+                    router.replace('/login')
+                    return
+                  }
+                  setModalExclusao('sucesso')
+                } catch (err) {
+                  setErroExclusaoApi(err?.message || '')
+                  setModalExclusao('erro')
+                } finally {
+                  setExcluindo(false)
+                }
+              }
+            : modalExclusao === 'sucesso'
+              ? () => {
+                  setModalExclusao(null)
+                  if (!obterUsuario()) {
+                    router.replace('/login')
+                    return
+                  }
+                  router.push('/gestaoUsuarios')
+                }
+              : () => setModalExclusao(null)
+        }
+        onCancelar={
+          modalExclusao === 'confirmacao'
+            ? () => setModalExclusao('cancelado')
+            : modalExclusao === 'erro'
+              ? () => setModalExclusao(null)
+              : undefined
+        }
       />
     </div>
   )

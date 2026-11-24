@@ -27,7 +27,9 @@ export function MultiSelectEscolas({ escolas = [], selecionadas = [], onChange }
           <label
             key={esc.id}
             className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm sm:text-base text-verde-escuro cursor-pointer transition ${
-              marcada ? 'bg-verde-pastel font-semibold' : 'hover:bg-verde-pastel/60'
+              marcada
+                ? 'bg-verde-pastel dark:bg-[#001B0D] dark:border dark:border-verde-oliva font-semibold'
+                : 'hover:bg-verde-pastel/60 dark:hover:bg-[#001B0D]/60'
             }`}
           >
             <input

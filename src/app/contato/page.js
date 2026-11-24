@@ -4,17 +4,34 @@ import { useState } from 'react'
 import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
 import { ModalConfirmacao } from '@/components/ModalConfirmacao'
+import { apiContatos } from '@/services/api'
 import { FaArrowRight, FaChevronDown, FaChevronUp } from 'react-icons/fa'
 
 export default function Contato() {
   const [faqsAbertos, setFaqsAbertos] = useState([])
   const [modalAberto, setModalAberto] = useState(false)
+  const [form, setForm] = useState({
+    nome: '',
+    sobrenome: '',
+    email: '',
+    assunto: '',
+    mensagem: ''
+  })
 
-  // O portal ainda não possui endpoint de contato no back-end: ao enviar,
-  // confirmamos o recebimento ao usuário e limpamos o formulário.
+  const atualizarCampo = (campo) => (e) => {
+    setForm((prev) => ({ ...prev, [campo]: e.target.value }))
+  }
+
   const handleEnviar = (e) => {
     e.preventDefault()
-    e.currentTarget.reset()
+    apiContatos.criar(form)
+    setForm({
+      nome: '',
+      sobrenome: '',
+      email: '',
+      assunto: '',
+      mensagem: ''
+    })
     setModalAberto(true)
   }
 
@@ -70,6 +87,8 @@ export default function Contato() {
                 </label>
                 <input
                   type="text"
+                  value={form.nome}
+                  onChange={atualizarCampo('nome')}
                   placeholder="Digite seu nome..."
                   className="w-full h-11 px-3.5 bg-input-bg rounded-xl border border-stone-300 text-verde-escuro text-sm sm:text-base focus:border-verde-musgo focus:outline-none transition"
                   required
@@ -81,6 +100,8 @@ export default function Contato() {
                 </label>
                 <input
                   type="text"
+                  value={form.sobrenome}
+                  onChange={atualizarCampo('sobrenome')}
                   placeholder="Digite seu sobrenome..."
                   className="w-full h-11 px-3.5 bg-input-bg rounded-xl border border-stone-300 text-verde-escuro text-sm sm:text-base focus:border-verde-musgo focus:outline-none transition"
                   required
@@ -95,6 +116,8 @@ export default function Contato() {
                 </label>
                 <input
                   type="email"
+                  value={form.email}
+                  onChange={atualizarCampo('email')}
                   placeholder="exemplo@gmail.com"
                   className="w-full h-11 px-3.5 bg-input-bg rounded-xl border border-stone-300 text-verde-escuro text-sm sm:text-base focus:border-verde-musgo focus:outline-none transition"
                   required
@@ -107,6 +130,8 @@ export default function Contato() {
                 </label>
                 <input
                   type="text"
+                  value={form.assunto}
+                  onChange={atualizarCampo('assunto')}
                   placeholder="Digite o assunto..."
                   className="w-full h-11 px-3.5 bg-input-bg rounded-xl border border-stone-300 text-verde-escuro text-sm sm:text-base focus:border-verde-musgo focus:outline-none transition"
                   required
@@ -120,6 +145,8 @@ export default function Contato() {
               </label>
               <textarea
                 rows={5}
+                value={form.mensagem}
+                onChange={atualizarCampo('mensagem')}
                 placeholder="Escreva sua mensagem aqui..."
                 className="w-full p-3.5 bg-input-bg rounded-xl border border-stone-300 text-verde-escuro text-sm sm:text-base focus:border-verde-musgo focus:outline-none transition resize-none"
                 required

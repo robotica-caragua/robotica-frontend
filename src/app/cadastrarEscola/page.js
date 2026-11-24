@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { SideBarAdmin } from '@/components/SideBarAdmin'
 import { ModalConfirmacao } from '@/components/ModalConfirmacao'
-import { apiEscolas } from '@/services/api'
+import { apiEscolas, lerIdsEscolasInativas, salvarIdsEscolasInativas } from '@/services/api'
 import { IoClose, IoArrowForward } from 'react-icons/io5'
 import { FaBuilding, FaMapMarkerAlt, FaAddressBook } from 'react-icons/fa'
 
@@ -36,10 +36,18 @@ function CadastrarEscolaConteudo() {
       .buscarPorId(idEdicao)
       .then((esc) => {
         if (!ativo || !esc) return
+        const nomeUpper = (esc.name || '').toUpperCase()
+        const tipoInferido =
+          nomeUpper.includes('EMEI') && nomeUpper.includes('EMEF')
+            ? 'emei_emef'
+            : nomeUpper.includes('EMEI')
+              ? 'emei'
+              : 'emef'
+        const estaInativa = lerIdsEscolasInativas().has(Number(esc.id))
         setForm((prev) => ({
           ...prev,
           nomeEscola: esc.name || '',
-          tipoUnidade: esc.name?.toUpperCase().includes('EMEI') ? 'emei' : 'emef',
+          tipoUnidade: tipoInferido,
           descricao: esc.description || '',
           endereco: esc.address || '',
           bairro: prev.bairro || 'Centro',
@@ -48,8 +56,9 @@ function CadastrarEscolaConteudo() {
             : esc.address?.toUpperCase().includes('CENTRO')
               ? 'centro'
               : 'norte',
-          telefone: prev.telefone || '(12) 3880-0000',
-          email: prev.email || 'contato@educacao.caraguatatuba.sp.gov.br'
+          telefone: prev.telefone || '',
+          email: prev.email || '',
+          statusPolo: estaInativa ? 'inativo' : 'ativo'
         }))
       })
       .catch(() => {})
@@ -70,9 +79,7 @@ function CadastrarEscolaConteudo() {
       form.tipoUnidade &&
       form.endereco.trim() &&
       form.bairro.trim() &&
-      form.regiao &&
-      form.telefone.trim() &&
-      form.email.trim()
+      form.regiao
 
     if (!valido) {
       setMensagemErroApi('')
@@ -85,18 +92,29 @@ function CadastrarEscolaConteudo() {
       : `${form.endereco.trim()} - ${form.bairro.trim()}, Caraguatatuba - SP (${form.regiao.toUpperCase()})`
 
     try {
+      let escolaSalva = null
       if (idEdicao) {
-        await apiEscolas.atualizar(idEdicao, {
+        escolaSalva = await apiEscolas.atualizar(idEdicao, {
           name: form.nomeEscola.trim(),
           address: enderecoCompleto,
           description: form.descricao.trim()
         })
       } else {
-        await apiEscolas.criar({
+        escolaSalva = await apiEscolas.criar({
           name: form.nomeEscola.trim(),
           address: enderecoCompleto,
           ...(form.descricao.trim() ? { description: form.descricao.trim() } : {})
         })
+      }
+      const idAlvo = Number(escolaSalva?.id || idEdicao)
+      if (idAlvo) {
+        const inativas = lerIdsEscolasInativas()
+        if (form.statusPolo === 'inativo') {
+          inativas.add(idAlvo)
+        } else {
+          inativas.delete(idAlvo)
+        }
+        salvarIdsEscolasInativas(inativas)
       }
       setMensagemErroApi('')
       setModal('sucesso')
@@ -183,6 +201,7 @@ function CadastrarEscolaConteudo() {
                       </option>
                       <option value="emef">EMEF</option>
                       <option value="emei">EMEI</option>
+                      <option value="emei_emef">EMEI/EMEF</option>
                     </Select>
                   </div>
                 </div>
@@ -273,14 +292,14 @@ function CadastrarEscolaConteudo() {
                   <FaAddressBook size={18} />
                 </div>
                 <h3 className="text-verde-escuro text-base sm:text-lg font-bold uppercase tracking-wide">
-                  Contato e Funcionamento
+                  Contato e Funcionamento (Opcional)
                 </h3>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div className="flex flex-col gap-1.5">
                   <label htmlFor="telefone" className="text-verde-escuro text-sm font-semibold">
-                    Telefone da Secretaria
+                    Telefone da Secretaria (Opcional)
                   </label>
                   <input
                     type="tel"
@@ -294,7 +313,7 @@ function CadastrarEscolaConteudo() {
 
                 <div className="flex flex-col gap-1.5">
                   <label htmlFor="email" className="text-verde-escuro text-sm font-semibold">
-                    E-mail Institucional da Escola
+                    E-mail Institucional da Escola (Opcional)
                   </label>
                   <input
                     type="email"
@@ -344,7 +363,7 @@ function CadastrarEscolaConteudo() {
             <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-2">
               <Link
                 href="/escolas"
-                className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm text-[#3F674D] font-bold uppercase hover:bg-input-bg transition cursor-pointer"
+                className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm text-verde-escuro font-bold uppercase hover:bg-input-bg transition cursor-pointer"
               >
                 <IoClose size={18} /> Cancelar
               </Link>

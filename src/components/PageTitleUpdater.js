@@ -1,7 +1,19 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useInsertionEffect } from 'react'
 import { usePathname } from 'next/navigation'
+
+const STORAGE_KEY = 'biobot_theme'
+
+function sincronizarTemaGlobal() {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return
+  const salvo = window.localStorage.getItem(STORAGE_KEY)
+  const ehEscuro =
+    salvo === 'dark' || (salvo !== 'light' && document.documentElement.classList.contains('dark'))
+  document.documentElement.classList.toggle('dark', ehEscuro)
+  document.documentElement.style.colorScheme = ehEscuro ? 'dark' : 'light'
+  document.cookie = `biobot_theme=${ehEscuro ? 'dark' : 'light'}; path=/; max-age=31536000; SameSite=Lax`
+}
 
 const titulosPorRota = {
   '/': 'BioBot | Página Inicial',
@@ -34,11 +46,26 @@ const titulosPorRota = {
   '/gestaoEventos': 'BioBot | Gestão de Eventos',
   '/cadastrarEvento': 'BioBot | Cadastrar Evento',
   '/gestaoAvisos': 'BioBot | Avisos da Administração',
+  '/gestaoDuvidas': 'BioBot | Dúvidas e Contato',
   '/unauthorized': 'BioBot | Acesso Restrito'
 }
 
 export function PageTitleUpdater() {
   const pathname = usePathname()
+
+  useInsertionEffect(() => {
+    sincronizarTemaGlobal()
+  }, [pathname])
+
+  useEffect(() => {
+    sincronizarTemaGlobal()
+    window.addEventListener('biobot-theme-change', sincronizarTemaGlobal)
+    window.addEventListener('storage', sincronizarTemaGlobal)
+    return () => {
+      window.removeEventListener('biobot-theme-change', sincronizarTemaGlobal)
+      window.removeEventListener('storage', sincronizarTemaGlobal)
+    }
+  }, [])
 
   useEffect(() => {
     const rotaNormalizada =

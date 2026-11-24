@@ -26,8 +26,11 @@ const pillars = [
 function PillarItem({ Icon, title, size = 60 }) {
   return (
     <div className="flex flex-col items-center justify-center text-center w-full max-w-[200px]">
-      <Icon className="text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.25)]" size={size} />
-      <h3 className="mt-2.5 text-white text-xs sm:text-sm font-bold text-center uppercase tracking-wider drop-shadow-xs">
+      <Icon
+        className="text-white dark:text-verde-limao drop-shadow-[0_2px_4px_rgba(0,0,0,0.25)]"
+        size={size}
+      />
+      <h3 className="mt-2.5 text-white dark:text-verde-limao text-xs sm:text-sm font-bold text-center uppercase tracking-wider drop-shadow-xs">
         {title}
       </h3>
     </div>
@@ -37,42 +40,24 @@ function PillarItem({ Icon, title, size = 60 }) {
 function InfoItem({ Icon, title, children }) {
   return (
     <div className="flex flex-col items-center text-center p-3">
-      <div className="flex h-16 w-16 sm:h-14 sm:w-14 items-center justify-center rounded-full bg-verde-pastel text-verde-escuro mb-3 shadow-2xs">
-        <Icon className="text-3xl sm:text-2xl" />
+      <div className="flex h-16 w-16 sm:h-14 sm:w-14 items-center justify-center rounded-full bg-verde-pastel dark:bg-transparent dark:border-0 text-verde-escuro dark:text-[#FFFFF3] mb-3 shadow-2xs dark:shadow-none">
+        <Icon className="text-3xl sm:text-4xl" />
       </div>
 
-      <h4 className="text-base font-bold text-verde-escuro mb-1.5">{title}</h4>
-      <p className="text-xs sm:text-sm text-stone-600 leading-relaxed max-w-xs">{children}</p>
+      <h4 className="text-base font-bold text-verde-escuro dark:text-verde-limao mb-1.5">
+        {title}
+      </h4>
+      <p className="text-xs sm:text-sm text-stone-600 dark:text-[#FFFFF3] leading-relaxed max-w-xs">
+        {children}
+      </p>
     </div>
   )
 }
 
-const escolasHomePadrao = [
-  {
-    id: 1,
-    name: 'EMEF Prof. Luiz Silvar do Prado',
-    location: 'R. José Pedro de Oliveira Barbosa, 805 - Caraguatatuba'
-  },
-  {
-    id: 2,
-    name: 'EMEF Profª Maria Aparecida De Carvalho',
-    location: 'R. Seishi Yoshimoto, 120 - Getuba, Caraguatatuba'
-  },
-  {
-    id: 3,
-    name: 'EMEF Profª Maria Thereza de Souza Castro',
-    location: 'R. Seishi Yoshimoto, 120 - Getuba, Caraguatatuba'
-  },
-  {
-    id: 4,
-    name: 'EMEF Prof. Luiz Ribeiro Muniz',
-    location: 'R. Analândia, 355 - Martim de Sá, Caraguatatuba'
-  }
-]
-
 export default function HomePage() {
   const [destaques, setDestaques] = useState([])
-  const [escolasHome, setEscolasHome] = useState(escolasHomePadrao)
+  const [escolasHome, setEscolasHome] = useState([])
+  const [carregandoEscolas, setCarregandoEscolas] = useState(true)
   const [indiceInicial, setIndiceInicial] = useState(0)
   const [palavraAtiva, setPalavraAtiva] = useState(0)
 
@@ -109,7 +94,7 @@ export default function HomePage() {
     apiEscolas
       .listar()
       .then((lista) => {
-        if (!ativo || !Array.isArray(lista) || lista.length === 0) return
+        if (!ativo || !Array.isArray(lista)) return
         setEscolasHome(
           lista.map((e) => ({
             id: e.id,
@@ -119,6 +104,9 @@ export default function HomePage() {
         )
       })
       .catch(() => {})
+      .finally(() => {
+        if (ativo) setCarregandoEscolas(false)
+      })
 
     return () => {
       ativo = false
@@ -161,28 +149,34 @@ export default function HomePage() {
             <h1 className="font-bold uppercase leading-tight text-3xl sm:text-5xl md:text-6xl">
               <span
                 className={`block transition-colors duration-700 ${
-                  palavraAtiva === 0 ? 'text-verde-oliva' : 'text-verde-escuro'
+                  palavraAtiva === 0
+                    ? 'text-verde-oliva dark:text-verde-limao'
+                    : 'text-verde-escuro'
                 }`}
               >
                 Descubra,
               </span>
               <span
                 className={`block transition-colors duration-700 ${
-                  palavraAtiva === 1 ? 'text-verde-oliva' : 'text-verde-escuro'
+                  palavraAtiva === 1
+                    ? 'text-verde-oliva dark:text-verde-limao'
+                    : 'text-verde-escuro'
                 }`}
               >
                 construa e
               </span>
               <span
                 className={`block transition-colors duration-700 ${
-                  palavraAtiva === 2 ? 'text-verde-oliva' : 'text-verde-escuro'
+                  palavraAtiva === 2
+                    ? 'text-verde-oliva dark:text-verde-limao'
+                    : 'text-verde-escuro'
                 }`}
               >
                 compartilhe.
               </span>
             </h1>
 
-            <p className="mt-4 sm:mt-6 max-w-xl text-verde-escuro/85 dark:text-[#B7C4BB] text-base sm:text-xl leading-relaxed">
+            <p className="mt-4 sm:mt-6 max-w-xl text-verde-escuro/85 dark:text-verde-escuro text-base sm:text-xl leading-relaxed">
               Conectando escolas, estudantes e a comunidade de Caraguatatuba através da tecnologia.
             </p>
 
@@ -199,7 +193,7 @@ export default function HomePage() {
       </main>
 
       {/* Faixa de Pilares (exatamente como na imagem 1) */}
-      <section className="w-full bg-verde-oliva py-6 sm:py-8 px-4">
+      <section className="pillars-strip w-full bg-verde-oliva dark:bg-verde-pastel py-6 sm:py-8 px-4">
         <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-10 items-center justify-items-center">
           {pillars.map(({ title, Icon }) => (
             <PillarItem key={title} Icon={Icon} title={title} />
@@ -270,34 +264,44 @@ export default function HomePage() {
           <span className="text-verde-musgo">escolas!</span>
         </h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 w-full mb-8">
-          {escolasHome.map((escola) => (
-            <div
-              key={escola.id}
-              className="flex flex-col justify-between bg-white rounded-2xl p-5 border border-verde-musgo/30 hover:border-verde-musgo shadow-2xs transition"
-            >
-              <div>
-                <div className="flex items-center gap-2 text-verde-musgo mb-2.5">
-                  <FaGraduationCap size={24} />
+        {carregandoEscolas ? (
+          <p className="text-center text-verde-musgo text-sm sm:text-base font-medium py-6 mb-4">
+            Carregando escolas da rede...
+          </p>
+        ) : escolasHome.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 w-full mb-8">
+            {escolasHome.map((escola) => (
+              <div
+                key={escola.id}
+                className="flex flex-col justify-between bg-white rounded-2xl p-5 border border-verde-musgo/30 hover:border-verde-musgo shadow-2xs transition"
+              >
+                <div>
+                  <div className="flex items-center gap-2 text-verde-musgo mb-2.5">
+                    <FaGraduationCap size={24} />
+                  </div>
+                  <h3 className="font-bold text-base text-verde-escuro line-clamp-2 mb-1.5">
+                    {escola.name}
+                  </h3>
+                  <a
+                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                      `${escola.name} ${escola.location || 'Caraguatatuba SP'}`
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="Ver localização no Google Maps"
+                    className="text-xs text-stone-600 dark:text-verde-oliva hover:text-verde-musgo hover:underline line-clamp-2 transition-colors"
+                  >
+                    {escola.location}
+                  </a>
                 </div>
-                <h3 className="font-bold text-base text-verde-escuro line-clamp-2 mb-1.5">
-                  {escola.name}
-                </h3>
-                <a
-                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                    `${escola.name} ${escola.location || 'Caraguatatuba SP'}`
-                  )}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  title="Ver localização no Google Maps"
-                  className="text-xs text-stone-600 hover:text-verde-musgo hover:underline line-clamp-2 transition-colors"
-                >
-                  {escola.location}
-                </a>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-center text-verde-musgo text-sm sm:text-base font-medium py-6 mb-4">
+            Nenhuma escola cadastrada no momento.
+          </p>
+        )}
 
         <Link
           href="/rede#escolas"
@@ -341,7 +345,7 @@ export default function HomePage() {
                 onClick={() => setIndiceInicial((prev) => Math.max(0, prev - 3))}
                 disabled={indiceInicial === 0}
                 aria-label="Anteriores"
-                className="p-2.5 border rounded-full border-verde-escuro text-verde-escuro cursor-pointer bg-white hover:brightness-90 transition disabled:opacity-40"
+                className="p-2.5 border rounded-full border-verde-escuro dark:border-verde-oliva text-verde-escuro dark:text-verde-limao cursor-pointer bg-white hover:brightness-90 transition disabled:opacity-40"
               >
                 <MdArrowBack size={18} />
               </button>
@@ -353,7 +357,7 @@ export default function HomePage() {
                 }
                 disabled={indiceInicial + 3 >= destaques.length}
                 aria-label="Próximos"
-                className="p-2.5 border rounded-full border-verde-escuro text-verde-escuro cursor-pointer bg-white hover:brightness-90 transition disabled:opacity-40"
+                className="p-2.5 border rounded-full border-verde-escuro dark:border-verde-oliva text-verde-escuro dark:text-verde-limao cursor-pointer bg-white hover:brightness-90 transition disabled:opacity-40"
               >
                 <MdArrowForward size={18} />
               </button>
