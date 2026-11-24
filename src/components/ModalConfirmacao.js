@@ -44,6 +44,10 @@ export function ModalConfirmacao({
     textoBotaoVoltar ||
     (ehSucesso ? 'Continuar' : 'Entendido')
 
+  const ehDestrutivo =
+    tipo === 'excluir' ||
+    (ehConfirmacao && /exclu|inativ|remov/i.test(`${tituloFormatado} ${textoBotaoPrincipal}`))
+
   return (
     <div
       role="dialog"
@@ -67,7 +71,11 @@ export function ModalConfirmacao({
             </svg>
           </div>
         ) : ehConfirmacao ? (
-          <div className="flex items-center justify-center w-20 h-20 rounded-2xl border-4 border-verde-musgo text-verde-musgo mb-1">
+          <div
+            className={`flex items-center justify-center w-20 h-20 rounded-2xl border-4 mb-1 ${
+              ehDestrutivo ? 'border-vermelho text-vermelho' : 'border-verde-musgo text-verde-musgo'
+            }`}
+          >
             <svg
               className="w-10 h-10"
               viewBox="0 0 24 24"
@@ -113,18 +121,22 @@ export function ModalConfirmacao({
 
         {/* Botões de Ação */}
         {ehConfirmacao ? (
-          <div className="mt-4 flex flex-col sm:flex-row items-center justify-center gap-3 w-full max-w-sm">
+          <div className="mt-4 flex flex-col sm:flex-row items-center justify-center gap-3 w-full max-w-md">
             <button
               type="button"
               onClick={onCancelar}
-              className="w-full sm:flex-1 py-3 px-6 bg-white hover:bg-stone-50 border-2 border-stone-300 text-stone-700 text-base font-bold rounded-xl transition cursor-pointer"
+              className="w-full sm:flex-1 py-3 px-6 bg-white hover:bg-stone-50 border-2 border-stone-300 text-stone-700 text-base font-bold rounded-xl transition cursor-pointer whitespace-nowrap"
             >
               {textoCancelar}
             </button>
             <button
               type="button"
               onClick={onConfirmar}
-              className="w-full sm:flex-1 py-3 px-6 bg-verde-musgo hover:bg-white hover:text-verde-musgo border-2 border-verde-musgo text-white text-base font-bold rounded-xl shadow-xs transition cursor-pointer"
+              className={`w-full sm:flex-1 py-3 px-6 text-base font-bold rounded-xl shadow-xs transition cursor-pointer whitespace-nowrap ${
+                ehDestrutivo
+                  ? 'bg-vermelho hover:bg-white hover:text-vermelho border-2 border-vermelho text-white'
+                  : 'bg-verde-musgo hover:bg-white hover:text-verde-musgo border-2 border-verde-musgo text-white'
+              }`}
             >
               {textoBotaoPrincipal}
             </button>
@@ -134,7 +146,7 @@ export function ModalConfirmacao({
             <button
               type="button"
               onClick={onConfirmar}
-              className="mt-4 w-full sm:w-auto sm:min-w-[220px] px-8 py-3.5 bg-verde-musgo hover:bg-white hover:text-verde-musgo border-2 border-verde-musgo text-white text-base sm:text-lg font-bold rounded-xl shadow-xs cursor-pointer transition"
+              className="mt-4 w-full sm:w-auto sm:min-w-[220px] px-8 py-3.5 bg-verde-musgo hover:bg-white hover:text-verde-musgo border-2 border-verde-musgo text-white text-base sm:text-lg font-bold rounded-xl shadow-xs cursor-pointer transition whitespace-nowrap"
             >
               {textoBotaoPrincipal}
             </button>
@@ -146,18 +158,18 @@ export function ModalConfirmacao({
                   ? router.back()
                   : router.push(hrefVoltar)
               }
-              className="mt-4 w-full sm:w-auto sm:min-w-[220px] px-8 py-3.5 bg-verde-musgo hover:bg-white hover:text-verde-musgo border-2 border-verde-musgo text-white text-base sm:text-lg font-bold rounded-xl shadow-xs cursor-pointer transition text-center"
+              className="mt-4 w-full sm:w-auto sm:min-w-[220px] px-8 py-3.5 bg-verde-musgo hover:bg-white hover:text-verde-musgo border-2 border-verde-musgo text-white text-base sm:text-lg font-bold rounded-xl shadow-xs cursor-pointer transition text-center whitespace-nowrap"
             >
               {textoBotaoPrincipal}
             </button>
           )
         ) : (
-          <div className="mt-4 flex flex-col sm:flex-row justify-center gap-3 w-full max-w-sm">
+          <div className="mt-4 flex flex-col sm:flex-row justify-center gap-3 w-full max-w-md">
             {onCancelar && (
               <button
                 type="button"
                 onClick={onCancelar}
-                className="w-full sm:flex-1 py-3 px-6 bg-white hover:bg-stone-50 border-2 border-stone-300 text-stone-700 text-base font-bold rounded-xl cursor-pointer transition"
+                className="w-full sm:flex-1 py-3 px-6 bg-white hover:bg-stone-50 border-2 border-stone-300 text-stone-700 text-base font-bold rounded-xl cursor-pointer transition whitespace-nowrap"
               >
                 Fechar
               </button>
@@ -166,7 +178,7 @@ export function ModalConfirmacao({
               <button
                 type="button"
                 onClick={onTentarNovamente}
-                className="w-full sm:flex-1 py-3 px-6 bg-verde-musgo hover:bg-white hover:text-verde-musgo border-2 border-verde-musgo text-white text-base font-bold rounded-xl shadow-xs cursor-pointer transition"
+                className="w-full sm:flex-1 py-3 px-6 bg-verde-musgo hover:bg-white hover:text-verde-musgo border-2 border-verde-musgo text-white text-base font-bold rounded-xl shadow-xs cursor-pointer transition whitespace-nowrap"
               >
                 Tentar Novamente
               </button>
@@ -175,7 +187,7 @@ export function ModalConfirmacao({
               <button
                 type="button"
                 onClick={onConfirmar}
-                className="w-full sm:w-auto sm:min-w-[200px] py-3 px-6 bg-verde-musgo hover:bg-white hover:text-verde-musgo border-2 border-verde-musgo text-white text-base font-bold rounded-xl shadow-xs cursor-pointer transition"
+                className="w-full sm:w-auto sm:min-w-[200px] py-3 px-6 bg-verde-musgo hover:bg-white hover:text-verde-musgo border-2 border-verde-musgo text-white text-base font-bold rounded-xl shadow-xs cursor-pointer transition whitespace-nowrap"
               >
                 Entendido
               </button>

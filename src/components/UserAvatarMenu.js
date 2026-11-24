@@ -28,10 +28,15 @@ export function UserAvatarMenu({ className = '' }) {
   const containerRef = useRef(null)
   const [aberto, setAberto] = useState(false)
   const [saindo, setSaindo] = useState(false)
-  const [usuario, setUsuario] = useState(() => obterUsuario())
+  const [usuario, setUsuario] = useState(null)
 
   useEffect(() => {
     let ativo = true
+    const salvo = obterUsuario()
+    if (salvo) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setUsuario(salvo)
+    }
     if (obterToken()) {
       apiAuth
         .me()

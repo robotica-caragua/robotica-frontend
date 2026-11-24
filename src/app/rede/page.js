@@ -15,35 +15,9 @@ const linksMapasOficiais = {
   'EMEF Profª Maria Thereza de Souza Castro': 'https://maps.app.goo.gl/TWYSGxUgsena9FTCA'
 }
 
-const escolasOficiaisIniciais = [
-  {
-    id: 3,
-    name: 'EMEF Profª Maria Aparecida De Carvalho',
-    location: 'R. Seishi Yoshimoto, 120 - Getuba, Caraguatatuba - SP, 11676-403',
-    linkUrl: 'https://maps.app.goo.gl/pH6TnrBJsTyLY3gK8'
-  },
-  {
-    id: 4,
-    name: 'EMEF Prof. Luiz Ribeiro Muniz',
-    location: 'R. Analândia, 355 - Martim de Sá, Caraguatatuba - SP, 11662-320',
-    linkUrl: 'https://maps.app.goo.gl/ueybEfw95rgpqRYU6'
-  },
-  {
-    id: 5,
-    name: 'EMEF Prof. Luiz Silvar do Prado',
-    location: 'R. José Pedro de Oliveira Barbosa, 805 - Jardim Casa Branca, Caraguatatuba - SP',
-    linkUrl: 'https://maps.app.goo.gl/43diBvZfvfCGr3iZA'
-  },
-  {
-    id: 6,
-    name: 'EMEF Profª Maria Thereza de Souza Castro',
-    location: 'R. Seishi Yoshimoto, 120 - Getuba, Caraguatatuba - SP, 11676-403',
-    linkUrl: 'https://maps.app.goo.gl/TWYSGxUgsena9FTCA'
-  }
-]
-
 export default function Rede() {
-  const [escolas, setEscolas] = useState(escolasOficiaisIniciais)
+  const [escolas, setEscolas] = useState([])
+  const [carregandoEscolas, setCarregandoEscolas] = useState(true)
   const [destaques, setDestaques] = useState([])
 
   useEffect(() => {
@@ -72,21 +46,22 @@ export default function Rede() {
       .listar()
       .then((listaEscolas) => {
         if (!ativo) return
-        if (Array.isArray(listaEscolas) && listaEscolas.length > 0) {
-          const formatadas = listaEscolas.map((escola) => ({
-            id: escola.id,
-            name: escola.name,
-            location: escola.address || 'Caraguatatuba - SP',
-            linkUrl:
-              linksMapasOficiais[escola.name] ||
-              `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                `${escola.name} ${escola.address || 'Caraguatatuba SP'}`
-              )}`
-          }))
-          setEscolas(formatadas)
-        }
+        const formatadas = (Array.isArray(listaEscolas) ? listaEscolas : []).map((escola) => ({
+          id: escola.id,
+          name: escola.name,
+          location: escola.address || 'Caraguatatuba - SP',
+          linkUrl:
+            linksMapasOficiais[escola.name] ||
+            `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+              `${escola.name} ${escola.address || 'Caraguatatuba SP'}`
+            )}`
+        }))
+        setEscolas(formatadas)
       })
       .catch(() => {})
+      .finally(() => {
+        if (ativo) setCarregandoEscolas(false)
+      })
 
     return () => {
       ativo = false
@@ -148,14 +123,24 @@ export default function Rede() {
           </div>
 
           <div className="flex flex-wrap gap-6 sm:gap-8 justify-center w-full">
-            {escolas.map((escola) => (
-              <CardEscola
-                key={escola.id}
-                name={escola.name}
-                location={escola.location}
-                linkUrl={escola.linkUrl}
-              />
-            ))}
+            {carregandoEscolas ? (
+              <p className="text-center text-verde-musgo text-sm sm:text-base font-medium py-6">
+                Carregando escolas da rede...
+              </p>
+            ) : escolas.length > 0 ? (
+              escolas.map((escola) => (
+                <CardEscola
+                  key={escola.id}
+                  name={escola.name}
+                  location={escola.location}
+                  linkUrl={escola.linkUrl}
+                />
+              ))
+            ) : (
+              <p className="text-center text-verde-musgo text-sm sm:text-base font-medium py-6">
+                Nenhuma escola cadastrada no momento.
+              </p>
+            )}
           </div>
         </div>
       </main>

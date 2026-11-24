@@ -38,21 +38,29 @@ export default function GestaoProjetos() {
     ])
       .then(([listaProjetos, listaCategorias, listaEscolas]) => {
         if (!ativo) return
-        const dados = (Array.isArray(listaProjetos) ? listaProjetos : []).map((item, idx) => {
-          const mapeado = mapearProjetoDaApi(item, idx % 2 === 0 ? containerImg : semaforo)
-          return {
-            id: item.id,
-            titulo: item.name || mapeado.titulo,
-            descricao: item.description || mapeado.descricao,
-            imagem: mapeado.imagem,
-            status: 'publicado',
-            visivel: true,
-            escola: item.school?.name || mapeado.escola || 'EMEF Prof. Luiz Ribeiro Muniz',
-            categorias: mapeado.categorias || [],
-            curtidas: item.likes || mapeado.curtidas || 0,
-            infoData: `Criado em ${new Date(item.updatedAt || item.createdAt || Date.now()).toLocaleDateString('pt-BR')}`
-          }
-        })
+        const dados = (Array.isArray(listaProjetos) ? listaProjetos : [])
+          .map((item, idx) => {
+            const mapeado = mapearProjetoDaApi(item, idx % 2 === 0 ? containerImg : semaforo)
+            return {
+              id: item.id,
+              titulo: item.name || mapeado.titulo,
+              descricao: item.description || mapeado.descricao,
+              imagem: mapeado.imagem,
+              status: 'publicado',
+              visivel: true,
+              escola: item.school?.name || mapeado.escola || 'Rede Municipal de Caraguatatuba',
+              categorias: mapeado.categorias || [],
+              curtidas: item.likes || mapeado.curtidas || 0,
+              createdAt: item.createdAt || mapeado.createdAt,
+              updatedAt: item.updatedAt || mapeado.updatedAt,
+              infoData: `Criado em ${new Date(item.updatedAt || item.createdAt || Date.now()).toLocaleDateString('pt-BR')}`
+            }
+          })
+          .sort(
+            (a, b) =>
+              new Date(b.updatedAt || b.createdAt || 0) -
+                new Date(a.updatedAt || a.createdAt || 0) || Number(b.id) - Number(a.id)
+          )
         setProjetos(dados)
         setCategoriasApi(
           Array.isArray(listaCategorias) ? listaCategorias.map((c) => c.name).filter(Boolean) : []

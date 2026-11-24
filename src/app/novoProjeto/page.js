@@ -17,13 +17,7 @@ import {
 } from 'react-icons/md'
 import { AdminSidebar } from '@/components/AdminSidebar'
 import { ModalConfirmacao } from '@/components/ModalConfirmacao'
-import {
-  apiCategorias,
-  apiEscolas,
-  apiProjetos,
-  arquivoParaDataUrl,
-  obterUsuario
-} from '@/services/api'
+import { apiCategorias, apiEscolas, apiProjetos, arquivoParaDataUrl } from '@/services/api'
 
 export default function NovoProjetoPage() {
   const router = useRouter()
@@ -35,47 +29,57 @@ export default function NovoProjetoPage() {
   const [previews, setPreviews] = useState([])
   const [categoriasLista, setCategoriasLista] = useState([])
   const [escolasLista, setEscolasLista] = useState([])
+  const [escolasCarregadas, setEscolasCarregadas] = useState(false)
   const [enviando, setEnviando] = useState(false)
   const [modal, setModal] = useState({ aberto: false, tipo: 'sucesso', mensagemErro: '' })
 
   useEffect(() => {
     let ativo = true
 
-    Promise.all([apiCategorias.listar().catch(() => []), apiEscolas.listar().catch(() => [])]).then(
-      ([cats, escs]) => {
-        if (!ativo) return
+    Promise.all([
+      apiCategorias.listar().catch(() => []),
+      apiEscolas.listarDoUsuarioLogado().catch(() => [])
+    ]).then(([cats, escs]) => {
+      if (!ativo) return
 
-        if (Array.isArray(cats)) {
-          setCategoriasLista(
-            cats.map((c) => (typeof c === 'string' ? c : c?.name || c?.nome || '')).filter(Boolean)
-          )
-        }
-
-        if (Array.isArray(escs)) {
-          setEscolasLista(escs)
-          const usuario = obterUsuario()
-          const escolaDoUsuario = usuario?.schoolId
-            ? escs.find((item) => Number(item.id) === Number(usuario.schoolId))
-            : null
-          if (escolaDoUsuario?.name) {
-            setEscola((prev) => prev || escolaDoUsuario.name)
-          }
-        }
+      if (Array.isArray(cats)) {
+        setCategoriasLista(
+          cats.map((c) => (typeof c === 'string' ? c : c?.name || c?.nome || '')).filter(Boolean)
+        )
       }
-    )
+
+      if (Array.isArray(escs)) {
+        setEscolasLista(escs)
+        // Com apenas uma escola vinculada, já deixa selecionada.
+        if (escs.length === 1) setEscola((prev) => prev || escs[0].name)
+      }
+      setEscolasCarregadas(true)
+    })
 
     return () => {
       ativo = false
     }
   }, [])
 
-  async function handleArquivos(e) {
-    const lista = Array.from(e.target.files || []).slice(0, 10 - arquivos.length)
+  async function processarListaArquivos(fileList) {
+    const lista = Array.from(fileList || [])
+      .filter((f) => /^image\/(jpeg|jpg|png|webp)$/i.test(f.type))
+      .slice(0, 10 - arquivos.length)
     if (lista.length === 0) return
     const novasUrls = await Promise.all(lista.map(arquivoParaDataUrl)).catch(() => [])
     setArquivos((prev) => [...prev, ...lista].slice(0, 10))
     setPreviews((prev) => [...prev, ...novasUrls].slice(0, 10))
+  }
+
+  async function handleArquivos(e) {
+    await processarListaArquivos(e.target.files)
     e.target.value = ''
+  }
+
+  async function handleDropImagens(e) {
+    e.preventDefault()
+    e.stopPropagation()
+    await processarListaArquivos(e.dataTransfer?.files)
   }
 
   function removerArquivo(indice) {
@@ -91,7 +95,7 @@ export default function NovoProjetoPage() {
     }
 
     const escEncontrada = escolasLista.find((item) => item.name === escola)
-    const schoolId = escEncontrada?.id || escolasLista[0]?.id
+    const schoolId = escEncontrada?.id
 
     if (!schoolId) {
       setModal({
@@ -200,6 +204,12 @@ export default function NovoProjetoPage() {
                       </option>
                     ))}
                   </Select>
+                  {escolasCarregadas && escolasLista.length === 0 && (
+                    <p className="mt-2 text-xs sm:text-sm font-semibold text-vermelho">
+                      Você ainda não está vinculado a nenhuma escola. Peça à administração para
+                      vincular o seu perfil.
+                    </p>
+                  )}
                 </div>
               </div>
             </section>
@@ -248,13 +258,20 @@ export default function NovoProjetoPage() {
                 </h2>
               </div>
 
-              <div className="flex min-h-[200px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-verde-musgo bg-input-bg p-6 sm:p-8 text-center">
+              <div
+                onDragOver={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                }}
+                onDrop={handleDropImagens}
+                className="flex min-h-[200px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-verde-musgo bg-input-bg hover:bg-verde-pastel/30 transition p-6 sm:p-8 text-center"
+              >
                 <div className="flex size-12 items-center justify-center rounded-full bg-verde-limao text-verde-escuro">
                   <MdOutlineAddAPhoto size={24} />
                 </div>
 
                 <p className="mt-3 text-sm font-bold uppercase text-verde-escuro">
-                  Enviar mídias do projeto
+                  Arraste imagens para cá ou selecione do computador
                 </p>
                 <p className="mt-1 text-xs sm:text-sm text-verde-musgo">
                   Formatos aceitos: JPG, PNG ou WEBP.
@@ -306,7 +323,7 @@ export default function NovoProjetoPage() {
               <button
                 type="button"
                 onClick={() => router.back()}
-                className="flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-bold uppercase text-[#3F674D] hover:bg-input-bg transition cursor-pointer"
+                className="flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-bold uppercase text-verde-escuro hover:bg-input-bg transition cursor-pointer"
               >
                 <MdClose size={18} />
                 Cancelar
@@ -339,7 +356,7 @@ export default function NovoProjetoPage() {
         textoBotaoSucesso="Voltar"
         onConfirmar={() => {
           setModal({ aberto: false, tipo: 'sucesso', mensagemErro: '' })
-          router.push('/projetos')
+          router.push('/gestaoProjetos')
         }}
         onCancelar={() => {
           setModal({ aberto: false, tipo: 'sucesso', mensagemErro: '' })

@@ -25,7 +25,7 @@ export function Footer() {
               height={40}
               className="w-9 h-9 sm:w-10 sm:h-10 object-contain"
             />
-            <span className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#9CE02C]">
+            <span className="text-2xl sm:text-3xl font-extrabold tracking-tight text-verde-escuro">
               BIOBOT
             </span>
           </span>
@@ -33,7 +33,7 @@ export function Footer() {
         <Link
           href="#topo"
           aria-label="Voltar ao topo da página"
-          className="font-bold p-2 bg-verde-escuro text-verde-pastel rounded-full hover:bg-white hover:text-verde-escuro border-2 border-verde-escuro transition-colors duration-300 flex items-center justify-center cursor-pointer shadow-xs"
+          className="font-bold p-2 bg-verde-escuro text-verde-pastel dark:bg-[#FFFFF3] dark:text-[#002A15] dark:border-[#FFFFF3] dark:hover:bg-verde-limao dark:hover:border-verde-limao dark:hover:text-[#001B0D] rounded-full hover:bg-white hover:text-verde-escuro border-2 border-verde-escuro transition-colors duration-300 flex items-center justify-center cursor-pointer shadow-xs"
         >
           <IoIosArrowUp size={22} />
         </Link>
@@ -93,7 +93,7 @@ export function Footer() {
 
       {/* Linha divisória fixa e espaçada */}
       <div className="w-full flex justify-center mt-4">
-        <div className="w-[85%] border-b border-verde-escuro/40" />
+        <div className="w-[85%] border-b border-verde-escuro/40 dark:border-verde-oliva/60" />
       </div>
 
       <div className="w-full justify-center items-center text-center mt-4 p-2 text-xs sm:text-sm">

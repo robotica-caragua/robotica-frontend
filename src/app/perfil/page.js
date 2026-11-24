@@ -23,34 +23,12 @@ import {
   apiAuth,
   apiEscolas,
   apiProjetos,
+  apiSolicitacoesVinculo,
   apiTutoriais,
   apiUsuarios,
   obterToken,
   obterUsuario
 } from '@/services/api'
-
-const ESCOLAS_PADRAO = [
-  {
-    id: 3,
-    name: 'EMEF Profª Maria Aparecida De Carvalho',
-    address: 'R. Seishi Yoshimoto, 120 - Getuba, Caraguatatuba - SP, 11676-403'
-  },
-  {
-    id: 4,
-    name: 'EMEF Prof. Luiz Ribeiro Muniz',
-    address: 'R. Analândia, 355 - Martim de Sá, Caraguatatuba - SP, 11662-320'
-  },
-  {
-    id: 5,
-    name: 'EMEF Prof. Luiz Silvar do Prado',
-    address: 'R. José Pedro de Oliveira Barbosa, 805 - Jardim Casa Branca, Caraguatatuba - SP'
-  },
-  {
-    id: 6,
-    name: 'EMEF Profª Maria Thereza de Souza Castro',
-    address: 'R. Seishi Yoshimoto, 120 - Getuba, Caraguatatuba - SP, 11676-403'
-  }
-]
 
 function normalizarVinculo(item, idx = 0) {
   const escolaObj = item?.school || item
@@ -59,7 +37,13 @@ function normalizarVinculo(item, idx = 0) {
     id: escolaObj.id ?? idx + 1,
     escola: escolaObj.name,
     endereco: escolaObj.address || 'Caraguatatuba - SP',
-    ativo: item?.active !== undefined ? Boolean(item.active) : true
+    status: item?.status || 'ativo',
+    ativo:
+      item?.status === 'em_analise'
+        ? false
+        : item?.active !== undefined
+          ? Boolean(item.active)
+          : true
   }
 }
 
@@ -85,8 +69,8 @@ function criarPerfilInicial(usuarioSalvo) {
 }
 
 export default function PerfilPage() {
-  const [perfil, setPerfil] = useState(() => criarPerfilInicial(obterUsuario()))
-  const [escolasDisponiveis, setEscolasDisponiveis] = useState(ESCOLAS_PADRAO)
+  const [perfil, setPerfil] = useState(() => criarPerfilInicial(null))
+  const [escolasDisponiveis, setEscolasDisponiveis] = useState([])
   const [editando, setEditando] = useState(false)
 
   // Modal de solicitação de novo vínculo
@@ -110,59 +94,49 @@ export default function PerfilPage() {
       obterToken() ? apiAuth.me().catch(() => null) : Promise.resolve(null),
       apiTutoriais.listar().catch(() => []),
       apiProjetos.listar().catch(() => []),
-      apiEscolas.listar().catch(() => [])
-    ]).then(async ([userApi, listaTutoriais, listaProjetos, listaEscolas]) => {
+      apiEscolas.listar().catch(() => []),
+      apiEscolas.listarDoUsuarioLogado().catch(() => [])
+    ]).then(([userApi, listaTutoriais, listaProjetos, listaEscolas, escolasDoUsuario]) => {
       if (!ativo) return
 
       const usuarioAtual = userApi || obterUsuario()
-      const escolasDaRede =
-        Array.isArray(listaEscolas) && listaEscolas.length > 0 ? listaEscolas : ESCOLAS_PADRAO
-
+      const escolasDaRede = Array.isArray(listaEscolas) ? listaEscolas : []
       setEscolasDisponiveis(escolasDaRede)
 
-      let vinculos = []
+      let vinculos = Array.isArray(usuarioAtual?.schools)
+        ? usuarioAtual.schools.map(normalizarVinculo).filter(Boolean)
+        : []
 
-      // 1. Tenta buscar pelo endpoint dedicado de escola do usuário
-      if (usuarioAtual?.id && obterToken()) {
-        const escDoUsuario = await apiUsuarios
-          .buscarEscolaDoUsuario(usuarioAtual.id)
-          .catch(() => null)
-
-        if (Array.isArray(escDoUsuario)) {
-          vinculos = escDoUsuario.map(normalizarVinculo).filter(Boolean)
-        } else if (escDoUsuario) {
-          const v = normalizarVinculo(escDoUsuario, 0)
-          if (v) vinculos = [v]
-        }
+      if (vinculos.length === 0 && Array.isArray(escolasDoUsuario) && escolasDoUsuario.length > 0) {
+        vinculos = escolasDoUsuario.map(normalizarVinculo).filter(Boolean)
       }
 
-      // 2. Verifica escolas diretamente no objeto do usuário (schools / school / schoolId)
-      if (vinculos.length === 0 && Array.isArray(usuarioAtual?.schools)) {
-        vinculos = usuarioAtual.schools.map(normalizarVinculo).filter(Boolean)
-      }
-
-      if (vinculos.length === 0 && usuarioAtual?.school) {
-        const v = normalizarVinculo(usuarioAtual.school, 0)
-        if (v) vinculos = [v]
-      }
-
+      // Contas antigas com apenas schoolId (sem registros em schools).
       if (vinculos.length === 0 && usuarioAtual?.schoolId) {
         const encontrada = escolasDaRede.find(
           (esc) => Number(esc.id) === Number(usuarioAtual.schoolId)
         )
-        if (encontrada) {
-          const v = normalizarVinculo(encontrada, 0)
-          if (v) vinculos = [v]
-        }
-      }
-
-      // 3. Fallback caso a conta ainda não retorne vínculo explícito da API
-      if (vinculos.length === 0 && escolasDaRede.length > 0) {
-        const escolaPadrao =
-          escolasDaRede.find((e) => e.name?.includes('Luiz Ribeiro Muniz')) || escolasDaRede[0]
-        const v = normalizarVinculo(escolaPadrao, 0)
+        const v = normalizarVinculo(encontrada, 0)
         if (v) vinculos = [v]
       }
+
+      // Anexa solicitações de vínculo pendentes ("Em Análise") deste professor
+      const solicitacoesUsuario = apiSolicitacoesVinculo.listarDoUsuario(
+        usuarioAtual?.id,
+        usuarioAtual?.email
+      )
+      const idsJaAtivos = new Set(vinculos.map((v) => Number(v.id)))
+      const vinculosEmAnalise = solicitacoesUsuario
+        .filter((s) => s.status === 'em_analise' && !idsJaAtivos.has(Number(s.schoolId)))
+        .map((s) => ({
+          id: Number(s.schoolId),
+          escola: s.schoolName,
+          endereco: s.schoolAddress || 'Caraguatatuba - SP',
+          status: 'em_analise',
+          ativo: false
+        }))
+
+      const todosVinculos = [...vinculos, ...vinculosEmAnalise]
 
       if (!ativo) return
 
@@ -179,11 +153,15 @@ export default function PerfilPage() {
           ...prev.pessoal,
           nome: usuarioAtual?.name || prev.pessoal.nome,
           email: usuarioAtual?.email || prev.pessoal.email,
-          matricula: usuarioAtual?.id
-            ? `#${String(usuarioAtual.id).padStart(5, '0')}`
-            : prev.pessoal.matricula || '-'
+          matricula: usuarioAtual?.matricula
+            ? String(usuarioAtual.matricula).startsWith('#')
+              ? String(usuarioAtual.matricula)
+              : `#${usuarioAtual.matricula}`
+            : usuarioAtual?.id
+              ? `#${String(usuarioAtual.id).padStart(5, '0')}`
+              : prev.pessoal.matricula || '-'
         },
-        vinculos
+        vinculos: todosVinculos
       }))
     })
 
@@ -257,10 +235,17 @@ export default function PerfilPage() {
     }
 
     try {
-      await apiUsuarios.atualizar(perfil.id, {
+      const idsEscolasAtuais = perfil.vinculos
+        .map((v) => Number(v.id))
+        .filter((id) => Number.isInteger(id) && id > 0)
+      const atualizado = await apiUsuarios.atualizar(perfil.id, {
         name: perfil.pessoal.nome,
-        email: perfil.pessoal.email
+        email: perfil.pessoal.email,
+        ...(idsEscolasAtuais.length > 0 ? { schoolIds: idsEscolasAtuais } : {})
       })
+      if (atualizado) {
+        apiAuth.me({ forcar: true }).catch(() => {})
+      }
       setEditando(false)
       setModal({
         aberto: true,
@@ -286,7 +271,7 @@ export default function PerfilPage() {
     setModalVinculoAberto(true)
   }
 
-  function handleSolicitarVinculo(e) {
+  async function handleSolicitarVinculo(e) {
     e.preventDefault()
 
     if (!escolaSelecionadaObj) {
@@ -294,14 +279,49 @@ export default function PerfilPage() {
       return
     }
 
-    setModalVinculoAberto(false)
-    setModal({
-      aberto: true,
-      tipo: 'sucesso',
-      titulo: 'Solicitação enviada com sucesso!',
-      mensagem: `Recebemos o seu pedido de vínculo com "${escolaSelecionadaObj.name}". Em breve um administrador iniciará o atendimento para analisar e liberar o seu acesso.`,
-      textoBotao: 'Entendido'
-    })
+    try {
+      const usuarioLogado = obterUsuario()
+      apiSolicitacoesVinculo.criar({
+        userId: perfil.id || usuarioLogado?.id,
+        userName: perfil.pessoal.nome || usuarioLogado?.name || 'Professor(a)',
+        userEmail: perfil.pessoal.email || usuarioLogado?.email || '',
+        userMatricula: perfil.pessoal.matricula || '',
+        schoolId: Number(escolaSelecionadaObj.id),
+        schoolName: escolaSelecionadaObj.name,
+        schoolAddress: escolaSelecionadaObj.address || 'Caraguatatuba - SP'
+      })
+
+      const novoVinculoEmAnalise = {
+        id: Number(escolaSelecionadaObj.id),
+        escola: escolaSelecionadaObj.name,
+        endereco: escolaSelecionadaObj.address || 'Caraguatatuba - SP',
+        status: 'em_analise',
+        ativo: false
+      }
+
+      setPerfil((prev) => {
+        const jaListado = prev.vinculos.some(
+          (v) => Number(v.id) === Number(escolaSelecionadaObj.id)
+        )
+        const atualizados = jaListado ? prev.vinculos : [...prev.vinculos, novoVinculoEmAnalise]
+        return {
+          ...prev,
+          vinculos: atualizados
+        }
+      })
+      setModalVinculoAberto(false)
+      setModal({
+        aberto: true,
+        tipo: 'sucesso',
+        titulo: 'Solicitação enviada para análise!',
+        mensagem: `Sua solicitação de vínculo com a unidade "${escolaSelecionadaObj.name}" foi registrada. A equipe administrativa irá analisar o pedido e liberar o vínculo em breve.`,
+        textoBotao: 'Entendido'
+      })
+    } catch (err) {
+      setErroSelecaoEscola(
+        err?.message || 'Não foi possível vincular a escola selecionada. Tente novamente.'
+      )
+    }
   }
 
   return (
@@ -390,64 +410,72 @@ export default function PerfilPage() {
             </div>
           </section>
 
-          {/* Vínculos Institucionais */}
-          <section className="rounded-2xl border border-verde-musgo bg-white p-6 sm:p-8 shadow-sm">
-            <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-2.5 text-verde-escuro">
-                <MdOutlineAccountBalance size={22} className="text-verde-musgo shrink-0" />
-                <h2 className="text-base sm:text-lg font-bold uppercase tracking-wide">
-                  Vínculos Institucionais
-                </h2>
-              </div>
-              <span className="text-xs font-semibold text-verde-musgo">
-                {perfil.vinculos.length}{' '}
-                {perfil.vinculos.length === 1 ? 'unidade vinculada' : 'unidades vinculadas'}
-              </span>
-            </div>
-
-            <div className="flex flex-col gap-3.5">
-              {perfil.vinculos.length > 0 ? (
-                perfil.vinculos.map((vinculo) => (
-                  <div
-                    key={vinculo.id}
-                    className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-verde-musgo/20 bg-input-bg px-5 py-4 transition hover:border-verde-musgo/40"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <h3 className="text-sm sm:text-base font-bold text-verde-escuro">
-                        {vinculo.escola}
-                      </h3>
-                      <p className="mt-0.5 text-xs sm:text-sm text-verde-musgo">
-                        {vinculo.endereco}
-                      </p>
-                    </div>
-
-                    <span
-                      className={`shrink-0 rounded-full px-3.5 py-1 text-xs font-bold ${
-                        vinculo.ativo
-                          ? 'bg-verde-limao text-verde-escuro'
-                          : 'bg-verde-escuro/10 text-verde-escuro/70'
-                      }`}
-                    >
-                      {vinculo.ativo ? 'Ativo' : 'Inativo'}
-                    </span>
-                  </div>
-                ))
-              ) : (
-                <div className="rounded-xl border border-verde-musgo/20 bg-input-bg/50 px-5 py-4 text-sm text-verde-musgo">
-                  Nenhum vínculo escolar encontrado para esta conta.
+          {/* Vínculos Institucionais (exibido para Professores) */}
+          {perfil.role !== 'ADMIN' && (
+            <section className="rounded-2xl border border-verde-musgo bg-white p-6 sm:p-8 shadow-sm">
+              <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5 text-verde-escuro">
+                  <MdOutlineAccountBalance size={22} className="text-verde-musgo shrink-0" />
+                  <h2 className="text-base sm:text-lg font-bold uppercase tracking-wide">
+                    Vínculos Institucionais
+                  </h2>
                 </div>
-              )}
+                <span className="text-xs font-semibold text-verde-musgo">
+                  {perfil.vinculos.length}{' '}
+                  {perfil.vinculos.length === 1 ? 'unidade vinculada' : 'unidades vinculadas'}
+                </span>
+              </div>
 
-              <button
-                type="button"
-                onClick={abrirModalVinculo}
-                className="mt-1 flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-verde-musgo/50 py-3.5 text-xs sm:text-sm font-bold text-verde-musgo hover:bg-input-bg hover:border-verde-musgo transition cursor-pointer"
-              >
-                <MdOutlineLink size={18} />
-                Solicitar Novo Vínculo
-              </button>
-            </div>
-          </section>
+              <div className="flex flex-col gap-3.5">
+                {perfil.vinculos.length > 0 ? (
+                  perfil.vinculos.map((vinculo) => (
+                    <div
+                      key={vinculo.id}
+                      className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-verde-musgo/20 bg-input-bg px-5 py-4 transition hover:border-verde-musgo/40"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <h3 className="text-sm sm:text-base font-bold text-verde-escuro">
+                          {vinculo.escola}
+                        </h3>
+                        <p className="mt-0.5 text-xs sm:text-sm text-verde-musgo">
+                          {vinculo.endereco}
+                        </p>
+                      </div>
+
+                      <span
+                        className={`shrink-0 rounded-full px-3.5 py-1 text-xs font-bold ${
+                          vinculo.status === 'em_analise'
+                            ? 'bg-amber-100 text-amber-800 border border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-500/50'
+                            : vinculo.ativo
+                              ? 'bg-verde-limao text-verde-escuro'
+                              : 'bg-verde-escuro/10 text-verde-escuro/70'
+                        }`}
+                      >
+                        {vinculo.status === 'em_analise'
+                          ? 'Em Análise'
+                          : vinculo.ativo
+                            ? 'Ativo'
+                            : 'Inativo'}
+                      </span>
+                    </div>
+                  ))
+                ) : (
+                  <div className="rounded-xl border border-verde-musgo/20 bg-input-bg/50 px-5 py-4 text-sm text-verde-musgo">
+                    Nenhum vínculo escolar encontrado para esta conta.
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  onClick={abrirModalVinculo}
+                  className="mt-1 flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-verde-musgo/50 py-3.5 text-xs sm:text-sm font-bold text-verde-musgo hover:bg-input-bg hover:border-verde-musgo transition cursor-pointer"
+                >
+                  <MdOutlineLink size={18} />
+                  Solicitar Novo Vínculo
+                </button>
+              </div>
+            </section>
+          )}
 
           {/* Segurança */}
           <section className="rounded-2xl border border-verde-musgo bg-white p-6 sm:p-8 shadow-sm">

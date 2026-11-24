@@ -42,7 +42,9 @@ export default function ForgotPassword() {
           <h1 className="font-extrabold text-3xl sm:text-4xl uppercase tracking-tight text-verde-escuro">
             ESQUECEU SUA SENHA?
           </h1>
-          <span className="font-bold text-2xl text-verde-musgo">RECUPERE SEU ACESSO!</span>
+          <span className="font-extrabold text-3xl sm:text-4xl uppercase tracking-tight text-verde-musgo">
+            RECUPERE SEU ACESSO!
+          </span>
         </div>
 
         <p className="flex justify-center mt-8 sm:mt-16 font-medium text-xl sm:text-2xl text-center px-4 max-w-2xl mx-auto">

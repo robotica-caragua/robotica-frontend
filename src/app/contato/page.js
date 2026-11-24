@@ -3,10 +3,37 @@
 import { useState } from 'react'
 import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
+import { ModalConfirmacao } from '@/components/ModalConfirmacao'
+import { apiContatos } from '@/services/api'
 import { FaArrowRight, FaChevronDown, FaChevronUp } from 'react-icons/fa'
 
 export default function Contato() {
   const [faqsAbertos, setFaqsAbertos] = useState([])
+  const [modalAberto, setModalAberto] = useState(false)
+  const [form, setForm] = useState({
+    nome: '',
+    sobrenome: '',
+    email: '',
+    assunto: '',
+    mensagem: ''
+  })
+
+  const atualizarCampo = (campo) => (e) => {
+    setForm((prev) => ({ ...prev, [campo]: e.target.value }))
+  }
+
+  const handleEnviar = (e) => {
+    e.preventDefault()
+    apiContatos.criar(form)
+    setForm({
+      nome: '',
+      sobrenome: '',
+      email: '',
+      assunto: '',
+      mensagem: ''
+    })
+    setModalAberto(true)
+  }
 
   const toggleFaq = (index) => {
     setFaqsAbertos((prev) =>
@@ -52,7 +79,7 @@ export default function Contato() {
 
         {/* formulário */}
         <div className="w-full max-w-4xl bg-white rounded-3xl border border-stone-200 p-6 sm:p-10 shadow-xs mt-6 sm:mt-8">
-          <form className="flex flex-col gap-6" onSubmit={(e) => e.preventDefault()}>
+          <form className="flex flex-col gap-6" onSubmit={handleEnviar}>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs sm:text-sm font-bold text-verde-escuro uppercase tracking-wider">
@@ -60,6 +87,8 @@ export default function Contato() {
                 </label>
                 <input
                   type="text"
+                  value={form.nome}
+                  onChange={atualizarCampo('nome')}
                   placeholder="Digite seu nome..."
                   className="w-full h-11 px-3.5 bg-input-bg rounded-xl border border-stone-300 text-verde-escuro text-sm sm:text-base focus:border-verde-musgo focus:outline-none transition"
                   required
@@ -71,6 +100,8 @@ export default function Contato() {
                 </label>
                 <input
                   type="text"
+                  value={form.sobrenome}
+                  onChange={atualizarCampo('sobrenome')}
                   placeholder="Digite seu sobrenome..."
                   className="w-full h-11 px-3.5 bg-input-bg rounded-xl border border-stone-300 text-verde-escuro text-sm sm:text-base focus:border-verde-musgo focus:outline-none transition"
                   required
@@ -85,6 +116,8 @@ export default function Contato() {
                 </label>
                 <input
                   type="email"
+                  value={form.email}
+                  onChange={atualizarCampo('email')}
                   placeholder="exemplo@gmail.com"
                   className="w-full h-11 px-3.5 bg-input-bg rounded-xl border border-stone-300 text-verde-escuro text-sm sm:text-base focus:border-verde-musgo focus:outline-none transition"
                   required
@@ -97,6 +130,8 @@ export default function Contato() {
                 </label>
                 <input
                   type="text"
+                  value={form.assunto}
+                  onChange={atualizarCampo('assunto')}
                   placeholder="Digite o assunto..."
                   className="w-full h-11 px-3.5 bg-input-bg rounded-xl border border-stone-300 text-verde-escuro text-sm sm:text-base focus:border-verde-musgo focus:outline-none transition"
                   required
@@ -110,6 +145,8 @@ export default function Contato() {
               </label>
               <textarea
                 rows={5}
+                value={form.mensagem}
+                onChange={atualizarCampo('mensagem')}
                 placeholder="Escreva sua mensagem aqui..."
                 className="w-full p-3.5 bg-input-bg rounded-xl border border-stone-300 text-verde-escuro text-sm sm:text-base focus:border-verde-musgo focus:outline-none transition resize-none"
                 required
@@ -171,6 +208,14 @@ export default function Contato() {
         </section>
       </main>
       <Footer />
+      <ModalConfirmacao
+        aberto={modalAberto}
+        tipo="sucesso"
+        titulo="Mensagem enviada!"
+        mensagem="Recebemos a sua mensagem. Em breve a nossa equipe entrará em contato."
+        textoConfirmar="Entendido"
+        onConfirmar={() => setModalAberto(false)}
+      />
     </div>
   )
 }

@@ -145,7 +145,7 @@ function DetalhesTutorialConteudo() {
         {/* Materiais Necessários */}
         <div className="border border-stone-200 flex flex-col gap-4 rounded-2xl p-6 sm:p-8 w-full bg-white shadow-xs">
           <div className="flex items-center gap-3">
-            <div className="p-1.5 bg-[#E8F5D6] rounded-lg flex items-center justify-center">
+            <div className="p-1.5 bg-verde-pastel rounded-lg flex items-center justify-center">
               <BsArchive className="fill-verde-musgo text-lg" />
             </div>
             <h2 className="text-verde-escuro font-bold text-xl sm:text-2xl">

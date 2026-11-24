@@ -6,8 +6,15 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { SideBarAdmin } from '@/components/SideBarAdmin'
 import { ModalConfirmacao } from '@/components/ModalConfirmacao'
-import { apiEscolas, apiEventos } from '@/services/api'
-import { IoClose, IoArrowForward, IoAddOutline, IoTrashOutline } from 'react-icons/io5'
+import { apiEscolas, apiEventos, arquivoParaDataUrl } from '@/services/api'
+import {
+  IoClose,
+  IoArrowForward,
+  IoAddOutline,
+  IoTrashOutline,
+  IoDocumentAttachOutline,
+  IoLinkOutline
+} from 'react-icons/io5'
 import {
   MdInfoOutline,
   MdOutlineLocationOn,
@@ -35,9 +42,21 @@ const estadoInicial = {
   tipo: 'torneio',
   descricao: '',
   data: '',
-  horario: '',
+  horarioInicio: '',
+  horarioFim: '',
   local: '',
   inscricoes: 'abertas'
+}
+
+function extrairHorarios(textoHorario = '') {
+  const partes = String(textoHorario || '')
+    .split(/\s*[-–aà]\s*/i)
+    .map((p) => p.trim())
+    .filter(Boolean)
+  return {
+    horarioInicio: partes[0] || '',
+    horarioFim: partes[1] || ''
+  }
 }
 
 function CadastrarEventoConteudo() {
@@ -70,17 +89,39 @@ function CadastrarEventoConteudo() {
         .buscarPorId(idEdicao)
         .then((ev) => {
           if (!ativo || !ev) return
+          const { horarioInicio, horarioFim } = extrairHorarios(ev.time)
           setForm({
             nome: ev.title || '',
             tipo: ev.type || 'torneio',
             descricao: ev.description || '',
             data: (ev.date || '').slice(0, 10),
-            horario: ev.time || '',
+            horarioInicio,
+            horarioFim,
             local: ev.location || ev.school?.name || '',
             inscricoes: ev.registration || 'abertas'
           })
-          setAgenda(Array.isArray(ev.agenda) ? ev.agenda : [])
-          setDocumentos(Array.isArray(ev.documents) ? ev.documents : [])
+          setAgenda(
+            Array.isArray(ev.agenda)
+              ? ev.agenda.map((a) => {
+                  const { horarioInicio: hi, horarioFim: hf } = extrairHorarios(a?.horario)
+                  return {
+                    ...a,
+                    horarioInicio: a?.horarioInicio || hi || '',
+                    horarioFim: a?.horarioFim || hf || '',
+                    titulo: a?.titulo || ''
+                  }
+                })
+              : []
+          )
+          setDocumentos(
+            Array.isArray(ev.documents)
+              ? ev.documents.map((d) => ({
+                  ...d,
+                  modo: d?.url?.startsWith('data:application/pdf') ? 'pdf' : 'link',
+                  nomeArquivo: d?.nomeArquivo || ''
+                }))
+              : []
+          )
         })
         .catch(() => {})
     }
@@ -93,11 +134,20 @@ function CadastrarEventoConteudo() {
   const atualizar = (campo) => (e) => setForm({ ...form, [campo]: e.target.value })
 
   const adicionarItemAgenda = () => {
-    setAgenda((prev) => [...prev, { horario: '', titulo: '' }])
+    setAgenda((prev) => [...prev, { horarioInicio: '', horarioFim: '', horario: '', titulo: '' }])
   }
 
   const atualizarItemAgenda = (idx, campo, valor) => {
-    setAgenda((prev) => prev.map((item, i) => (i === idx ? { ...item, [campo]: valor } : item)))
+    setAgenda((prev) =>
+      prev.map((item, i) => {
+        if (i !== idx) return item
+        const atualizado = { ...item, [campo]: valor }
+        const hi = String(atualizado.horarioInicio || '').trim()
+        const hf = String(atualizado.horarioFim || '').trim()
+        atualizado.horario = hi && hf ? `${hi} - ${hf}` : hi || hf || ''
+        return atualizado
+      })
+    )
   }
 
   const removerItemAgenda = (idx) => {
@@ -105,11 +155,31 @@ function CadastrarEventoConteudo() {
   }
 
   const adicionarDocumento = () => {
-    setDocumentos((prev) => [...prev, { nome: '', url: '' }])
+    setDocumentos((prev) => [...prev, { nome: '', url: '', modo: 'pdf', nomeArquivo: '' }])
   }
 
   const atualizarDocumento = (idx, campo, valor) => {
     setDocumentos((prev) => prev.map((item, i) => (i === idx ? { ...item, [campo]: valor } : item)))
+  }
+
+  const handleUploadPdfDocumento = async (idx, arquivo) => {
+    if (!arquivo) return
+    try {
+      const dataUrl = await arquivoParaDataUrl(arquivo)
+      setDocumentos((prev) =>
+        prev.map((item, i) =>
+          i === idx
+            ? {
+                ...item,
+                nome: item.nome?.trim() ? item.nome : arquivo.name.replace(/\.pdf$/i, ''),
+                url: dataUrl,
+                nomeArquivo: arquivo.name,
+                modo: 'pdf'
+              }
+            : item
+        )
+      )
+    } catch {}
   }
 
   const removerDocumento = (idx) => {
@@ -164,10 +234,16 @@ function CadastrarEventoConteudo() {
     const schoolId = escEncontrada?.id || null
 
     const agendaValida = agenda
-      .map((a) => ({
-        horario: String(a.horario || '').trim(),
-        titulo: String(a.titulo || '').trim()
-      }))
+      .map((a) => {
+        const hi = String(a.horarioInicio || '').trim()
+        const hf = String(a.horarioFim || '').trim()
+        const horarioFormatado =
+          hi && hf ? `${hi} - ${hf}` : hi || hf || String(a.horario || '').trim()
+        return {
+          horario: horarioFormatado,
+          titulo: String(a.titulo || '').trim()
+        }
+      })
       .filter((a) => a.horario || a.titulo)
 
     const documentosValidos = documentos
@@ -177,12 +253,16 @@ function CadastrarEventoConteudo() {
       }))
       .filter((d) => d.nome)
 
+    const horarioCombinado = [form.horarioInicio?.trim(), form.horarioFim?.trim()]
+      .filter(Boolean)
+      .join(' - ')
+
     const payload = {
       title: form.nome.trim(),
       type: form.tipo,
       description: form.descricao.trim(),
       date: form.data,
-      time: form.horario.trim(),
+      time: horarioCombinado,
       location: form.local.trim(),
       registration: form.inscricoes,
       status: 'agendado',
@@ -281,7 +361,7 @@ function CadastrarEventoConteudo() {
             <div className="p-6 sm:p-8 bg-white rounded-2xl shadow-sm border border-verde-musgo flex flex-col gap-5">
               <SecaoTitulo icone={MdOutlineLocationOn} titulo="Data & Localização" />
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
                 <div className="flex flex-col gap-2">
                   <label htmlFor="data" className={labelClass}>
                     Data do Evento
@@ -296,15 +376,27 @@ function CadastrarEventoConteudo() {
                 </div>
 
                 <div className="flex flex-col gap-2">
-                  <label htmlFor="horario" className={labelClass}>
-                    Horário (Início - Fim)
+                  <label htmlFor="horarioInicio" className={labelClass}>
+                    Horário de Início
                   </label>
                   <input
-                    id="horario"
-                    type="text"
-                    value={form.horario}
-                    onChange={atualizar('horario')}
-                    placeholder="08:00 - 18:00"
+                    id="horarioInicio"
+                    type="time"
+                    value={form.horarioInicio}
+                    onChange={atualizar('horarioInicio')}
+                    className={inputClass}
+                  />
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <label htmlFor="horarioFim" className={labelClass}>
+                    Horário de Término
+                  </label>
+                  <input
+                    id="horarioFim"
+                    type="time"
+                    value={form.horarioFim}
+                    onChange={atualizar('horarioFim')}
                     className={inputClass}
                   />
                 </div>
@@ -327,13 +419,13 @@ function CadastrarEventoConteudo() {
 
             {/* Agenda e Documentação (Opcionais) */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="p-6 bg-white rounded-2xl shadow-sm border border-verde-musgo/40 flex flex-col gap-4">
+              <div className="p-6 bg-white rounded-2xl shadow-sm border border-verde-musgo/40 flex flex-col gap-4 overflow-hidden">
                 <div className="flex items-center justify-between gap-2">
                   <SecaoTitulo icone={MdOutlineSchedule} titulo="Agenda (Opcional)" />
                   <button
                     type="button"
                     onClick={adicionarItemAgenda}
-                    className="inline-flex items-center gap-1 text-xs font-bold text-verde-musgo hover:text-verde-escuro cursor-pointer"
+                    className="inline-flex items-center gap-1 text-xs font-bold text-verde-musgo hover:text-verde-escuro cursor-pointer shrink-0"
                   >
                     <IoAddOutline size={16} /> Adicionar horário
                   </button>
@@ -345,44 +437,93 @@ function CadastrarEventoConteudo() {
                     exibida na página do evento.
                   </p>
                 ) : (
-                  <div className="flex flex-col gap-3">
-                    {agenda.map((item, idx) => (
-                      <div key={idx} className="flex items-center gap-2">
-                        <input
-                          type="text"
-                          value={item.horario}
-                          onChange={(e) => atualizarItemAgenda(idx, 'horario', e.target.value)}
-                          placeholder="09:00"
-                          className={`${inputClass} w-24 shrink-0`}
-                        />
-                        <input
-                          type="text"
-                          value={item.titulo}
-                          onChange={(e) => atualizarItemAgenda(idx, 'titulo', e.target.value)}
-                          placeholder="Atividade da programação..."
-                          className={inputClass}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => removerItemAgenda(idx)}
-                          aria-label="Remover item da agenda"
-                          className="p-2 text-verde-musgo hover:text-vermelho cursor-pointer"
+                  <div className="flex flex-col gap-3.5">
+                    {agenda.map((item, idx) => {
+                      const hi = String(item.horarioInicio || '').trim()
+                      const hf = String(item.horarioFim || '').trim()
+                      const faixa = hi && hf ? `${hi} - ${hf}` : hi || hf || item.horario || ''
+                      return (
+                        <div
+                          key={idx}
+                          className="flex flex-col gap-2.5 p-3.5 rounded-xl border border-verde-musgo/40 bg-input-bg/40"
                         >
-                          <IoTrashOutline size={18} />
-                        </button>
-                      </div>
-                    ))}
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 flex-1 min-w-0">
+                              <div className="flex flex-col gap-1 flex-1">
+                                <span className="text-[11px] font-bold uppercase text-verde-musgo">
+                                  Início
+                                </span>
+                                <input
+                                  type="time"
+                                  value={item.horarioInicio || ''}
+                                  onChange={(e) =>
+                                    atualizarItemAgenda(idx, 'horarioInicio', e.target.value)
+                                  }
+                                  aria-label={`Horário de início da atividade ${idx + 1}`}
+                                  className="w-full px-3 py-2 bg-input-bg border border-verde-musgo rounded-xl text-sm text-verde-escuro focus:outline-none focus:ring-1 focus:ring-verde-musgo transition"
+                                />
+                              </div>
+
+                              <span className="mt-4 text-verde-musgo font-bold">—</span>
+
+                              <div className="flex flex-col gap-1 flex-1">
+                                <span className="text-[11px] font-bold uppercase text-verde-musgo">
+                                  Término
+                                </span>
+                                <input
+                                  type="time"
+                                  value={item.horarioFim || ''}
+                                  onChange={(e) =>
+                                    atualizarItemAgenda(idx, 'horarioFim', e.target.value)
+                                  }
+                                  aria-label={`Horário de término da atividade ${idx + 1}`}
+                                  className="w-full px-3 py-2 bg-input-bg border border-verde-musgo rounded-xl text-sm text-verde-escuro focus:outline-none focus:ring-1 focus:ring-verde-musgo transition"
+                                />
+                              </div>
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={() => removerItemAgenda(idx)}
+                              aria-label="Remover item da agenda"
+                              className="mt-4 p-1.5 text-verde-musgo hover:text-vermelho cursor-pointer shrink-0"
+                            >
+                              <IoTrashOutline size={18} />
+                            </button>
+                          </div>
+
+                          <input
+                            type="text"
+                            value={item.titulo}
+                            onChange={(e) => atualizarItemAgenda(idx, 'titulo', e.target.value)}
+                            placeholder="Ex: Credenciamento das equipes e montagem dos estandes"
+                            className="w-full px-3.5 py-2.5 bg-input-bg border border-verde-musgo rounded-xl text-sm text-verde-escuro placeholder:text-verde-escuro/60 focus:outline-none focus:ring-1 focus:ring-verde-musgo transition"
+                          />
+
+                          {(faixa || item.titulo) && (
+                            <p className="text-xs text-verde-musgo flex items-center gap-1.5 flex-wrap">
+                              {faixa && (
+                                <span className="px-2 py-0.5 rounded-md bg-verde-pastel font-mono font-bold text-verde-escuro">
+                                  {faixa}
+                                </span>
+                              )}
+                              {item.titulo && <span>— {item.titulo}</span>}
+                            </p>
+                          )}
+                        </div>
+                      )
+                    })}
                   </div>
                 )}
               </div>
 
-              <div className="p-6 bg-white rounded-2xl shadow-sm border border-verde-musgo/40 flex flex-col gap-4">
+              <div className="p-6 bg-white rounded-2xl shadow-sm border border-verde-musgo/40 flex flex-col gap-4 overflow-hidden">
                 <div className="flex items-center justify-between gap-2">
                   <SecaoTitulo icone={MdOutlineDescription} titulo="Documentação (Opcional)" />
                   <button
                     type="button"
                     onClick={adicionarDocumento}
-                    className="inline-flex items-center gap-1 text-xs font-bold text-verde-musgo hover:text-verde-escuro cursor-pointer"
+                    className="inline-flex items-center gap-1 text-xs font-bold text-verde-musgo hover:text-verde-escuro cursor-pointer shrink-0"
                   >
                     <IoAddOutline size={16} /> Adicionar documento
                   </button>
@@ -394,33 +535,90 @@ function CadastrarEventoConteudo() {
                     exibida na página do evento.
                   </p>
                 ) : (
-                  <div className="flex flex-col gap-3">
-                    {documentos.map((doc, idx) => (
-                      <div key={idx} className="flex items-center gap-2">
-                        <input
-                          type="text"
-                          value={doc.nome}
-                          onChange={(e) => atualizarDocumento(idx, 'nome', e.target.value)}
-                          placeholder="Ex: Regulamento.pdf"
-                          className={inputClass}
-                        />
-                        <input
-                          type="text"
-                          value={doc.url || ''}
-                          onChange={(e) => atualizarDocumento(idx, 'url', e.target.value)}
-                          placeholder="Link (opcional)"
-                          className={inputClass}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => removerDocumento(idx)}
-                          aria-label="Remover documento"
-                          className="p-2 text-verde-musgo hover:text-vermelho cursor-pointer"
+                  <div className="flex flex-col gap-4">
+                    {documentos.map((doc, idx) => {
+                      const modoAtual = doc.modo || 'pdf'
+                      return (
+                        <div
+                          key={idx}
+                          className="flex flex-col gap-2.5 p-3.5 rounded-xl border border-verde-musgo/40 bg-input-bg/40"
                         >
-                          <IoTrashOutline size={18} />
-                        </button>
-                      </div>
-                    ))}
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="inline-flex rounded-lg border border-verde-musgo overflow-hidden text-xs font-bold">
+                              <button
+                                type="button"
+                                onClick={() => atualizarDocumento(idx, 'modo', 'pdf')}
+                                className={`px-3 py-1.5 flex items-center gap-1.5 cursor-pointer transition ${
+                                  modoAtual === 'pdf'
+                                    ? 'bg-verde-limao text-verde-escuro'
+                                    : 'bg-white text-verde-escuro hover:bg-verde-pastel/50'
+                                }`}
+                              >
+                                <IoDocumentAttachOutline size={14} />
+                                Arquivo PDF
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => atualizarDocumento(idx, 'modo', 'link')}
+                                className={`px-3 py-1.5 flex items-center gap-1.5 cursor-pointer transition ${
+                                  modoAtual === 'link'
+                                    ? 'bg-verde-limao text-verde-escuro'
+                                    : 'bg-white text-verde-escuro hover:bg-verde-pastel/50'
+                                }`}
+                              >
+                                <IoLinkOutline size={14} />
+                                Link
+                              </button>
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={() => removerDocumento(idx)}
+                              aria-label="Remover documento"
+                              className="p-1.5 text-verde-musgo hover:text-vermelho cursor-pointer shrink-0"
+                            >
+                              <IoTrashOutline size={18} />
+                            </button>
+                          </div>
+
+                          <input
+                            type="text"
+                            value={doc.nome}
+                            onChange={(e) => atualizarDocumento(idx, 'nome', e.target.value)}
+                            placeholder="Título do documento (ex: Regulamento Oficial)"
+                            className="w-full px-3.5 py-2.5 bg-input-bg border border-verde-musgo rounded-xl text-sm text-verde-escuro placeholder:text-verde-escuro/60 focus:outline-none focus:ring-1 focus:ring-verde-musgo transition"
+                          />
+
+                          {modoAtual === 'pdf' ? (
+                            <label className="flex items-center justify-between gap-2 px-3.5 py-2.5 bg-input-bg border border-dashed border-verde-musgo rounded-xl text-xs sm:text-sm text-verde-escuro cursor-pointer hover:bg-verde-pastel/40 transition">
+                              <span className="truncate font-medium">
+                                {doc.nomeArquivo ||
+                                  (doc.url?.startsWith('data:application/pdf')
+                                    ? 'PDF anexado (clique para trocar)'
+                                    : 'Selecionar arquivo PDF do computador...')}
+                              </span>
+                              <span className="shrink-0 px-2.5 py-1 rounded-md bg-verde-limao text-verde-escuro text-xs font-bold uppercase">
+                                Escolher PDF
+                              </span>
+                              <input
+                                type="file"
+                                accept="application/pdf,.pdf"
+                                className="sr-only"
+                                onChange={(e) => handleUploadPdfDocumento(idx, e.target.files?.[0])}
+                              />
+                            </label>
+                          ) : (
+                            <input
+                              type="url"
+                              value={doc.url?.startsWith('data:') ? '' : doc.url || ''}
+                              onChange={(e) => atualizarDocumento(idx, 'url', e.target.value)}
+                              placeholder="https://exemplo.com/regulamento.pdf"
+                              className="w-full px-3.5 py-2.5 bg-input-bg border border-verde-musgo rounded-xl text-sm text-verde-escuro placeholder:text-verde-escuro/60 focus:outline-none focus:ring-1 focus:ring-verde-musgo transition"
+                            />
+                          )}
+                        </div>
+                      )
+                    })}
                   </div>
                 )}
               </div>

@@ -2,10 +2,18 @@
 
 import { Select } from '@/components/Select'
 import { useEffect, useState, useMemo } from 'react'
+import { useRouter } from 'next/navigation'
 import { SideBarAdmin } from '@/components/SideBarAdmin'
 import Link from 'next/link'
 import { correspondeBusca } from '@/utils/filtros'
-import { apiEscolas, apiUsuarios } from '@/services/api'
+import {
+  apiEscolas,
+  apiUsuarios,
+  lerIdsUsuariosInativos,
+  limparSessao,
+  obterUsuario,
+  salvarIdsUsuariosInativos
+} from '@/services/api'
 import { ModalConfirmacao } from '@/components/ModalConfirmacao'
 
 import {
@@ -18,26 +26,8 @@ import {
 } from 'react-icons/io5'
 import { MdOutlineEdit, MdOutlineBlock, MdOutlineCheckCircle } from 'react-icons/md'
 
-const CHAVE_USUARIOS_INATIVOS = 'usuarios_inativos_biobot'
-
-function lerIdsInativos() {
-  if (typeof window === 'undefined') return new Set()
-  try {
-    const salvo = JSON.parse(window.localStorage.getItem(CHAVE_USUARIOS_INATIVOS) || '[]')
-    return new Set(Array.isArray(salvo) ? salvo.map(Number) : [])
-  } catch {
-    return new Set()
-  }
-}
-
-function salvarIdsInativos(conjuntoIds) {
-  if (typeof window === 'undefined') return
-  try {
-    window.localStorage.setItem(CHAVE_USUARIOS_INATIVOS, JSON.stringify(Array.from(conjuntoIds)))
-  } catch {}
-}
-
 export default function GestaoUsuarios() {
+  const router = useRouter()
   const [usuarios, setUsuarios] = useState([])
   const [carregando, setCarregando] = useState(true)
   const [busca, setBusca] = useState('')
@@ -60,19 +50,36 @@ export default function GestaoUsuarios() {
         if (!ativo) return
         const listaEscolas = Array.isArray(escolasApi) ? escolasApi : []
         const mapaEscolas = new Map(listaEscolas.map((e) => [Number(e.id), e.name]))
-        const primeiraEscola = listaEscolas[0]?.name || 'EMEF Prof. Luiz Ribeiro Muniz'
-        const idsInativos = lerIdsInativos()
+        const idsInativos = lerIdsUsuariosInativos()
         setUsuarios(
           (Array.isArray(usuariosApi) ? usuariosApi : []).map((u) => {
             const estaInativo = idsInativos.has(Number(u.id)) || u.active === false
+            const ehAdmin = u.role === 'ADMIN' || u.perfil === 'ADMINISTRADOR'
+            const nomesVinculados = Array.isArray(u.schools)
+              ? u.schools.map((s) => s?.name || mapaEscolas.get(Number(s?.id))).filter(Boolean)
+              : []
+            const rotuloEscolas =
+              nomesVinculados.length > 0
+                ? nomesVinculados.join(', ')
+                : mapaEscolas.get(Number(u.schoolId)) ||
+                  (u.schoolId ? `Unidade #${u.schoolId}` : ehAdmin ? 'Administração Geral' : '—')
+            const matriculaReal =
+              u.matricula && String(u.matricula).trim()
+                ? String(u.matricula).trim().startsWith('#')
+                  ? String(u.matricula).trim()
+                  : `#${String(u.matricula).trim()}`
+                : ehAdmin
+                  ? '—'
+                  : u.id
+                    ? `#${String(u.id).padStart(5, '0')}`
+                    : '—'
             return {
               id: u.id,
               nome: u.name,
               email: u.email,
-              matricula: `#${String(u.id).padStart(5, '0')}`,
-              escola:
-                mapaEscolas.get(Number(u.schoolId)) ||
-                (u.schoolId ? `Unidade #${u.schoolId}` : primeiraEscola),
+              role: u.role,
+              matricula: matriculaReal,
+              escola: rotuloEscolas,
               status: estaInativo
                 ? 'Inativo'
                 : u.onboardingStatus === 'PENDING'
@@ -91,7 +98,9 @@ export default function GestaoUsuarios() {
   }, [])
 
   const totalUsuarios = usuarios.length
-  const totalAtivos = usuarios.filter((u) => u.status === 'Ativo').length
+  const totalAtivos = usuarios.filter(
+    (u) => u.status === 'Ativo' && u.role !== 'ADMIN' && u.perfil !== 'ADMINISTRADOR'
+  ).length
   const totalPendentes = usuarios.filter((u) => u.status === 'Pendente').length
 
   const usuariosFiltrados = useMemo(() => {
@@ -144,13 +153,20 @@ export default function GestaoUsuarios() {
     const vaiReativar = u.status === 'Inativo'
     const novoStatus = vaiReativar ? 'Ativo' : 'Inativo'
 
-    const idsInativos = lerIdsInativos()
+    const idsInativos = lerIdsUsuariosInativos()
     if (vaiReativar) {
       idsInativos.delete(Number(u.id))
     } else {
       idsInativos.add(Number(u.id))
     }
-    salvarIdsInativos(idsInativos)
+    salvarIdsUsuariosInativos(idsInativos)
+
+    const usuarioLogado = obterUsuario()
+    if (!vaiReativar && usuarioLogado?.id && Number(usuarioLogado.id) === Number(u.id)) {
+      limparSessao()
+      router.replace('/login')
+      return
+    }
 
     setUsuarios((prev) =>
       prev.map((item) => (item.id === u.id ? { ...item, status: novoStatus } : item))
@@ -198,7 +214,7 @@ export default function GestaoUsuarios() {
               href="/cadastrarUsuario"
               className="px-6 py-3 bg-verde-musgo hover:bg-white hover:text-verde-musgo border border-verde-musgo text-white text-sm sm:text-base font-bold rounded-lg shadow-sm flex items-center gap-2 transition"
             >
-              <IoAddOutline size={20} /> Novo Professor
+              <IoAddOutline size={20} /> Novo Usuário
             </Link>
           </div>
 
@@ -256,7 +272,7 @@ export default function GestaoUsuarios() {
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-md flex flex-col overflow-x-auto">
+          <div className="bg-white rounded-2xl border border-verde-musgo shadow-md flex flex-col overflow-x-auto">
             <div className="min-w-[680px]">
               <div className="grid grid-cols-12 px-6 py-4 bg-[#F2F3EE] border-b border-stone-200/80 items-center">
                 <span className="col-span-4 text-verde-musgo text-[11px] font-bold uppercase tracking-wider text-center">
@@ -413,7 +429,7 @@ export default function GestaoUsuarios() {
               </div>
             </div>
 
-            <div className="md:col-span-1 p-6 bg-verde-pastel rounded-2xl flex flex-col justify-between">
+            <div className="md:col-span-1 p-6 bg-verde-pastel border border-verde-musgo rounded-2xl flex flex-col justify-between">
               <div className="flex flex-col gap-1.5 mb-4">
                 <h4 className="text-verde-musgo font-bold text-sm">Relatório de Acessos</h4>
                 <p className="text-verde-escuro text-xs font-medium leading-relaxed">
