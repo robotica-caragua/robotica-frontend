@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -9,6 +9,7 @@ import {
   MdOutlinePeopleAlt,
   MdOutlineApartment,
   MdOutlineCalendarToday,
+  MdOutlineCampaign,
   MdOutlineHome,
   MdOutlineHelpOutline,
   MdOutlineBuild,
@@ -21,12 +22,16 @@ import Logo from '../assets/logo.svg'
 import IconLogo from '../app/icon.svg'
 import { ThemeToggle } from './ThemeToggle'
 import { UserAvatarMenu } from './UserAvatarMenu'
+import { apiAuth, obterToken, obterUsuario } from '@/services/api'
 
 const adminLinks = [
   { href: '/dashboard', label: 'Visão Geral', icon: MdOutlineGridView },
   { href: '/gestaoUsuarios', label: 'Usuários', icon: MdOutlinePeopleAlt },
   { href: '/escolas', label: 'Escolas', icon: MdOutlineApartment },
   { href: '/gestaoEventos', label: 'Eventos', icon: MdOutlineCalendarToday },
+  { href: '/gestaoAvisos', label: 'Avisos', icon: MdOutlineCampaign },
+  { href: '/gestaoDuvidas', label: 'Dúvidas', icon: MdOutlineHelpOutline },
+  { href: '/perfil', label: 'Meu Perfil', icon: MdPersonOutline },
   { href: '/', label: 'Portal Público', icon: MdOutlineHome }
 ]
 
@@ -42,11 +47,41 @@ const professorLinks = [
 export function AdminSidebar({ variant = 'admin' }) {
   const pathname = usePathname()
   const [menuAberto, setMenuAberto] = useState(false)
-  const links = variant === 'professor' ? professorLinks : adminLinks
+  const [ehUsuarioAdmin, setEhUsuarioAdmin] = useState(variant === 'admin')
+
+  useEffect(() => {
+    let ativo = true
+    const verificarPerfil = (u) => {
+      if (!u) return
+      const admin =
+        u.role === 'ADMIN' || u.perfil === 'ADMINISTRADOR' || u.permissaoAdministrador === true
+      setEhUsuarioAdmin(admin)
+    }
+
+    const salvo = obterUsuario()
+    if (salvo) {
+      verificarPerfil(salvo)
+    }
+
+    if (obterToken()) {
+      apiAuth
+        .me()
+        .then((u) => {
+          if (ativo && u) verificarPerfil(u)
+        })
+        .catch(() => {})
+    }
+
+    return () => {
+      ativo = false
+    }
+  }, [variant])
+
+  const links = ehUsuarioAdmin ? adminLinks : variant === 'professor' ? professorLinks : adminLinks
 
   return (
     <>
-      <aside className="w-full lg:w-64 shrink-0 flex flex-col border-b lg:border-b-0 lg:border-r border-verde-pastel bg-input-bg px-4 sm:px-5 py-4 lg:py-6">
+      <aside className="panel-sidebar w-full lg:w-64 shrink-0 flex flex-col border-b lg:border-b-0 lg:border-r border-verde-pastel bg-input-bg px-4 sm:px-5 py-4 lg:py-6">
         {/* Topo com Logo padrão Conexão Robótica */}
         <div className="flex items-center justify-between lg:mb-8">
           <Link href="/" className="block w-fit px-1">
@@ -67,7 +102,7 @@ export function AdminSidebar({ variant = 'admin' }) {
                 className="w-8 h-8 object-contain"
                 priority
               />
-              <span className="text-xl sm:text-2xl font-extrabold tracking-tight text-[#9CE02C]">
+              <span className="text-xl sm:text-2xl font-extrabold tracking-tight text-verde-escuro">
                 BIOBOT
               </span>
             </span>
@@ -104,8 +139,13 @@ export function AdminSidebar({ variant = 'admin' }) {
                 (href === '/grupos' &&
                   (pathname.includes('grupo') || pathname.includes('Equipe'))) ||
                 (href === '/gestaoUsuarios' && pathname.includes('Usuario')) ||
-                (href === '/escolas' && (pathname.includes('Escola') || pathname === '/escolas')) ||
-                (href === '/gestaoEventos' && pathname.includes('Evento'))
+                (href === '/escolas' &&
+                  (pathname.includes('Escola') ||
+                    pathname === '/escolas' ||
+                    pathname.startsWith('/admin/escolas'))) ||
+                (href === '/gestaoEventos' && pathname.includes('Evento')) ||
+                (href === '/gestaoAvisos' && pathname.includes('Aviso')) ||
+                (href === '/gestaoDuvidas' && pathname.includes('Duvida'))
 
               return (
                 <Link
@@ -115,13 +155,13 @@ export function AdminSidebar({ variant = 'admin' }) {
                   className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all relative ${
                     isActive
                       ? 'sidebar-active-item bg-verde-limao text-verde-escuro shadow-xs'
-                      : 'text-verde-escuro dark:text-[#93A298] hover:bg-verde-pastel/60 dark:hover:bg-[#1E2822] dark:hover:text-[#EDF2EE]'
+                      : 'text-verde-escuro hover:bg-verde-pastel/60 dark:hover:bg-[#001B0D] dark:hover:text-verde-limao'
                   }`}
                 >
                   <Icon
                     size={20}
                     className={`shrink-0 ${
-                      isActive ? 'text-verde-escuro' : 'text-verde-escuro dark:text-[#93A298]'
+                      isActive ? 'text-verde-escuro' : 'text-verde-escuro dark:text-verde-limao'
                     }`}
                   />
                   <span className="truncate">{label}</span>
@@ -133,11 +173,11 @@ export function AdminSidebar({ variant = 'admin' }) {
             })}
           </nav>
 
-          <div className="mt-4 pt-3 border-t border-verde-musgo/20 dark:border-[#232E26] flex flex-col gap-2">
+          <div className="mt-4 pt-3 border-t border-verde-musgo/20 dark:border-verde-oliva/40 flex flex-col gap-2">
             <Link
               href="/contato"
               onClick={() => setMenuAberto(false)}
-              className="flex items-center gap-2.5 px-3 py-1.5 text-xs font-semibold text-verde-escuro dark:text-[#93A298] hover:bg-verde-pastel/60 dark:hover:bg-[#1E2822] dark:hover:text-[#EDF2EE] rounded-lg transition"
+              className="flex items-center gap-2.5 px-3 py-1.5 text-xs font-semibold text-verde-escuro hover:bg-verde-pastel/60 dark:hover:bg-[#001B0D] dark:hover:text-verde-limao rounded-lg transition"
             >
               <MdOutlineHelpOutline size={18} />
               Suporte

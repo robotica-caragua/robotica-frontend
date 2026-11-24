@@ -10,11 +10,14 @@ function aplicarTemaNoDocumento(tema) {
   const ehEscuro = tema === 'dark'
   document.documentElement.classList.toggle('dark', ehEscuro)
   document.documentElement.style.colorScheme = ehEscuro ? 'dark' : 'light'
+  document.cookie = `biobot_theme=${ehEscuro ? 'dark' : 'light'}; path=/; max-age=31536000; SameSite=Lax`
 }
 
 function lerTemaAtual() {
   if (typeof window === 'undefined') return 'light'
-  return window.localStorage.getItem(STORAGE_KEY) === 'dark' ? 'dark' : 'light'
+  const salvoLocal = window.localStorage.getItem(STORAGE_KEY)
+  if (salvoLocal === 'dark' || salvoLocal === 'light') return salvoLocal
+  return document.documentElement.classList.contains('dark') ? 'dark' : 'light'
 }
 
 function assinarTema(callback) {

@@ -10,6 +10,7 @@ import semaforo from '@/assets/semaforo.png'
 import containerImg from '@/assets/container.png'
 import {
   apiAuth,
+  apiAvisos,
   apiEscolas,
   apiEventos,
   apiProjetos,
@@ -62,11 +63,17 @@ export default function PainelProfessor() {
     mensagem: '',
     pubParaExcluir: null
   })
-  const [nomeProfessor, setNomeProfessor] = useState(() => formatarNomeProfessor(obterUsuario()))
+  const [nomeProfessor, setNomeProfessor] = useState('Prof. Robson Nascimento')
   const [nomeEscola, setNomeEscola] = useState('EMEF Prof. Luiz Ribeiro Muniz')
 
   useEffect(() => {
     let ativo = true
+
+    const usuarioLocal = obterUsuario()
+    if (usuarioLocal) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setNomeProfessor(formatarNomeProfessor(usuarioLocal))
+    }
 
     if (obterToken()) {
       apiAuth
@@ -74,7 +81,14 @@ export default function PainelProfessor() {
         .then((user) => {
           if (!ativo || !user) return
           setNomeProfessor(formatarNomeProfessor(user))
-          if (user.id && user.role !== 'ADMIN') {
+          if (Array.isArray(user.schools) && user.schools.length > 0) {
+            setNomeEscola(
+              user.schools
+                .map((s) => s?.name)
+                .filter(Boolean)
+                .join(' • ')
+            )
+          } else if (user.id && user.role !== 'ADMIN') {
             apiUsuarios
               .buscarEscolaDoUsuario(user.id)
               .then((esc) => {
@@ -90,9 +104,10 @@ export default function PainelProfessor() {
       apiTutoriais.listar().catch(() => []),
       apiProjetos.listar().catch(() => []),
       apiEscolas.listar().catch(() => []),
-      apiEventos.listar().catch(() => [])
+      apiEventos.listar().catch(() => []),
+      apiAvisos.listar().catch(() => [])
     ])
-      .then(([listaTutoriais, listaProjetos, listaEscolas, listaEventos]) => {
+      .then(([listaTutoriais, listaProjetos, listaEscolas, listaEventos, listaAvisos]) => {
         if (!ativo) return
 
         const tuts = (Array.isArray(listaTutoriais) ? listaTutoriais : []).map((item, idx) => ({
@@ -101,27 +116,37 @@ export default function PainelProfessor() {
           chaveUnica: `tutorial-${item.id}`
         }))
 
-        const idsTutoriais = new Set(tuts.map((t) => t.titulo))
-        const projs = (Array.isArray(listaProjetos) ? listaProjetos : [])
-          .filter((p) => !idsTutoriais.has(p.name))
-          .map((item, idx) => ({
-            ...mapearProjetoDaApi(item, idx % 2 === 0 ? containerImg : semaforo),
-            status: 'publicado',
-            visivel: true,
-            tipoRecurso: 'projeto',
-            chaveUnica: `projeto-${item.id}`
-          }))
+        const projs = (Array.isArray(listaProjetos) ? listaProjetos : []).map((item, idx) => ({
+          ...mapearProjetoDaApi(item, idx % 2 === 0 ? containerImg : semaforo),
+          status: 'publicado',
+          visivel: true,
+          tipoRecurso: 'projeto',
+          chaveUnica: `projeto-${item.id}`
+        }))
 
-        const combinados = [...tuts, ...projs]
+        const combinados = [...tuts, ...projs].sort(
+          (a, b) =>
+            new Date(b.updatedAt || b.createdAt || b.data) -
+              new Date(a.updatedAt || a.createdAt || a.data) || Number(b.id) - Number(a.id)
+        )
         setPublicacoes(combinados)
 
-        const avisosDinamicos = (Array.isArray(listaEventos) ? listaEventos : [])
+        const avisosAdmin = (Array.isArray(listaAvisos) ? listaAvisos : []).map((av) => ({
+          id: `aviso-${av.id}`,
+          titulo: av.title || 'Comunicado da Administração',
+          mensagem: av.message || '',
+          data: av.createdAt ? new Date(av.createdAt).toLocaleDateString('pt-BR') : '',
+          textoLink: '',
+          href: ''
+        }))
+
+        const avisosEventos = (Array.isArray(listaEventos) ? listaEventos : [])
           .map((ev) => mapearEventoDaApi(ev))
           .filter((ev) => ev && ev.status !== 'cancelado')
           .map((ev) => {
             const temDocumentos = Array.isArray(ev.documentos) && ev.documentos.length > 0
             return {
-              id: ev.id,
+              id: `evento-${ev.id}`,
               titulo: 'Atenção, professores!',
               mensagem: temDocumentos
                 ? `O regulamento para ${ev.titulo} já está disponível na aba de Documentação.`
@@ -130,18 +155,22 @@ export default function PainelProfessor() {
               href: ev.linkUrl || `/detalhesEvento?id=${ev.id}`
             }
           })
-        setAvisos(avisosDinamicos)
+        setAvisos([...avisosAdmin, ...avisosEventos])
 
         const usuarioAtual = obterUsuario()
+        const nomesVinculados = Array.isArray(usuarioAtual?.schools)
+          ? usuarioAtual.schools.map((s) => s?.name).filter(Boolean)
+          : []
         const escolaVinculada =
-          usuarioAtual?.schoolId && Array.isArray(listaEscolas)
-            ? listaEscolas.find((e) => Number(e.id) === Number(usuarioAtual.schoolId))?.name
-            : null
+          nomesVinculados.length > 0
+            ? nomesVinculados.join(' • ')
+            : usuarioAtual?.schoolId && Array.isArray(listaEscolas)
+              ? listaEscolas.find((e) => Number(e.id) === Number(usuarioAtual.schoolId))?.name
+              : null
         const primeiraEscola =
           escolaVinculada ||
           listaTutoriais?.[0]?.school?.name ||
           listaProjetos?.[0]?.school?.name ||
-          listaEscolas?.find((e) => e.name?.includes('Luiz Ribeiro Muniz'))?.name ||
           listaEscolas?.[0]?.name
         if (primeiraEscola) {
           setNomeEscola(primeiraEscola)
@@ -425,15 +454,21 @@ export default function PainelProfessor() {
                     <p className="text-verde-escuro text-sm sm:text-base font-bold leading-relaxed">
                       {aviso.titulo}
                       <br />
-                      {aviso.mensagem}
+                      <span className="font-normal">{aviso.mensagem}</span>
                     </p>
-                    <Link
-                      href={aviso.href}
-                      className="inline-flex items-center gap-1 text-verde-musgo hover:underline text-xs font-bold w-fit"
-                    >
-                      {aviso.textoLink}
-                      <IoOpenOutline size={14} />
-                    </Link>
+                    {aviso.href && aviso.textoLink ? (
+                      <Link
+                        href={aviso.href}
+                        className="inline-flex items-center gap-1 text-verde-musgo hover:underline text-xs font-bold w-fit"
+                      >
+                        {aviso.textoLink}
+                        <IoOpenOutline size={14} />
+                      </Link>
+                    ) : aviso.data ? (
+                      <span className="text-xs font-semibold text-verde-musgo">
+                        Publicado em {aviso.data}
+                      </span>
+                    ) : null}
                   </div>
                 ))}
               </div>

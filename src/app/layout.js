@@ -1,4 +1,5 @@
 import './globals.css'
+import { cookies } from 'next/headers'
 import { PageTitleUpdater } from '@/components/PageTitleUpdater'
 import { RouteGuard } from '@/components/RouteGuard'
 
@@ -16,24 +17,19 @@ export const metadata = {
   }
 }
 
-const scriptTemaInicial = `
-(function() {
-  try {
-    var tema = window.localStorage.getItem('biobot_theme');
-    if (tema === 'dark') {
-      document.documentElement.classList.add('dark');
-      document.documentElement.style.colorScheme = 'dark';
-    }
-  } catch (e) {}
-})();
-`
+export default async function RootLayout({ children }) {
+  const cookieStore = await cookies()
+  const temaCookie = cookieStore.get('biobot_theme')?.value
+  const ehEscuro = temaCookie === 'dark'
 
-export default function RootLayout({ children }) {
   return (
-    <html lang="pt-BR" suppressHydrationWarning>
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: scriptTemaInicial }} />
-      </head>
+    <html
+      lang="pt-BR"
+      data-scroll-behavior="smooth"
+      className={ehEscuro ? 'dark' : ''}
+      style={{ colorScheme: ehEscuro ? 'dark' : 'light' }}
+      suppressHydrationWarning
+    >
       <body className="font-sans bg-branco-creme text-verde-escuro antialiased overflow-x-hidden">
         <PageTitleUpdater />
         <RouteGuard>{children}</RouteGuard>

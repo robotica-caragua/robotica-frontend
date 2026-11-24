@@ -9,14 +9,33 @@ import {
   MdOutlineEdit,
   MdOutlineDeleteOutline,
   MdClose,
-  MdArrowForward
+  MdArrowForward,
+  MdOutlineLink,
+  MdOutlineCheckCircle
 } from 'react-icons/md'
 import { IoSearchSharp } from 'react-icons/io5'
 import { AdminSidebar } from '@/components/AdminSidebar'
 import { CardEscolaAdmin } from '@/components/CardEscolaAdmin'
 import { ModalConfirmacao } from '@/components/ModalConfirmacao'
-import { apiEscolas, apiProjetos, apiUsuarios } from '@/services/api'
+import {
+  apiEscolas,
+  apiProjetos,
+  apiSolicitacoesVinculo,
+  apiUsuarios,
+  lerIdsEscolasInativas,
+  salvarIdsEscolasInativas
+} from '@/services/api'
 import { correspondeBusca } from '@/utils/filtros'
+
+function formatarDataHora(valorData) {
+  if (!valorData) return 'Recente'
+  const data = new Date(valorData)
+  if (Number.isNaN(data.getTime())) return 'Recente'
+  return `${data.toLocaleDateString('pt-BR')} às ${data.toLocaleTimeString('pt-BR', {
+    hour: '2-digit',
+    minute: '2-digit'
+  })}`
+}
 
 function Filtro({ label, value, onChange, children }) {
   return (
@@ -42,16 +61,19 @@ export default function GestaoEscolas() {
   const [carregando, setCarregando] = useState(true)
   const [busca, setBusca] = useState('')
   const [regiaoSelecionada, setRegiaoSelecionada] = useState('')
-  const [statusSelecionado, setStatusSelecionado] = useState('Ativas')
+  const [statusSelecionado, setStatusSelecionado] = useState('Todas')
   const [escolaSelecionada, setEscolaSelecionada] = useState(null)
+  const [solicitacoesVinculo, setSolicitacoesVinculo] = useState([])
 
   // Estado para os Modais de Confirmação, Sucesso e Erro
   const [modal, setModal] = useState({
     aberto: false,
     tipo: 'confirmacao',
+    acao: 'excluir', // 'excluir' | 'status'
     titulo: '',
     mensagem: '',
-    escolaParaExcluir: null
+    textoConfirmar: 'Excluir',
+    escolaAlvo: null
   })
 
   const carregarDados = () => {
@@ -66,11 +88,24 @@ export default function GestaoEscolas() {
         if (sid) projsPorEscola.set(sid, (projsPorEscola.get(sid) || 0) + 1)
       }
 
+      const apenasDocentes = (Array.isArray(listaUsuarios) ? listaUsuarios : []).filter(
+        (u) =>
+          u.role !== 'ADMIN' && u.perfil !== 'ADMINISTRADOR' && u.permissaoAdministrador !== true
+      )
+
       const docentesPorEscola = new Map()
-      for (const u of Array.isArray(listaUsuarios) ? listaUsuarios : []) {
-        const sid = u.schoolId
-        if (sid) docentesPorEscola.set(Number(sid), (docentesPorEscola.get(Number(sid)) || 0) + 1)
+      for (const u of apenasDocentes) {
+        const idsVinculados = new Set(
+          [u.schoolId, ...(Array.isArray(u.schools) ? u.schools.map((s) => s?.id) : [])]
+            .map(Number)
+            .filter((n) => Number.isInteger(n) && n > 0)
+        )
+        for (const sid of idsVinculados) {
+          docentesPorEscola.set(sid, (docentesPorEscola.get(sid) || 0) + 1)
+        }
       }
+
+      const idsInativas = lerIdsEscolasInativas()
 
       setEscolas(
         (Array.isArray(listaEscolas) ? listaEscolas : []).map((item) => ({
@@ -78,18 +113,23 @@ export default function GestaoEscolas() {
           name: item.name,
           address: item.address || '',
           createdAt: item.createdAt,
+          updatedAt: item.updatedAt,
+          ativo: !idsInativas.has(Number(item.id)),
           region: item.address?.toUpperCase().includes('SUL')
             ? 'Sul'
             : item.address?.toUpperCase().includes('CENTRO')
               ? 'Centro'
               : 'Norte',
           teams: projsPorEscola.get(item.id) || 0,
-          teachers: docentesPorEscola.get(Number(item.id)) || 1
+          teachers: docentesPorEscola.get(Number(item.id)) ?? 0
         }))
       )
 
-      setTotalDocentes(Array.isArray(listaUsuarios) ? listaUsuarios.length : 0)
+      setTotalDocentes(apenasDocentes.length)
       setTotalProjetos(Array.isArray(listaProjetos) ? listaProjetos.length : 0)
+      setSolicitacoesVinculo(
+        apiSolicitacoesVinculo.listar().filter((s) => s.status === 'em_analise')
+      )
     })
   }
 
@@ -109,45 +149,127 @@ export default function GestaoEscolas() {
       escolas.filter((escola) => {
         const matchBusca = correspondeBusca(busca, escola.name, escola.region, escola.address)
         const matchRegiao = !regiaoSelecionada || `Região ${escola.region}` === regiaoSelecionada
-        return matchBusca && matchRegiao
+        const matchStatus =
+          statusSelecionado === 'Todas' ||
+          (statusSelecionado === 'Ativas' && escola.ativo) ||
+          (statusSelecionado === 'Inativas' && !escola.ativo)
+        return matchBusca && matchRegiao && matchStatus
       }),
-    [busca, escolas, regiaoSelecionada]
+    [busca, escolas, regiaoSelecionada, statusSelecionado]
   )
 
   const handleAbrirConfirmacaoExcluir = (id, nome) => {
     setModal({
       aberto: true,
       tipo: 'confirmacao',
+      acao: 'excluir',
       titulo: 'Excluir Escola?',
       mensagem: `Deseja realmente remover a escola "${nome}" da rede? Todos os vínculos associados serão atualizados.`,
-      escolaParaExcluir: { id, nome }
+      textoConfirmar: 'Excluir',
+      escolaAlvo: { id, nome }
     })
   }
 
-  const handleConfirmarExclusao = async () => {
-    if (!modal.escolaParaExcluir) return
-    const { id, nome } = modal.escolaParaExcluir
+  const handleAbrirConfirmacaoStatus = (id, nome, ativoAtual) => {
+    const vaiReativar = !ativoAtual
+    setModal({
+      aberto: true,
+      tipo: 'confirmacao',
+      acao: 'status',
+      titulo: vaiReativar ? 'Reativar Escola?' : 'Inativar Escola?',
+      mensagem: vaiReativar
+        ? `Deseja reativar a unidade escolar "${nome}" no portal?`
+        : `Deseja realmente inativar a unidade escolar "${nome}"? Ela ficará marcada como Polo Inativo.`,
+      textoConfirmar: vaiReativar ? 'Reativar' : 'Inativar',
+      escolaAlvo: { id, nome, ativoAtual }
+    })
+  }
+
+  const handleConfirmarAcao = async () => {
+    if (!modal.escolaAlvo) return
+    const { id, nome, ativoAtual } = modal.escolaAlvo
+
+    if (modal.acao === 'status') {
+      const vaiReativar = !ativoAtual
+      const inativas = lerIdsEscolasInativas()
+      if (vaiReativar) {
+        inativas.delete(Number(id))
+      } else {
+        inativas.add(Number(id))
+      }
+      salvarIdsEscolasInativas(inativas)
+      setEscolas((prev) =>
+        prev.map((e) => (Number(e.id) === Number(id) ? { ...e, ativo: vaiReativar } : e))
+      )
+      setModal({
+        aberto: true,
+        tipo: 'sucesso',
+        acao: 'status',
+        titulo: vaiReativar ? 'Escola reativada com sucesso!' : 'Escola inativada com sucesso!',
+        mensagem: vaiReativar
+          ? `A unidade "${nome}" agora está marcada como Polo Ativo.`
+          : `A unidade "${nome}" agora está marcada como Polo Inativo.`,
+        textoConfirmar: 'Entendido',
+        escolaAlvo: null
+      })
+      return
+    }
 
     try {
       await apiEscolas.excluir(id)
+      const inativas = lerIdsEscolasInativas()
+      inativas.delete(Number(id))
+      salvarIdsEscolasInativas(inativas)
       setEscolas((prev) => prev.filter((e) => e.id !== id))
       setModal({
         aberto: true,
         tipo: 'sucesso',
+        acao: 'excluir',
         titulo: 'Escola excluída com sucesso!',
         mensagem: `A unidade "${nome}" foi removida do sistema com sucesso.`,
-        escolaParaExcluir: null
+        textoConfirmar: 'Entendido',
+        escolaAlvo: null
       })
     } catch (err) {
       setModal({
         aberto: true,
         tipo: 'erro',
+        acao: 'excluir',
         titulo: 'Erro ao excluir escola',
         mensagem:
           err?.message || 'Não foi possível excluir a escola. Verifique se o servidor está ativo.',
-        escolaParaExcluir: null
+        textoConfirmar: 'Entendido',
+        escolaAlvo: null
       })
     }
+  }
+
+  const handleAprovarSolicitacao = async (sol) => {
+    await apiSolicitacoesVinculo.aprovar(sol.id)
+    await carregarDados()
+    setModal({
+      aberto: true,
+      tipo: 'sucesso',
+      acao: 'vinculo',
+      titulo: 'Vínculo aprovado com sucesso!',
+      mensagem: `O vínculo de "${sol.userName}" com a unidade "${sol.schoolName}" foi aprovado e já está ativo.`,
+      textoConfirmar: 'Entendido',
+      escolaAlvo: null
+    })
+  }
+
+  const handleRecusarSolicitacao = (sol) => {
+    apiSolicitacoesVinculo.recusar(sol.id)
+    setSolicitacoesVinculo((prev) => prev.filter((item) => String(item.id) !== String(sol.id)))
+    setModal({
+      aberto: true,
+      tipo: 'sucesso',
+      acao: 'vinculo',
+      titulo: 'Solicitação recusada',
+      mensagem: `A solicitação de vínculo de "${sol.userName}" para "${sol.schoolName}" foi recusada.`,
+      textoConfirmar: 'Entendido',
+      escolaAlvo: null
+    })
   }
 
   const estatisticas = [
@@ -156,7 +278,14 @@ export default function GestaoEscolas() {
     { label: 'Projetos na Rede', value: totalProjetos }
   ]
 
-  const atividadesRecentes = escolas.slice(0, 3)
+  const atividadesRecentes = [...escolas]
+    .sort((a, b) => {
+      const dataA = new Date(a.createdAt || a.updatedAt || 0).getTime()
+      const dataB = new Date(b.createdAt || b.updatedAt || 0).getTime()
+      if (dataB !== dataA) return dataB - dataA
+      return (Number(b.id) || 0) - (Number(a.id) || 0)
+    })
+    .slice(0, 5)
 
   return (
     <div className="flex flex-col lg:flex-row min-h-screen w-full bg-background relative">
@@ -223,10 +352,82 @@ export default function GestaoEscolas() {
               value={statusSelecionado}
               onChange={(e) => setStatusSelecionado(e.target.value)}
             >
+              <option value="Todas">Todas</option>
               <option value="Ativas">Ativas</option>
               <option value="Inativas">Inativas</option>
             </Filtro>
           </div>
+
+          {/* Solicitações de Vínculos */}
+          <section className="rounded-2xl border border-verde-musgo bg-white px-5 sm:px-8 py-6">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5 text-verde-escuro">
+                <MdOutlineLink size={22} className="text-verde-musgo shrink-0" />
+                <h2 className="text-xl font-bold text-verde-escuro">Solicitações de Vínculos</h2>
+              </div>
+              <span className="rounded-full bg-verde-pastel px-3 py-1 text-xs font-bold text-verde-musgo">
+                {solicitacoesVinculo.length}{' '}
+                {solicitacoesVinculo.length === 1 ? 'pendente' : 'pendentes'}
+              </span>
+            </div>
+
+            {solicitacoesVinculo.length > 0 ? (
+              <div className="flex flex-col gap-3.5">
+                {solicitacoesVinculo.map((sol) => (
+                  <div
+                    key={sol.id}
+                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl border border-verde-musgo/30 bg-input-bg px-5 py-4"
+                  >
+                    <div className="flex flex-col gap-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-sm sm:text-base font-bold text-verde-escuro">
+                          {sol.userName}
+                        </span>
+                        {sol.userMatricula && (
+                          <span className="text-xs font-semibold text-verde-musgo">
+                            ({sol.userMatricula})
+                          </span>
+                        )}
+                        <span className="rounded-full bg-amber-100 text-amber-800 border border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-500/50 px-2.5 py-0.5 text-[11px] font-bold">
+                          Em Análise
+                        </span>
+                      </div>
+                      <p className="text-xs sm:text-sm text-verde-escuro">
+                        Solicitou vínculo com: <strong>{sol.schoolName}</strong>
+                      </p>
+                      <p className="text-xs text-verde-musgo">
+                        {sol.userEmail ? `${sol.userEmail} • ` : ''}
+                        {formatarDataHora(sol.createdAt)}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2.5 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => handleAprovarSolicitacao(sol)}
+                        className="flex items-center gap-1.5 rounded-xl bg-verde-musgo hover:bg-white hover:text-verde-musgo border border-verde-musgo px-4 py-2 text-xs font-bold uppercase text-white transition cursor-pointer"
+                      >
+                        <MdOutlineCheckCircle size={16} />
+                        Aprovar
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleRecusarSolicitacao(sol)}
+                        className="flex items-center gap-1.5 rounded-xl border border-vermelho bg-white text-vermelho hover:bg-vermelho hover:text-white px-4 py-2 text-xs font-bold uppercase transition cursor-pointer"
+                      >
+                        <MdClose size={16} />
+                        Recusar
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-verde-musgo">
+                Nenhuma solicitação de vínculo pendente de análise no momento.
+              </p>
+            )}
+          </section>
 
           {/* Atividade recente */}
           <section className="rounded-2xl border border-verde-musgo bg-white px-5 sm:px-8 py-6">
@@ -241,10 +442,7 @@ export default function GestaoEscolas() {
                         Unidade registrada: {esc.name}
                       </p>
                       <p className="text-xs text-verde-musgo">
-                        {esc.createdAt
-                          ? new Date(esc.createdAt).toLocaleDateString('pt-BR')
-                          : 'Recente'}{' '}
-                        • {esc.address || `Região ${esc.region}`}
+                        {formatarDataHora(esc.createdAt)} • {esc.address || `Região ${esc.region}`}
                       </p>
                     </div>
                   </li>
@@ -264,8 +462,9 @@ export default function GestaoEscolas() {
                 <CardEscolaAdmin
                   key={escola.id}
                   {...escola}
+                  hrefDetalhes={`/admin/escolas/${escola.id}`}
                   onExcluir={handleAbrirConfirmacaoExcluir}
-                  onVerMais={() => setEscolaSelecionada(escola)}
+                  onAlternarStatus={handleAbrirConfirmacaoStatus}
                 />
               ))}
 
@@ -385,11 +584,11 @@ export default function GestaoEscolas() {
           tipo={modal.tipo}
           titulo={modal.titulo}
           mensagem={modal.mensagem}
-          textoConfirmar="Excluir"
+          textoConfirmar={modal.textoConfirmar || 'Excluir'}
           textoCancelar="Cancelar"
           onConfirmar={
             modal.tipo === 'confirmacao'
-              ? handleConfirmarExclusao
+              ? handleConfirmarAcao
               : () => setModal((prev) => ({ ...prev, aberto: false }))
           }
           onCancelar={() => setModal((prev) => ({ ...prev, aberto: false }))}

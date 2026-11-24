@@ -1,19 +1,24 @@
 'use client'
 
 import { Select } from '@/components/Select'
-import { useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { SideBarAdmin } from '@/components/SideBarAdmin'
 import { ModalConfirmacao } from '@/components/ModalConfirmacao'
-import { apiEscolas } from '@/services/api'
+import { apiEscolas, lerIdsEscolasInativas, salvarIdsEscolasInativas } from '@/services/api'
 import { IoClose, IoArrowForward } from 'react-icons/io5'
 import { FaBuilding, FaMapMarkerAlt, FaAddressBook } from 'react-icons/fa'
 
-export default function CadastrarEscola() {
+function CadastrarEscolaConteudo() {
+  const searchParams = useSearchParams()
+  const idEdicao = searchParams.get('id')
+
   const [form, setForm] = useState({
     nomeEscola: '',
     codigoInep: '',
     tipoUnidade: '',
+    descricao: '',
     endereco: '',
     bairro: '',
     regiao: '',
@@ -23,6 +28,45 @@ export default function CadastrarEscola() {
   })
   const [modal, setModal] = useState(null) // 'sucesso' | 'erro' | null
   const [mensagemErroApi, setMensagemErroApi] = useState('')
+
+  useEffect(() => {
+    if (!idEdicao) return
+    let ativo = true
+    apiEscolas
+      .buscarPorId(idEdicao)
+      .then((esc) => {
+        if (!ativo || !esc) return
+        const nomeUpper = (esc.name || '').toUpperCase()
+        const tipoInferido =
+          nomeUpper.includes('EMEI') && nomeUpper.includes('EMEF')
+            ? 'emei_emef'
+            : nomeUpper.includes('EMEI')
+              ? 'emei'
+              : 'emef'
+        const estaInativa = lerIdsEscolasInativas().has(Number(esc.id))
+        setForm((prev) => ({
+          ...prev,
+          nomeEscola: esc.name || '',
+          tipoUnidade: tipoInferido,
+          descricao: esc.description || '',
+          endereco: esc.address || '',
+          bairro: prev.bairro || 'Centro',
+          regiao: esc.address?.toUpperCase().includes('SUL')
+            ? 'sul'
+            : esc.address?.toUpperCase().includes('CENTRO')
+              ? 'centro'
+              : 'norte',
+          telefone: prev.telefone || '',
+          email: prev.email || '',
+          statusPolo: estaInativa ? 'inativo' : 'ativo'
+        }))
+      })
+      .catch(() => {})
+
+    return () => {
+      ativo = false
+    }
+  }, [idEdicao])
 
   const atualizar = (campo) => (e) => {
     setForm((prev) => ({ ...prev, [campo]: e.target.value }))
@@ -35,9 +79,7 @@ export default function CadastrarEscola() {
       form.tipoUnidade &&
       form.endereco.trim() &&
       form.bairro.trim() &&
-      form.regiao &&
-      form.telefone.trim() &&
-      form.email.trim()
+      form.regiao
 
     if (!valido) {
       setMensagemErroApi('')
@@ -45,13 +87,35 @@ export default function CadastrarEscola() {
       return
     }
 
-    const enderecoCompleto = `${form.endereco.trim()} - ${form.bairro.trim()}, Caraguatatuba - SP (${form.regiao.toUpperCase()})`
+    const enderecoCompleto = form.endereco.includes('Caraguatatuba')
+      ? form.endereco.trim()
+      : `${form.endereco.trim()} - ${form.bairro.trim()}, Caraguatatuba - SP (${form.regiao.toUpperCase()})`
 
     try {
-      await apiEscolas.criar({
-        name: form.nomeEscola.trim(),
-        address: enderecoCompleto
-      })
+      let escolaSalva = null
+      if (idEdicao) {
+        escolaSalva = await apiEscolas.atualizar(idEdicao, {
+          name: form.nomeEscola.trim(),
+          address: enderecoCompleto,
+          description: form.descricao.trim()
+        })
+      } else {
+        escolaSalva = await apiEscolas.criar({
+          name: form.nomeEscola.trim(),
+          address: enderecoCompleto,
+          ...(form.descricao.trim() ? { description: form.descricao.trim() } : {})
+        })
+      }
+      const idAlvo = Number(escolaSalva?.id || idEdicao)
+      if (idAlvo) {
+        const inativas = lerIdsEscolasInativas()
+        if (form.statusPolo === 'inativo') {
+          inativas.add(idAlvo)
+        } else {
+          inativas.delete(idAlvo)
+        }
+        salvarIdsEscolasInativas(inativas)
+      }
       setMensagemErroApi('')
       setModal('sucesso')
     } catch (err) {
@@ -71,7 +135,7 @@ export default function CadastrarEscola() {
           {/* CABEÇALHO DA PÁGINA */}
           <section className="flex flex-col gap-2">
             <h1 className="text-verde-escuro text-3xl sm:text-4xl font-bold leading-tight">
-              Cadastrar Nova Escola
+              {idEdicao ? 'Editar Escola' : 'Cadastrar Nova Escola'}
             </h1>
             <p className="text-verde-musgo text-sm sm:text-base font-normal">
               Registre uma nova unidade escolar para que ela possa receber equipes e professores no
@@ -137,8 +201,23 @@ export default function CadastrarEscola() {
                       </option>
                       <option value="emef">EMEF</option>
                       <option value="emei">EMEI</option>
+                      <option value="emei_emef">EMEI/EMEF</option>
                     </Select>
                   </div>
+                </div>
+
+                <div className="flex flex-col gap-1.5 md:col-span-2">
+                  <label htmlFor="descricao" className="text-verde-escuro text-sm font-semibold">
+                    Descrição da Escola (Opcional)
+                  </label>
+                  <textarea
+                    id="descricao"
+                    rows={4}
+                    value={form.descricao}
+                    onChange={atualizar('descricao')}
+                    placeholder="Descreva a estrutura, laboratórios, oficinas de robótica e projetos desenvolvidos na unidade..."
+                    className="w-full p-4 bg-input-bg border border-verde-musgo rounded-xl text-sm sm:text-base text-verde-escuro placeholder:text-verde-escuro/60 focus:outline-none focus:ring-1 focus:ring-verde-musgo transition resize-none"
+                  />
                 </div>
               </div>
             </div>
@@ -213,14 +292,14 @@ export default function CadastrarEscola() {
                   <FaAddressBook size={18} />
                 </div>
                 <h3 className="text-verde-escuro text-base sm:text-lg font-bold uppercase tracking-wide">
-                  Contato e Funcionamento
+                  Contato e Funcionamento (Opcional)
                 </h3>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div className="flex flex-col gap-1.5">
                   <label htmlFor="telefone" className="text-verde-escuro text-sm font-semibold">
-                    Telefone da Secretaria
+                    Telefone da Secretaria (Opcional)
                   </label>
                   <input
                     type="tel"
@@ -234,7 +313,7 @@ export default function CadastrarEscola() {
 
                 <div className="flex flex-col gap-1.5">
                   <label htmlFor="email" className="text-verde-escuro text-sm font-semibold">
-                    E-mail Institucional da Escola
+                    E-mail Institucional da Escola (Opcional)
                   </label>
                   <input
                     type="email"
@@ -284,7 +363,7 @@ export default function CadastrarEscola() {
             <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-2">
               <Link
                 href="/escolas"
-                className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm text-[#3F674D] font-bold uppercase hover:bg-input-bg transition cursor-pointer"
+                className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm text-verde-escuro font-bold uppercase hover:bg-input-bg transition cursor-pointer"
               >
                 <IoClose size={18} /> Cancelar
               </Link>
@@ -293,7 +372,7 @@ export default function CadastrarEscola() {
                 type="submit"
                 className="w-full sm:w-auto px-6 py-3 bg-verde-musgo hover:bg-white hover:text-verde-musgo border border-verde-musgo text-white text-sm font-bold uppercase tracking-wider rounded-xl shadow-sm flex items-center justify-center gap-3 cursor-pointer transition-all"
               >
-                Cadastrar Escola
+                {idEdicao ? 'Salvar Alterações' : 'Cadastrar Escola'}
                 <IoArrowForward size={18} />
               </button>
             </div>
@@ -304,7 +383,13 @@ export default function CadastrarEscola() {
       <ModalConfirmacao
         tipo={modal}
         tituloPrincipal={
-          modal === 'sucesso' ? 'Escola cadastrada com' : 'Não foi possível cadastrar'
+          modal === 'sucesso'
+            ? idEdicao
+              ? 'Escola atualizada com'
+              : 'Escola cadastrada com'
+            : idEdicao
+              ? 'Não foi possível atualizar'
+              : 'Não foi possível cadastrar'
         }
         tituloDestaque={modal === 'sucesso' ? 'sucesso!' : 'a escola!'}
         mensagem={
@@ -318,5 +403,13 @@ export default function CadastrarEscola() {
         onTentarNovamente={() => setModal(null)}
       />
     </div>
+  )
+}
+
+export default function CadastrarEscola() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-background" />}>
+      <CadastrarEscolaConteudo />
+    </Suspense>
   )
 }

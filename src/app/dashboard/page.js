@@ -15,12 +15,28 @@ import {
   MdMoreVert
 } from 'react-icons/md'
 import { AdminSidebar } from '@/components/AdminSidebar'
-import { apiEscolas, apiProjetos, apiTutoriais, apiUsuarios } from '@/services/api'
+import {
+  apiContatos,
+  apiEscolas,
+  apiProjetos,
+  apiTutoriais,
+  apiUsuarios,
+  lerIdsEscolasInativas
+} from '@/services/api'
 
 const iconesMovimentacao = {
   projeto: MdOutlineBuild,
   equipe: MdOutlinePrecisionManufacturing,
-  usuario: MdOutlinePersonAddAlt
+  usuario: MdOutlinePersonAddAlt,
+  escola: MdOutlineApartment
+}
+
+function formatarDataHoraMovimentacao(valorData) {
+  const data = new Date(valorData || Date.now())
+  if (Number.isNaN(data.getTime())) return ''
+  const dia = data.toLocaleDateString('pt-BR')
+  const hora = data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+  return `${dia} às ${hora}`
 }
 
 export default function DashboardPage() {
@@ -31,10 +47,13 @@ export default function DashboardPage() {
     projetos: 0
   })
   const [movimentacoes, setMovimentacoes] = useState([])
+  const [duvidasRecentes, setDuvidasRecentes] = useState([])
   const [carregando, setCarregando] = useState(true)
 
   useEffect(() => {
     let ativo = true
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setDuvidasRecentes(apiContatos.listar().slice(0, 4))
 
     Promise.all([
       apiEscolas.listar().catch(() => []),
@@ -49,49 +68,73 @@ export default function DashboardPage() {
         const listaProjetos = Array.isArray(projetos) ? projetos : []
         const listaTutoriais = Array.isArray(tutoriais) ? tutoriais : []
 
+        const escolasInativas = lerIdsEscolasInativas()
+        const escolasAtivas = listaEscolas.filter((e) => !escolasInativas.has(Number(e.id)))
+        const apenasProfessores = listaUsuarios.filter(
+          (u) =>
+            u.role !== 'ADMIN' && u.perfil !== 'ADMINISTRADOR' && u.permissaoAdministrador !== true
+        )
+
         const gruposUnicos = new Set(listaUsuarios.map((u) => u.roboticsGroupId).filter(Boolean))
 
         setEstatisticas({
-          polosAtivos: listaEscolas.length,
-          professores: listaUsuarios.length,
+          polosAtivos: escolasAtivas.length,
+          professores: apenasProfessores.length,
           equipes: gruposUnicos.size || listaProjetos.length,
           projetos: listaProjetos.length + listaTutoriais.length
         })
 
         const itensMovimentacao = [
+          ...listaEscolas.map((e) => ({
+            id: `esc-${e.id}`,
+            ordemId: Number(e.id) || 0,
+            tipo: 'escola',
+            textoAntes: 'Escola ',
+            destaque: `"${e.name}"`,
+            textoDepois: ' cadastrada na rede',
+            subtitulo: e.address || 'Caraguatatuba - SP',
+            dataIso: e.updatedAt || e.createdAt || new Date().toISOString(),
+            tempo: formatarDataHoraMovimentacao(e.updatedAt || e.createdAt)
+          })),
           ...listaTutoriais.map((t) => ({
             id: `tut-${t.id}`,
+            ordemId: Number(t.id) || 0,
             tipo: 'projeto',
             textoAntes: 'Tutorial ',
             destaque: `"${t.title}"`,
             textoDepois: ' publicado na plataforma',
             subtitulo: t.school?.name ? `(${t.school.name})` : '',
             dataIso: t.updatedAt || t.createdAt || new Date().toISOString(),
-            tempo: new Date(t.updatedAt || t.createdAt || Date.now()).toLocaleDateString('pt-BR')
+            tempo: formatarDataHoraMovimentacao(t.updatedAt || t.createdAt)
           })),
           ...listaProjetos.map((p) => ({
             id: `proj-${p.id}`,
+            ordemId: Number(p.id) || 0,
             tipo: 'projeto',
             textoAntes: 'Projeto ',
             destaque: `"${p.name}"`,
             textoDepois: ' registrado na rede',
             subtitulo: p.school?.name ? `(${p.school.name})` : '',
             dataIso: p.updatedAt || p.createdAt || new Date().toISOString(),
-            tempo: new Date(p.updatedAt || p.createdAt || Date.now()).toLocaleDateString('pt-BR')
+            tempo: formatarDataHoraMovimentacao(p.updatedAt || p.createdAt)
           })),
           ...listaUsuarios.map((u) => ({
             id: `user-${u.id}`,
+            ordemId: Number(u.id) || 0,
             tipo: 'usuario',
-            textoAntes: `Usuário cadastrado: ${u.name}`,
+            textoAntes: `${u.role === 'ADMIN' || u.perfil === 'ADMINISTRADOR' ? 'Administrador' : 'Professor'} cadastrado: ${u.name}`,
             destaque: '',
             textoDepois: '',
             subtitulo: u.email || 'Acesso liberado ao portal.',
             dataIso: u.updatedAt || u.createdAt || new Date().toISOString(),
-            tempo: new Date(u.updatedAt || u.createdAt || Date.now()).toLocaleDateString('pt-BR')
+            tempo: formatarDataHoraMovimentacao(u.updatedAt || u.createdAt)
           }))
         ]
-          .sort((a, b) => new Date(b.dataIso) - new Date(a.dataIso))
-          .slice(0, 6)
+          .sort(
+            (a, b) =>
+              new Date(b.dataIso) - new Date(a.dataIso) || (b.ordemId || 0) - (a.ordemId || 0)
+          )
+          .slice(0, 8)
 
         setMovimentacoes(itensMovimentacao)
       })
@@ -150,7 +193,7 @@ export default function DashboardPage() {
                 className="flex w-52 items-center justify-center gap-2 rounded-lg bg-verde-musgo hover:bg-white hover:text-verde-musgo border border-verde-musgo px-5 py-3 text-sm font-bold text-white shadow-sm transition cursor-pointer"
               >
                 <MdAdd size={18} />
-                Novo Professor
+                Novo Usuário
               </Link>
 
               <Link
@@ -168,7 +211,7 @@ export default function DashboardPage() {
             {cards.map(({ label, value, icon: Icon }) => (
               <div
                 key={label}
-                className="relative flex flex-col justify-between overflow-hidden rounded-2xl bg-white p-6 shadow-md"
+                className="relative flex flex-col justify-between overflow-hidden rounded-2xl border border-verde-musgo bg-white p-6 shadow-md"
               >
                 <Icon
                   size={52}
@@ -245,6 +288,67 @@ export default function DashboardPage() {
             ) : (
               <p className="px-6 py-8 text-center text-sm text-verde-musgo">
                 Nenhuma movimentação registrada ainda.
+              </p>
+            )}
+          </section>
+
+          {/* Dúvidas Recebidas pelo Formulário de Contato */}
+          <section className="rounded-2xl border border-verde-musgo bg-white py-6 shadow-sm">
+            <div className="flex items-center justify-between border-b border-verde-escuro/10 px-6 pb-4">
+              <h2 className="text-lg sm:text-xl font-bold text-verde-escuro">
+                Dúvidas Recebidas (Contato)
+              </h2>
+              <Link
+                href="/gestaoDuvidas"
+                className="text-xs font-bold text-verde-musgo hover:underline cursor-pointer"
+              >
+                Gerenciar todas
+              </Link>
+            </div>
+
+            {duvidasRecentes.length > 0 ? (
+              <ul className="divide-y divide-verde-escuro/10 px-6">
+                {duvidasRecentes.map((duvida) => (
+                  <li
+                    key={duvida.id}
+                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 py-4"
+                  >
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-sm font-bold text-verde-escuro">
+                          {duvida.assunto || 'Sem assunto'}
+                        </span>
+                        <span
+                          className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
+                            duvida.lida
+                              ? 'bg-verde-pastel text-verde-musgo'
+                              : 'bg-verde-limao text-verde-escuro'
+                          }`}
+                        >
+                          {duvida.lida ? 'Lida' : 'Nova'}
+                        </span>
+                      </div>
+                      <p className="text-xs text-verde-musgo">
+                        {duvida.nomeCompleto} ({duvida.email}) •{' '}
+                        {formatarDataHoraMovimentacao(duvida.createdAt)}
+                      </p>
+                      <p className="text-xs sm:text-sm text-verde-escuro line-clamp-2">
+                        {duvida.mensagem}
+                      </p>
+                    </div>
+
+                    <Link
+                      href="/gestaoDuvidas"
+                      className="shrink-0 self-start sm:self-center rounded-xl border border-verde-musgo px-3.5 py-1.5 text-xs font-bold text-verde-musgo hover:bg-verde-musgo hover:text-white transition"
+                    >
+                      Visualizar
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="px-6 py-8 text-center text-sm text-verde-musgo">
+                Nenhuma dúvida recebida pelo formulário de contato até o momento.
               </p>
             )}
           </section>

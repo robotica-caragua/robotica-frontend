@@ -234,7 +234,7 @@ export function Select({
           <ul
             ref={listaRef}
             role="listbox"
-            className="max-h-60 overflow-y-auto divide-y divide-verde-musgo/20 [scrollbar-color:var(--verde-musgo)_#f4f6ec] [scrollbar-width:thin]"
+            className="max-h-60 overflow-y-auto divide-y divide-verde-musgo/20 [scrollbar-color:var(--color-verde-musgo)_var(--color-input-bg)] [scrollbar-width:thin]"
           >
             {filtradas.length === 0 && (
               <li className="px-4 py-3.5 text-sm text-verde-musgo/70">
@@ -258,8 +258,8 @@ export function Select({
                     opcao.disabled
                       ? 'cursor-not-allowed text-stone-400'
                       : 'cursor-pointer text-verde-escuro'
-                  } ${destacada && !opcao.disabled ? 'bg-verde-pastel/60' : ''} ${
-                    marcada ? 'bg-input-bg font-semibold text-verde-musgo' : ''
+                  } ${destacada && !opcao.disabled ? 'bg-verde-pastel/60 dark:bg-[#001B0D]' : ''} ${
+                    marcada ? 'bg-input-bg dark:bg-[#001B0D] font-semibold text-verde-musgo' : ''
                   }`}
                 >
                   <span className="min-w-0 break-words leading-snug">{opcao.label}</span>

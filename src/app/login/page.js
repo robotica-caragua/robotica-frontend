@@ -29,7 +29,11 @@ export default function LoginPage() {
     setCarregando(true)
     try {
       const dados = await apiAuth.login({ email: email.trim(), password: senha })
-      const destino = dados?.user?.role === 'ADMIN' ? '/gestaoUsuarios' : '/painelProfessor'
+      const ehAdmin =
+        dados?.user?.role === 'ADMIN' ||
+        dados?.user?.perfil === 'ADMINISTRADOR' ||
+        dados?.user?.permissaoAdministrador === true
+      const destino = ehAdmin ? '/dashboard' : '/painelProfessor'
       router.push(destino)
     } catch (err) {
       setErro(err.message || 'Credenciais inválidas ou servidor indisponível.')
