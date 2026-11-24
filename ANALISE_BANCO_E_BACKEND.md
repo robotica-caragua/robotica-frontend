@@ -22,14 +22,16 @@ Durante os testes de integração das telas administrativas e docentes, foram id
 ### 2.1. Tabela `RoboticsGroup` (Equipes de Robótica)
 
 #### Situação Atual
-| Coluna | Tipo | Descrição |
-|---|---|---|
-| `id` | `INT` (PK, Auto-increment) | Identificador da equipe |
-| `name` | `VARCHAR(191)` (Unique) | Nome da equipe |
-| `createdAt` | `DATETIME` | Data de criação |
-| `updatedAt` | `DATETIME` | Data de atualização |
+
+| Coluna      | Tipo                       | Descrição               |
+| ----------- | -------------------------- | ----------------------- |
+| `id`        | `INT` (PK, Auto-increment) | Identificador da equipe |
+| `name`      | `VARCHAR(191)` (Unique)    | Nome da equipe          |
+| `createdAt` | `DATETIME`                 | Data de criação         |
+| `updatedAt` | `DATETIME`                 | Data de atualização     |
 
 #### Colunas a Adicionar
+
 1. **`students` (`TEXT`, nulo):**
    - **Motivo:** Armazenar os nomes de todos os alunos integrantes da equipe (ex: `"Ana Laura, João Lattaro, Sthefany Santiago"`). A ordenação alfabética (A-Z) é garantida na interface.
 2. **`grade` (`VARCHAR(191)`, nulo):**
@@ -42,10 +44,12 @@ Durante os testes de integração das telas administrativas e docentes, foram id
 ### 2.2. Tabelas `Project` e `Tutorial` (Descrições)
 
 #### Situação Atual
+
 - `Project.description`: `VARCHAR(191)`
 - `Tutorial.description`: `VARCHAR(191)`
 
 #### Alteração Necessária
+
 - Alterar ambas as colunas para o tipo `TEXT`.
 - **Motivo:** Permitir textos completos, com introdução, materiais, etapas de montagem e instruções pedagógicas sem limite de 191 caracteres.
 
@@ -154,7 +158,7 @@ Para que o back-end exponha o recurso de Equipes de forma oficial e desacoplada 
    - Registrar as rotas de equipes:
      ```javascript
      registerCrudRoutes(app, '/groups', container.controllers.groups, session, [
-       container.policy.role('ADMIN', 'TEACHER'),
+       container.policy.role('ADMIN', 'TEACHER')
      ])
      ```
 4. **Permissões por Escola (`AccessPolicy` / Escopo Docente):**
