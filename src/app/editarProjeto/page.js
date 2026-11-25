@@ -270,6 +270,7 @@ function ConteudoEditarProjeto() {
 
                   <textarea
                     rows={8}
+                    maxLength={1000}
                     value={descricao}
                     onChange={(e) => setDescricao(e.target.value)}
                     placeholder="Descreva qual é o objetivo do projeto e como ele funciona na prática..."

@@ -408,6 +408,7 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
                 <textarea
                   ref={descricaoRef}
                   rows={8}
+                  maxLength={1000}
                   value={form.descricao}
                   onChange={atualizar('descricao')}
                   placeholder="Descreva qual é o objetivo do projeto e como ela funciona na prática..."
