@@ -27,7 +27,7 @@ function PillarItem({ Icon, title }) {
   return (
     <div className="flex flex-col items-center">
       <Icon className="text-branco-esverdeado w-14 h-14 sm:w-20 sm:h-20 lg:w-[90px] lg:h-[90px]" />
-      <h3 className="mt-3 sm:mt-4 text-branco-esverdeado text-base sm:text-xl lg:text-2xl font-semibold text-center text-shadow-lg/20">
+      <h3 className="mt-3 sm:mt-4 text-branco-esverdeado text-base sm:text-xl lg:text-2xl font-semibold text-center whitespace-nowrap lg:whitespace-normal text-shadow-lg/20">
         {title}
       </h3>
     </div>
@@ -152,8 +152,24 @@ export default function HomePage() {
         </section>
       </main>
 
-      <div className="w-full bg-verde-oliva py-8 px-4">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-12 lg:gap-16 max-w-7xl mx-auto">
+      <div className="w-full bg-verde-oliva py-8 overflow-hidden">
+        <div className="flex w-max animate-pillars-carousel lg:hidden">
+          {[0, 1].map((copyIndex) => (
+            <div
+              key={copyIndex}
+              aria-hidden={copyIndex === 1}
+              className="flex shrink-0 items-center gap-10 sm:gap-14 pr-10 sm:pr-14"
+            >
+              {pillars.map(({ title, Icon }) => (
+                <div key={`${copyIndex}-${title}`} className="shrink-0">
+                  <PillarItem Icon={Icon} title={title} />
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+
+        <div className="hidden lg:grid lg:grid-cols-4 lg:gap-16 max-w-7xl mx-auto px-4">
           {pillars.map(({ title, Icon }) => (
             <PillarItem key={title} Icon={Icon} title={title} />
           ))}

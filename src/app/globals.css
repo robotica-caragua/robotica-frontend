@@ -46,3 +46,16 @@ html {
   --color-input-bg: #f4ffd5;
   --color-branco-esverdeado: #fffff3;
 }
+
+@keyframes pillars-carousel {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-pillars-carousel {
+  animation: pillars-carousel 24s linear infinite;
+}
