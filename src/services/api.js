@@ -1138,11 +1138,20 @@ export const apiUsuarios = {
       }
     }
 
-    salvarMetaUsuario(userRetornado || { id: Number(id) }, {
+    const logadoAtual = obterUsuario()
+    const ehProprio = Boolean(logadoAtual && Number(logadoAtual.id) === Number(id))
+    const atorAdmin =
+      logadoAtual?.role === 'ADMIN' ||
+      logadoAtual?.perfil === 'ADMINISTRADOR' ||
+      logadoAtual?.permissaoAdministrador === true
+    const meta = {
       id: Number(id),
       ...payload,
       ...(idsLimpos !== undefined ? { schoolIds: idsLimpos } : {})
-    })
+    }
+    if (ehProprio && !atorAdmin) delete meta.schoolIds
+
+    salvarMetaUsuario(userRetornado || { id: Number(id) }, meta)
 
     const escolas = await apiEscolas.listar().catch(() => [])
     const enriquecido = enriquecerUsuarioComMeta(
@@ -1397,13 +1406,15 @@ export const apiGrupos = {
   },
 
   atualizar(id, dados) {
+    const { schoolName, ...resto } = dados
     const lista = apiGrupos.listar()
     let atualizado = null
     const atualizada = lista.map((g) => {
       if (String(g.id) === String(id)) {
         atualizado = {
           ...g,
-          ...dados,
+          ...resto,
+          ...(schoolName !== undefined ? { school: schoolName } : {}),
           updatedAt: new Date().toISOString()
         }
         return atualizado

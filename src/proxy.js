@@ -9,7 +9,8 @@ const ROTAS_ADMIN = [
   '/cadastrarEscola',
   '/gestaoEventos',
   '/cadastrarEvento',
-  '/gestaoAvisos'
+  '/gestaoAvisos',
+  '/gestaoDuvidas'
 ]
 
 const ROTAS_AUTENTICADAS = [
@@ -115,6 +116,8 @@ export const config = {
     '/cadastrarEvento/:path*',
     '/gestaoAvisos',
     '/gestaoAvisos/:path*',
+    '/gestaoDuvidas',
+    '/gestaoDuvidas/:path*',
     '/painelProfessor',
     '/painelProfessor/:path*',
     '/gestaoProjetos',

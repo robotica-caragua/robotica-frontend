@@ -236,6 +236,7 @@ export default function PerfilPage() {
 
     try {
       const idsEscolasAtuais = perfil.vinculos
+        .filter((v) => v.status !== 'em_analise')
         .map((v) => Number(v.id))
         .filter((id) => Number.isInteger(id) && id > 0)
       const atualizado = await apiUsuarios.atualizar(perfil.id, {

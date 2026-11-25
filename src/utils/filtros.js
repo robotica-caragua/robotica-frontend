@@ -1,9 +1,8 @@
 // Utilitários compartilhados de busca, ordenação e paginação das listagens.
 
 // Remove acentos e deixa em minúsculas para buscas mais tolerantes ("robotica" encontra "Robótica").
-export const normalizar = (texto = '') =>
-  texto
-    .toString()
+export const normalizar = (texto) =>
+  String(texto ?? '')
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
@@ -27,9 +26,11 @@ export const ordenar = (itens, criterio) => {
   const copia = [...itens]
   switch (criterio) {
     case 'curtidos':
-      return copia.sort((a, b) => b.curtidas - a.curtidas)
+      return copia.sort((a, b) => (b.curtidas || 0) - (a.curtidas || 0))
     case 'alfabetica':
-      return copia.sort((a, b) => a.titulo.localeCompare(b.titulo, 'pt-BR'))
+      return copia.sort((a, b) =>
+        String(a.titulo || '').localeCompare(String(b.titulo || ''), 'pt-BR')
+      )
     case 'recentes':
     default:
       return copia.sort((a, b) => {
@@ -41,9 +42,14 @@ export const ordenar = (itens, criterio) => {
   }
 }
 
-export const paginar = (itens, pagina, porPagina) =>
-  itens.slice((pagina - 1) * porPagina, pagina * porPagina)
+export const paginar = (itens, pagina, porPagina) => {
+  const indice = Math.max(1, Number(pagina) || 1)
+  const tamanho = Math.max(1, Number(porPagina) || 1)
+  return itens.slice((indice - 1) * tamanho, indice * tamanho)
+}
 
 // Valores únicos (ordenados) de um campo, para popular os selects de filtro.
 export const opcoesUnicas = (itens, campo) =>
-  [...new Set(itens.flatMap((item) => item[campo]))].sort((a, b) => a.localeCompare(b, 'pt-BR'))
+  [...new Set(itens.flatMap((item) => item[campo] ?? []))]
+    .filter((valor) => valor !== undefined && valor !== null && String(valor).trim() !== '')
+    .sort((a, b) => String(a).localeCompare(String(b), 'pt-BR'))

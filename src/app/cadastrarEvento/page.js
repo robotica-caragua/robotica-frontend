@@ -67,6 +67,7 @@ function CadastrarEventoConteudo() {
   const [agenda, setAgenda] = useState([])
   const [documentos, setDocumentos] = useState([])
   const [escolas, setEscolas] = useState([])
+  const [statusCarregado, setStatusCarregado] = useState('')
   const [banner, setBanner] = useState(null)
   const [bannerPreview, setBannerPreview] = useState('')
   const [erroBanner, setErroBanner] = useState('')
@@ -100,6 +101,7 @@ function CadastrarEventoConteudo() {
             local: ev.location || ev.school?.name || '',
             inscricoes: ev.registration || 'abertas'
           })
+          setStatusCarregado(ev.status || 'agendado')
           setAgenda(
             Array.isArray(ev.agenda)
               ? ev.agenda.map((a) => {
@@ -265,7 +267,7 @@ function CadastrarEventoConteudo() {
       time: horarioCombinado,
       location: form.local.trim(),
       registration: form.inscricoes,
-      status: 'agendado',
+      status: idEdicao ? statusCarregado || 'agendado' : 'agendado',
       agenda: agendaValida.length > 0 ? agendaValida : null,
       documents: documentosValidos.length > 0 ? documentosValidos : null,
       schoolId
