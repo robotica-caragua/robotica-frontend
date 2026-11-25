@@ -205,6 +205,7 @@ export function mapearProjetoDaApi(projeto, imagemPadrao) {
     createdAt: projeto.createdAt || dataIso,
     updatedAt: projeto.updatedAt || dataIso,
     infoData: `Atualizado em ${dataFormatada}`,
+    imagemSalva,
     imagem: imagemSalva || projeto.imageUrl || imagemPadrao,
     destaque: true
   }

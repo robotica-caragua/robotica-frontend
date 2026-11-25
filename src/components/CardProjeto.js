@@ -1,9 +1,7 @@
 'use client'
 
-import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { IoIosHeart, IoIosHeartEmpty } from 'react-icons/io'
 import { MdArrowForward } from 'react-icons/md'
 import containerImage from '@/assets/container.png'
 
@@ -16,17 +14,8 @@ export function CardProjeto({
   school,
   team,
   description = 'Descrição do projeto desenvolvido pelos alunos.',
-  likes = 0,
   linkUrl = '/detalhesProjeto'
 }) {
-  const [curtido, setCurtido] = useState(false)
-  const [totalCurtidas, setTotalCurtidas] = useState(likes)
-
-  const alternarCurtida = () => {
-    setTotalCurtidas((prev) => (curtido ? prev - 1 : prev + 1))
-    setCurtido((prev) => !prev)
-  }
-
   const autorOuEquipe = school || team || 'Escola Municipal BioBot'
   const categoriaBadge = Category1 || Category2 || (isHighlight ? 'Destaque' : 'Robótica')
 
@@ -48,20 +37,7 @@ export function CardProjeto({
         </h3>
         <p className="text-xs sm:text-sm text-stone-500 font-normal line-clamp-2">{description}</p>
 
-        <div className="mt-auto pt-3 border-t border-stone-200 flex items-center justify-between">
-          <button
-            type="button"
-            onClick={alternarCurtida}
-            className="flex items-center gap-1.5 text-stone-500 hover:text-verde-musgo transition cursor-pointer"
-          >
-            {curtido ? (
-              <IoIosHeart className="text-verde-musgo text-base" />
-            ) : (
-              <IoIosHeartEmpty className="text-stone-500 text-base" />
-            )}
-            <span className="text-xs font-normal">{totalCurtidas} curtidas</span>
-          </button>
-
+        <div className="mt-auto pt-3 border-t border-stone-200 flex items-center justify-end">
           <Link
             href={linkUrl}
             className="flex items-center gap-1 text-xs sm:text-sm font-bold text-verde-musgo hover:text-verde-escuro transition cursor-pointer"

@@ -18,6 +18,7 @@ import Link from 'next/link'
 import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
 import { Material } from '@/components/Material'
+import { VideoTutorial } from '@/components/VideoTutorial'
 import { apiTutoriais, mapearTutorialDaApi } from '@/services/api'
 
 const iconesMateriais = [
@@ -56,7 +57,7 @@ function DetalhesTutorialConteudo() {
             escola: mapeado.escola,
             schoolId: mapeado.schoolId,
             enderecoEscola: selecionado.school?.address || mapeado.enderecoEscola,
-            tutorialUrl: mapeado.tutorialUrl || '/video-exemplo.mp4',
+            tutorialUrl: mapeado.tutorialUrl,
             materiaisTexto: mapeado.materiaisTexto
           })
 
@@ -126,12 +127,7 @@ function DetalhesTutorialConteudo() {
             {tutorial.titulo}
           </h1>
 
-          <div className="w-full aspect-video rounded-xl overflow-hidden bg-black shadow-inner">
-            <video key={tutorial.tutorialUrl} className="w-full h-full object-cover" controls>
-              <source src={tutorial.tutorialUrl} type="video/mp4" />
-              Seu navegador não suporta a tag de vídeo.
-            </video>
-          </div>
+          <VideoTutorial url={tutorial.tutorialUrl} titulo={tutorial.titulo} />
 
           <p className="text-stone-700 text-sm sm:text-base leading-relaxed text-justify">
             {tutorial.descricao}

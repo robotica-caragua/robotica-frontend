@@ -18,16 +18,13 @@ export const correspondeBusca = (termo, ...campos) => {
 
 export const ordenacoes = [
   { valor: 'recentes', texto: 'Recentes' },
-  { valor: 'curtidos', texto: 'Mais Curtidos' },
   { valor: 'alfabetica', texto: 'Ordem Alfabética' }
 ]
 
-// Espera itens com `data` (ISO), `curtidas` e `titulo`.
+// Espera itens com `data` (ISO), e `titulo`.
 export const ordenar = (itens, criterio) => {
   const copia = [...itens]
   switch (criterio) {
-    case 'curtidos':
-      return copia.sort((a, b) => b.curtidas - a.curtidas)
     case 'alfabetica':
       return copia.sort((a, b) => a.titulo.localeCompare(b.titulo, 'pt-BR'))
     case 'recentes':

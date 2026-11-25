@@ -165,7 +165,6 @@ export default function Projetos() {
                     school={projeto.escola}
                     team={projeto.equipe}
                     description={projeto.descricao}
-                    likes={projeto.curtidas}
                     linkUrl={`/detalhesProjeto?id=${projeto.id}`}
                   />
                 ))}

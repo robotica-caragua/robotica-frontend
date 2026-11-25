@@ -11,13 +11,13 @@ import {
   apiTutoriais,
   converterNivelParaDificuldade
 } from '@/services/api'
+import { interpretarVideo } from '@/utils/video'
 import { IoClose, IoArrowForward } from 'react-icons/io5'
 import {
   MdInfoOutline,
   MdOutlineDescription,
   MdOutlineInventory2,
   MdOutlineVideocam,
-  MdOutlineVideoCall,
   MdOutlineImage,
   MdOutlineAddAPhoto,
   MdKeyboardArrowDown,
@@ -60,14 +60,12 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
   const [novoMaterial, setNovoMaterial] = useState('')
   const [_imagem, setImagem] = useState(null)
   const [imagemPreview, setImagemPreview] = useState(dadosIniciais.imagemUrl || '')
-  const [video, setVideo] = useState(null)
-  const [nomeVideoInicial] = useState(dadosIniciais.nomeVideo || '')
+  const [linkVideo, setLinkVideo] = useState(dadosIniciais.tutorialUrl || '')
   const [erroVideo, setErroVideo] = useState('')
   const [modal, setModal] = useState(null) // 'sucesso' | 'erro' | null
   const [mensagemErroApi, setMensagemErroApi] = useState('')
 
   const descricaoRef = useRef(null)
-  const videoInputRef = useRef(null)
   const imagemInputRef = useRef(null)
 
   useEffect(() => {
@@ -136,22 +134,6 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
     setMateriais((prev) => prev.filter((m) => m.id !== id))
   }
 
-  const handleVideo = (arquivo) => {
-    if (!arquivo) return
-    const tiposPermitidos = ['video/mp4', 'video/quicktime']
-    const extensaoValida = /\.(mp4|mov)$/i.test(arquivo.name)
-    if (!tiposPermitidos.includes(arquivo.type) && !extensaoValida) {
-      setErroVideo('Formato inválido. Envie um vídeo MP4 ou MOV.')
-      return
-    }
-    if (arquivo.size > 500 * 1024 * 1024) {
-      setErroVideo('O vídeo deve ter no máximo 500MB.')
-      return
-    }
-    setErroVideo('')
-    setVideo(arquivo)
-  }
-
   const handleImagem = (arquivo) => {
     if (!arquivo) return
     const reader = new FileReader()
@@ -160,11 +142,6 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
     }
     reader.readAsDataURL(arquivo)
     setImagem(arquivo)
-  }
-
-  const handleDropVideo = (e) => {
-    e.preventDefault()
-    handleVideo(e.dataTransfer.files?.[0])
   }
 
   const handleSubmit = async (e) => {
@@ -181,6 +158,15 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
       setModal('erro')
       return
     }
+
+    const linkLimpo = linkVideo.trim()
+    if (linkLimpo && !interpretarVideo(linkLimpo)) {
+      setErroVideo(
+        'Informe um link v�lido de v�deo (YouTube, Vimeo ou arquivo .mp4 com http/https).'
+      )
+      return
+    }
+    setErroVideo('')
 
     const catEncontrada = categorias.find((c) => c.name === form.categoria)
     const escEncontrada = escolas.find((s) => s.name === form.escola)
@@ -202,7 +188,7 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
       difficulty: converterNivelParaDificuldade(form.nivel),
       schoolId,
       materialsNeeded: materiais.map((m) => m.nome.slice(0, 80)),
-      tutorialUrl: dadosIniciais.tutorialUrl
+      tutorialUrl: linkLimpo || undefined
     }
 
     try {
@@ -240,8 +226,6 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
       window.alert(err?.message || 'Não foi possível excluir esta publicação.')
     }
   }
-
-  const rotuloVideo = video?.name || nomeVideoInicial
 
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-background relative">
@@ -574,43 +558,24 @@ export function FormularioTutorial({ modo = 'criar', dadosIniciais = {} }) {
             <section className="p-8 md:p-12 bg-white rounded-3xl shadow-sm border border-verde-musgo flex flex-col gap-6">
               <SecaoTitulo icone={MdOutlineVideocam} titulo="Vídeo Tutorial" />
 
-              <div
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={handleDropVideo}
-                onClick={() => videoInputRef.current?.click()}
-                className="w-full min-h-[340px] bg-input-bg border-2 border-dashed border-verde-musgo rounded-3xl p-10 flex flex-col items-center justify-center gap-5 text-center cursor-pointer hover:bg-verde-pastel/40 transition"
-              >
-                <div className="flex size-16 items-center justify-center rounded-full bg-verde-limao text-verde-escuro">
-                  <MdOutlineVideoCall size={32} />
-                </div>
-
-                <div className="flex flex-col gap-2">
-                  <span className="text-verde-escuro text-lg font-bold uppercase">
-                    {rotuloVideo || 'Enviar Vídeo Tutorial'}
-                  </span>
-                  <span className="text-[#434933] text-base">
-                    Formatos aceitos: MP4 ou MOV. Tamanho máximo de 500MB.
-                  </span>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    videoInputRef.current?.click()
-                  }}
-                  className="px-10 py-3 bg-verde-limao hover:bg-verde-oliva rounded-lg text-verde-escuro text-sm font-bold uppercase transition cursor-pointer"
+              <div className="w-full flex flex-col gap-3">
+                <label
+                  htmlFor="linkVideo"
+                  className="text-verde-escuro text-sm font-bold uppercase"
                 >
-                  {rotuloVideo ? 'Trocar Vídeo' : 'Selecionar Vídeo'}
-                </button>
-
+                  Link do v�deo
+                </label>
                 <input
-                  ref={videoInputRef}
-                  type="file"
-                  accept="video/mp4,video/quicktime,.mp4,.mov"
-                  className="sr-only"
-                  onChange={(e) => handleVideo(e.target.files?.[0])}
+                  id="linkVideo"
+                  type="url"
+                  value={linkVideo}
+                  onChange={(e) => setLinkVideo(e.target.value)}
+                  placeholder="https://www.youtube.com/watch?v=..."
+                  className="w-full h-[52px] px-4 bg-input-bg border border-verde-musgo rounded-xl text-sm text-verde-escuro outline-none focus:ring-2 focus:ring-verde-limao"
                 />
+                <span className="text-[#434933] text-sm">
+                  Cole o link de um v�deo do YouTube, do Vimeo ou de um arquivo .mp4 hospedado.
+                </span>
               </div>
 
               {erroVideo && (

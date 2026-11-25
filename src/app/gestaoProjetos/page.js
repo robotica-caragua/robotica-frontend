@@ -267,9 +267,8 @@ export default function GestaoProjetos() {
                       {projeto.escola}
                     </p>
 
-                    {/* Curtidas + data */}
-                    <div className="py-2 border-y border-stone-100 flex items-center justify-between text-stone-500 text-xs">
-                      <span>{projeto.curtidas} curtidas</span>
+                    {/* Data */}
+                    <div className="py-2 border-y border-stone-100 flex items-center text-stone-500 text-xs">
                       <span className="truncate">{projeto.infoData}</span>
                     </div>
 

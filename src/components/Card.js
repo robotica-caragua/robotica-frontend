@@ -1,10 +1,8 @@
 'use client'
 
-import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import containerImage from '@/assets/container.png'
-import { IoIosHeart, IoIosHeartEmpty } from 'react-icons/io'
 import { MdArrowForward } from 'react-icons/md'
 
 export function Card({
@@ -13,17 +11,8 @@ export function Card({
   author = 'Escola Municipal BioBot',
   title = 'Braço Robótico de Papelão',
   description = 'Aprenda a ler um sensor e controlar os motores de um robô.',
-  likes = 0,
   linkUrl = '/detalhesTutorial'
 }) {
-  const [curtido, setCurtido] = useState(false)
-  const [totalCurtidas, setTotalCurtidas] = useState(likes)
-
-  const alternarCurtida = () => {
-    setTotalCurtidas((atual) => (curtido ? atual - 1 : atual + 1))
-    setCurtido((atual) => !atual)
-  }
-
   return (
     <article className="w-full rounded-2xl border border-stone-200 bg-white flex flex-col overflow-hidden shadow-xs hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
       <div className="relative h-[180px] w-full overflow-hidden bg-stone-100">
@@ -42,20 +31,7 @@ export function Card({
         </h3>
         <p className="text-xs sm:text-sm text-stone-500 font-normal line-clamp-2">{description}</p>
 
-        <div className="mt-auto pt-3 border-t border-stone-200 flex items-center justify-between">
-          <button
-            type="button"
-            onClick={alternarCurtida}
-            className="flex items-center gap-1.5 text-stone-500 hover:text-verde-musgo transition cursor-pointer"
-          >
-            {curtido ? (
-              <IoIosHeart className="text-verde-musgo text-base" />
-            ) : (
-              <IoIosHeartEmpty className="text-stone-500 text-base" />
-            )}
-            <span className="text-xs font-normal">{totalCurtidas} curtidas</span>
-          </button>
-
+        <div className="mt-auto pt-3 border-t border-stone-200 flex items-center justify-end">
           <Link
             href={linkUrl}
             className="flex items-center gap-1 text-xs sm:text-sm font-bold text-verde-musgo hover:text-verde-escuro transition cursor-pointer"

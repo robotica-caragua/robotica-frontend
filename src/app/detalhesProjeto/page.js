@@ -15,6 +15,7 @@ import {
   MdArrowForward
 } from 'react-icons/md'
 import Image from 'next/image'
+import containerImage from '@/assets/container.png'
 import { apiProjetos, mapearProjetoDaApi } from '@/services/api'
 
 function DetalhesProjetoConteudo() {
@@ -37,7 +38,8 @@ function DetalhesProjetoConteudo() {
         const selecionado = detalheApi || lista[0] || null
 
         if (selecionado) {
-          const mapeado = mapearProjetoDaApi(selecionado)
+          const mapeado = mapearProjetoDaApi(selecionado, containerImage)
+          const imagemApi = Array.isArray(selecionado.media) ? selecionado.media[0] : null
           setProjeto({
             id: mapeado.id,
             titulo: mapeado.titulo,
@@ -49,7 +51,8 @@ function DetalhesProjetoConteudo() {
             ).toLocaleDateString('pt-BR'),
             descricao: mapeado.descricao,
             categorias: mapeado.categorias,
-            equipe: mapeado.equipe
+            equipe: mapeado.equipe,
+            imagem: mapeado.imagemSalva || imagemApi || mapeado.imagem || containerImage
           })
 
           const relacionados = lista
@@ -149,11 +152,12 @@ function DetalhesProjetoConteudo() {
             <div className="w-full h-64 sm:h-80 md:h-96 bg-white rounded-2xl overflow-hidden shadow-xs border border-stone-200">
               <Image
                 className="w-full h-full object-cover"
-                src="https://t4.ftcdn.net/jpg/01/63/58/21/360_F_163582149_7XleuAaTQJ7LYZMCCLyo2sJjiZTgv0As.jpg"
+                src={projeto.imagem}
                 alt={`${projeto.titulo} Protótipo`}
                 width={648}
                 height={384}
                 priority
+                unoptimized
               />
             </div>
           </div>

@@ -164,7 +164,6 @@ export default function Tutoriais() {
                     author={tutorial.autor}
                     description={tutorial.descricao}
                     level={tutorial.nivel}
-                    likes={tutorial.curtidas}
                     linkUrl={`/detalhesTutorial?id=${tutorial.id}`}
                   />
                 ))}
