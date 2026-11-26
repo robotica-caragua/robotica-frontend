@@ -1,5 +1,6 @@
 'use client'
 
+import { Select } from '@/components/Select'
 import { useEffect, useState } from 'react'
 import {
   MdAdd,
@@ -7,18 +8,41 @@ import {
   MdArrowForward,
   MdClose,
   MdFilterList,
-  MdInfoOutline
+  MdInfoOutline,
+  MdOutlinePeopleAlt
 } from 'react-icons/md'
 import { IoSearchSharp } from 'react-icons/io5'
-import { IoIosArrowDown } from 'react-icons/io'
 import { AdminSidebar } from '@/components/AdminSidebar'
 import { ModalConfirmacao } from '@/components/ModalConfirmacao'
-import { apiAuth, apiEscolas, apiProjetos, apiUsuarios, obterToken } from '@/services/api'
+import { apiAuth, apiEscolas, apiGrupos, apiUsuarios, obterToken } from '@/services/api'
+
+export function extrairAlunosOrdenados(textoBruto = '') {
+  const textoSemSerie = String(textoBruto || '')
+    .split('•')[0]
+    .trim()
+  if (!textoSemSerie || textoSemSerie === 'Equipe de Robótica') return []
+
+  const nomes = textoSemSerie
+    .split(/[,;\n]+|\s+e\s+/i)
+    .map((n) => n.trim())
+    .filter(Boolean)
+
+  return [...nomes].sort((a, b) => a.localeCompare(b, 'pt-BR', { sensitivity: 'base' }))
+}
+
+export function formatarAlunosOrdenados(textoBruto = '') {
+  const lista = extrairAlunosOrdenados(textoBruto)
+  if (lista.length === 0) return ''
+  if (lista.length === 1) return lista[0]
+  return `${lista.slice(0, -1).join(', ')} e ${lista[lista.length - 1]}`
+}
 
 export default function GestaoGruposPage() {
   const [equipes, setEquipes] = useState([])
+  const [escolasDisponiveis, setEscolasDisponiveis] = useState([])
   const [escolaPadrao, setEscolaPadrao] = useState('Rede Municipal de Caraguatatuba')
   const [escolaPadraoId, setEscolaPadraoId] = useState(null)
+  const [escolaModalId, setEscolaModalId] = useState('')
   const [carregando, setCarregando] = useState(true)
   const [busca, setBusca] = useState('')
   const [modalAberto, setModalAberto] = useState(false)
@@ -37,39 +61,57 @@ export default function GestaoGruposPage() {
 
     Promise.all([
       obterToken() ? apiAuth.me().catch(() => null) : Promise.resolve(null),
-      apiEscolas.listar().catch(() => []),
-      apiProjetos.listar().catch(() => [])
+      apiEscolas.listarDoUsuarioLogado().catch(() => []),
+      apiEscolas.listar().catch(() => [])
     ])
-      .then(async ([user, listaEscolas, listaProjetos]) => {
+      .then(async ([user, escolasDoUsuario, todasEscolas]) => {
         if (!ativo) return
+
+        const listaEscolas =
+          Array.isArray(escolasDoUsuario) && escolasDoUsuario.length > 0
+            ? escolasDoUsuario
+            : Array.isArray(todasEscolas)
+              ? todasEscolas
+              : []
+
+        setEscolasDisponiveis(listaEscolas)
 
         let escNome = listaEscolas?.[0]?.name || 'Rede Municipal de Caraguatatuba'
         let escId = listaEscolas?.[0]?.id || null
 
         if (user?.schoolId) {
-          escId = user.schoolId
-          const encontrada = listaEscolas.find((e) => e.id === user.schoolId)
-          if (encontrada?.name) {
+          const encontrada = listaEscolas.find((e) => Number(e.id) === Number(user.schoolId))
+          if (encontrada) {
+            escId = encontrada.id
             escNome = encontrada.name
           } else if (user.id) {
             const escUsuario = await apiUsuarios.buscarEscolaDoUsuario(user.id).catch(() => null)
-            if (escUsuario?.name) escNome = escUsuario.name
+            if (escUsuario?.id) {
+              escId = escUsuario.id
+              escNome = escUsuario.name || escNome
+            }
           }
         }
 
         if (!ativo) return
         setEscolaPadrao(escNome)
         setEscolaPadraoId(escId)
+        setEscolaModalId(escId ? String(escId) : '')
 
-        const equipesMapeadas = (Array.isArray(listaProjetos) ? listaProjetos : []).map((proj) => ({
-          id: proj.id,
-          name: proj.name,
-          school: proj.school?.name || escNome,
-          schoolId: proj.schoolId || escId,
-          students: proj.description || '',
-          grade: '8º Ano',
-          active: true
-        }))
+        const listaGrupos = apiGrupos.listar()
+        const equipesMapeadas = (Array.isArray(listaGrupos) ? listaGrupos : []).map((grp) => {
+          const alunosOrdenados = formatarAlunosOrdenados(grp.students || '')
+          return {
+            id: grp.id,
+            name: grp.name,
+            school: grp.school || escNome,
+            schoolId: grp.schoolId || escId,
+            students: alunosOrdenados,
+            studentsList: extrairAlunosOrdenados(grp.students || ''),
+            grade: grp.grade || '8º Ano',
+            active: true
+          }
+        })
 
         setEquipes(equipesMapeadas)
       })
@@ -95,14 +137,27 @@ export default function GestaoGruposPage() {
       return
     }
 
-    const descricaoEquipe = [alunos.trim(), serie].filter(Boolean).join(' • ')
+    const idEscolaEscolhida = Number(escolaModalId || escolaPadraoId || escolasDisponiveis[0]?.id)
+    const objEscolaEscolhida = escolasDisponiveis.find(
+      (esc) => Number(esc.id) === idEscolaEscolhida
+    )
+    const nomeEscolaEscolhida = objEscolaEscolhida?.name || escolaPadrao
+
+    const alunosFormatados = formatarAlunosOrdenados(alunos)
+    const listaAlunosOrdenados = extrairAlunosOrdenados(alunos)
 
     try {
-      if (idEdicao && escolaPadraoId) {
-        const atualizado = await apiProjetos.atualizar(idEdicao, {
+      if (!idEscolaEscolhida) {
+        throw new Error('Cadastre ao menos uma escola antes de registrar uma equipe.')
+      }
+
+      if (idEdicao) {
+        const atualizado = apiGrupos.atualizar(idEdicao, {
           name: nomeEquipe.trim(),
-          description: descricaoEquipe || 'Equipe de Robótica',
-          schoolId: escolaPadraoId
+          students: alunosFormatados,
+          grade: serie || '8º Ano',
+          schoolId: idEscolaEscolhida,
+          schoolName: nomeEscolaEscolhida
         })
         setEquipes((prev) =>
           prev.map((eq) =>
@@ -110,32 +165,36 @@ export default function GestaoGruposPage() {
               ? {
                   ...eq,
                   name: atualizado?.name || nomeEquipe.trim(),
-                  students: alunos.trim(),
+                  school: nomeEscolaEscolhida,
+                  schoolId: idEscolaEscolhida,
+                  students: alunosFormatados,
+                  studentsList: listaAlunosOrdenados,
                   grade: serie || eq.grade
                 }
               : eq
           )
         )
-      } else if (escolaPadraoId) {
-        const criado = await apiProjetos.criar({
+      } else {
+        const criado = apiGrupos.criar({
           name: nomeEquipe.trim(),
-          description: descricaoEquipe || 'Equipe de Robótica',
-          schoolId: escolaPadraoId
+          students: alunosFormatados,
+          grade: serie || '8º Ano',
+          schoolId: idEscolaEscolhida,
+          schoolName: nomeEscolaEscolhida
         })
         setEquipes((prev) => [
           ...prev,
           {
-            id: criado?.id || Date.now(),
-            name: criado?.name || nomeEquipe.trim(),
-            school: criado?.school?.name || escolaPadrao,
-            schoolId: criado?.schoolId || escolaPadraoId,
-            students: alunos.trim(),
+            id: criado.id,
+            name: criado.name,
+            school: criado.school || nomeEscolaEscolhida,
+            schoolId: criado.schoolId || idEscolaEscolhida,
+            students: alunosFormatados,
+            studentsList: listaAlunosOrdenados,
             grade: serie || '8º Ano',
             active: true
           }
         ])
-      } else {
-        throw new Error('Faça login e selecione uma escola vinculada para cadastrar a equipe.')
       }
 
       setIdEdicao(null)
@@ -157,16 +216,18 @@ export default function GestaoGruposPage() {
   const totalFormatado = String(equipes.length).padStart(2, '0')
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen">
+    <div className="flex flex-col lg:flex-row min-h-screen w-full bg-background relative">
       <AdminSidebar variant="professor" />
 
-      <div className="flex flex-1 flex-col px-4 sm:px-6 lg:px-10 pb-16">
-        <main className="mx-auto flex w-full max-w-4xl flex-col gap-6 pt-8 lg:pt-12">
+      <div className="flex flex-1 flex-col pb-16">
+        <main className="w-full max-w-[1040px] mx-auto flex flex-col gap-6 sm:gap-8 py-8 lg:py-10 px-6 sm:px-10 lg:px-14">
           {/* Cabeçalho */}
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
               <p className="text-xl font-bold text-verde-musgo">{totalFormatado}</p>
-              <h1 className="text-3xl sm:text-4xl font-bold text-verde-escuro">Equipes Ativas</h1>
+              <h1 className="text-3xl sm:text-4xl font-bold text-verde-escuro leading-tight">
+                Equipes Ativas
+              </h1>
             </div>
 
             <button
@@ -176,19 +237,26 @@ export default function GestaoGruposPage() {
                 setNomeEquipe('')
                 setAlunos('')
                 setSerie('')
+                setEscolaModalId(
+                  escolaPadraoId
+                    ? String(escolaPadraoId)
+                    : escolasDisponiveis[0]?.id
+                      ? String(escolasDisponiveis[0].id)
+                      : ''
+                )
                 setModalAberto(true)
               }}
-              className="flex items-center gap-3 rounded-lg bg-verde-musgo px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:brightness-90 cursor-pointer"
+              className="flex items-center gap-2 rounded-lg bg-verde-musgo hover:bg-white hover:text-verde-musgo border border-verde-musgo px-6 py-3 text-sm sm:text-base font-bold text-white shadow-sm transition cursor-pointer"
             >
-              <MdAdd size={18} />
+              <MdAdd size={20} />
               Nova Equipe
             </button>
           </div>
 
           {/* Barra de busca e ordenação */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 rounded-xl border border-verde-musgo bg-white px-4 py-3">
+          <div className="flex flex-wrap items-center gap-4 rounded-xl border border-verde-musgo bg-white px-4 py-3">
             <div className="flex flex-1 items-center gap-3">
-              <IoSearchSharp className="text-xl text-verde-musgo shrink-0" />
+              <IoSearchSharp className="text-xl text-verde-musgo" />
               <input
                 type="text"
                 value={busca}
@@ -200,7 +268,7 @@ export default function GestaoGruposPage() {
 
             <button
               type="button"
-              className="flex items-center justify-center sm:justify-start gap-2 border-t sm:border-t-0 sm:border-l border-verde-musgo/30 pt-2.5 sm:pt-0 sm:pl-5 text-xs font-bold uppercase text-verde-musgo hover:text-verde-escuro cursor-pointer"
+              className="flex items-center gap-2 border-l border-verde-musgo/30 pl-5 text-xs font-bold uppercase text-verde-musgo hover:text-verde-escuro cursor-pointer"
             >
               <MdFilterList size={18} />
               Ordenar por mais recente
@@ -217,21 +285,38 @@ export default function GestaoGruposPage() {
                   key={equipe.id}
                   className="flex flex-col rounded-2xl border border-verde-musgo bg-white p-5"
                 >
-                  <span className="inline-flex w-fit items-center gap-1.5 rounded-md bg-verde-oliva px-2.5 py-1 text-[10px] font-bold uppercase text-white">
-                    <span className="h-1.5 w-1.5 rounded-full bg-white" />
-                    Equipe Ativa
-                  </span>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="inline-flex w-fit items-center gap-1.5 rounded-md bg-verde-oliva px-2.5 py-1 text-[10px] font-bold uppercase text-white">
+                      <span className="h-1.5 w-1.5 rounded-full bg-white" />
+                      Equipe Ativa
+                    </span>
+                    {equipe.grade && (
+                      <span className="rounded-full bg-verde-pastel px-2.5 py-0.5 text-[11px] font-bold text-verde-musgo">
+                        {equipe.grade}
+                      </span>
+                    )}
+                  </div>
 
                   <div className="mt-4 flex items-center justify-between">
                     <h3 className="text-lg font-bold text-verde-escuro">{equipe.name}</h3>
                     <MdInfoOutline size={20} className="text-verde-escuro" />
                   </div>
 
-                  <div className="mt-3 mb-6 border-l-2 border-verde-musgo pl-3">
-                    <p className="max-w-[11rem] text-xs leading-relaxed text-verde-musgo">
+                  <div className="mt-3 mb-3 border-l-2 border-verde-musgo pl-3">
+                    <p className="text-xs font-semibold leading-relaxed text-verde-musgo">
                       {equipe.school}
                     </p>
                   </div>
+
+                  {equipe.students && (
+                    <div className="mb-5 rounded-xl bg-input-bg border border-verde-musgo/30 p-3">
+                      <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase text-verde-musgo mb-1">
+                        <MdOutlinePeopleAlt size={14} />
+                        <span>Integrantes (A-Z)</span>
+                      </div>
+                      <p className="text-xs text-verde-escuro leading-relaxed">{equipe.students}</p>
+                    </div>
+                  )}
 
                   <button
                     type="button"
@@ -240,6 +325,13 @@ export default function GestaoGruposPage() {
                       setNomeEquipe(equipe.name)
                       setAlunos(equipe.students || '')
                       setSerie(equipe.grade || '')
+                      setEscolaModalId(
+                        equipe.schoolId
+                          ? String(equipe.schoolId)
+                          : escolaPadraoId
+                            ? String(escolaPadraoId)
+                            : ''
+                      )
                       setModalAberto(true)
                     }}
                     className="mx-auto mt-auto flex items-center justify-center gap-2 rounded-lg border border-b-3 border-verde-musgo bg-white px-5 py-2 text-xs font-bold text-verde-escuro hover:bg-verde-pastel cursor-pointer"
@@ -264,6 +356,13 @@ export default function GestaoGruposPage() {
                     setNomeEquipe('')
                     setAlunos('')
                     setSerie('')
+                    setEscolaModalId(
+                      escolaPadraoId
+                        ? String(escolaPadraoId)
+                        : escolasDisponiveis[0]?.id
+                          ? String(escolasDisponiveis[0].id)
+                          : ''
+                    )
                     setModalAberto(true)
                   }}
                   className="rounded-lg border-b-3 border-verde-escuro bg-verde-limao px-5 py-2 text-xs font-bold text-verde-escuro hover:brightness-95 cursor-pointer"
@@ -279,17 +378,17 @@ export default function GestaoGruposPage() {
       {/* Modal Nova/Editar Equipe */}
       {modalAberto && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="relative w-full max-w-xl rounded-3xl sm:rounded-[36px] border border-verde-musgo bg-white p-6 sm:p-10 shadow-xl">
+          <div className="relative w-full max-w-xl rounded-[36px] border border-verde-musgo bg-white p-10 shadow-xl">
             <button
               type="button"
               onClick={() => setModalAberto(false)}
               aria-label="Fechar modal"
-              className="absolute top-5 right-5 sm:top-8 sm:right-8 text-verde-musgo hover:text-verde-escuro cursor-pointer"
+              className="absolute top-8 right-8 text-verde-musgo hover:text-verde-escuro cursor-pointer"
             >
               <MdClose size={24} />
             </button>
 
-            <h2 className="text-2xl sm:text-3xl font-bold text-verde-escuro pr-8">
+            <h2 className="text-2xl font-bold text-verde-escuro">
               {idEdicao ? 'Editar ' : 'Nova '}
               <span className="text-verde-musgo">Equipe!</span>
             </h2>
@@ -309,6 +408,25 @@ export default function GestaoGruposPage() {
                 />
               </div>
 
+              {escolasDisponiveis.length > 0 && (
+                <div>
+                  <label className="mb-1.5 block text-base font-medium text-verde-escuro">
+                    Unidade Escolar
+                  </label>
+                  <Select
+                    value={escolaModalId}
+                    onChange={(e) => setEscolaModalId(e.target.value)}
+                    className="w-full appearance-none rounded-lg border border-verde-musgo bg-input-bg px-4 py-3 pr-10 text-sm text-verde-escuro focus:outline-none cursor-pointer"
+                  >
+                    {escolasDisponiveis.map((esc) => (
+                      <option key={esc.id} value={String(esc.id)}>
+                        {esc.name}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+              )}
+
               <div>
                 <label className="mb-1.5 block text-base font-medium text-verde-escuro">
                   Alunos integrantes
@@ -317,9 +435,14 @@ export default function GestaoGruposPage() {
                   type="text"
                   value={alunos}
                   onChange={(e) => setAlunos(e.target.value)}
-                  placeholder="Digite o nome dos alunos integrantes..."
+                  placeholder="Ex: João, Ana Laura, Sthefany, Fernanda..."
                   className="w-full rounded-lg border border-verde-musgo bg-input-bg px-4 py-3 text-sm text-verde-escuro placeholder-verde-musgo/70 focus:outline-none"
                 />
+                {alunos.trim() && (
+                  <p className="mt-1.5 text-xs text-verde-musgo">
+                    Ordem alfabética: <strong>{formatarAlunosOrdenados(alunos)}</strong>
+                  </p>
+                )}
               </div>
 
               <div>
@@ -327,7 +450,7 @@ export default function GestaoGruposPage() {
                   Série
                 </label>
                 <div className="relative">
-                  <select
+                  <Select
                     value={serie}
                     onChange={(e) => setSerie(e.target.value)}
                     className="w-full appearance-none rounded-lg border border-verde-musgo bg-input-bg px-4 py-3 pr-10 text-sm text-verde-musgo focus:outline-none cursor-pointer"
@@ -337,8 +460,7 @@ export default function GestaoGruposPage() {
                     <option value="7º Ano">7º Ano</option>
                     <option value="8º Ano">8º Ano</option>
                     <option value="9º Ano">9º Ano</option>
-                  </select>
-                  <IoIosArrowDown className="pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 text-xl text-verde-musgo" />
+                  </Select>
                 </div>
               </div>
 
@@ -366,7 +488,7 @@ export default function GestaoGruposPage() {
             : modalConfirmacao.mensagemErro ||
               'Verifique se todos os campos foram preenchidos corretamente e tente salvar mais uma vez.'
         }
-        textoBotaoSucesso="Voltar para Equipes"
+        textoBotaoSucesso="Voltar"
         onConfirmar={() =>
           setModalConfirmacao({ aberto: false, tipo: 'sucesso', mensagemErro: '' })
         }

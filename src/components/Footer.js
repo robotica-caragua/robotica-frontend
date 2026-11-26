@@ -2,91 +2,103 @@ import Link from 'next/link'
 import { IoIosArrowUp } from 'react-icons/io'
 import Image from 'next/image'
 import Logo from '../assets/logo.svg'
+import IconLogo from '../app/icon.svg'
 
 export function Footer() {
   return (
-    <footer className="w-full max-w-[100vw] mx-auto items-center justify-between mt-6 pt-6 pb-4 bg-verde-pastel">
-      <div className="flex items-center gap-4 justify-between px-4 sm:px-6 max-w-7xl mx-auto">
-        <div className="w-9 shrink-0" />
-        <Link href="/" className="block w-fit shrink-0">
+    <footer className="w-full max-w-[100vw] mx-auto items-center justify-between mt-auto bg-verde-pastel pt-8 pb-6">
+      <div className="flex items-center gap-4 justify-between px-6 max-w-7xl mx-auto">
+        <div className="w-10"></div>
+        <div>
           <Image
             src={Logo}
-            alt="Logo BioBot"
+            alt="Logo Conexão Robótica"
             width={180}
             height={50}
-            className="w-36 sm:w-[180px] h-auto"
+            className="dark:hidden w-36 sm:w-44 h-auto"
           />
-        </Link>
+          <span className="hidden dark:inline-flex items-center gap-2.5">
+            <Image
+              src={IconLogo}
+              alt=""
+              width={40}
+              height={40}
+              className="w-9 h-9 sm:w-10 sm:h-10 object-contain"
+            />
+            <span className="text-2xl sm:text-3xl font-extrabold tracking-tight text-verde-escuro">
+              BIOBOT
+            </span>
+          </span>
+        </div>
         <Link
           href="#topo"
-          aria-label="Voltar ao topo"
-          className="font-bold p-1.5 bg-verde-escuro text-verde-pastel rounded-full hover:bg-white hover:text-verde-escuro border-2 border-verde-escuro transition-colors duration-300 flex items-center justify-center shrink-0"
+          aria-label="Voltar ao topo da página"
+          className="font-bold p-2 bg-verde-escuro text-verde-pastel dark:bg-[#FFFFF3] dark:text-[#002A15] dark:border-[#FFFFF3] dark:hover:bg-verde-limao dark:hover:border-verde-limao dark:hover:text-[#001B0D] rounded-full hover:bg-white hover:text-verde-escuro border-2 border-verde-escuro transition-colors duration-300 flex items-center justify-center cursor-pointer shadow-xs"
         >
-          <IoIosArrowUp size={24} />
+          <IoIosArrowUp size={22} />
         </Link>
       </div>
 
-      <div className="w-full justify-center items-center text-center mt-3 mb-8 md:mb-14 px-4">
-        <p className="text-verde-escuro font-medium text-base sm:text-lg">
+      <div className="w-full justify-center items-center text-center mt-3 mb-6 px-4">
+        <p className="text-verde-escuro font-medium text-sm sm:text-base">
           Conectando educação, sustentabilidade e tecnologia.
         </p>
       </div>
 
-      <nav className="flex items-center justify-center mt-4 min-h-10 py-2 px-4 sm:px-6">
-        <ul className="flex flex-wrap items-center justify-center gap-3 sm:gap-6 list-none m-0 p-0 font-medium text-verde-escuro text-base sm:text-lg">
+      {/* Nav com altura estável e borda transparente para evitar que a linha abaixo pule no hover */}
+      <nav className="flex items-center justify-center min-h-[54px] py-2 px-4 sm:px-6">
+        <ul className="flex flex-wrap items-center justify-center gap-2 sm:gap-6 list-none m-0 p-0 font-medium text-verde-escuro text-sm sm:text-base">
           <li>
-            {' '}
             <Link
               href="/"
-              className="inline-block text-center w-16 p-1 hover:font-bold hover:border-b-2 border-verde-escuro uppercase"
+              className="inline-block text-center px-3 py-1.5 border-b-2 border-transparent hover:border-verde-escuro hover:font-bold uppercase transition-all"
             >
               Início
-            </Link>{' '}
+            </Link>
           </li>
           <li>
-            {' '}
             <Link
               href="/rede"
-              className="inline-block text-center w-16 p-1 hover:font-bold hover:border-b-2 border-verde-escuro uppercase"
+              className="inline-block text-center px-3 py-1.5 border-b-2 border-transparent hover:border-verde-escuro hover:font-bold uppercase transition-all"
             >
               Rede
-            </Link>{' '}
+            </Link>
           </li>
           <li>
-            {' '}
             <Link
               href="/projetos"
-              className="inline-block text-center w-24 p-1 hover:font-bold hover:border-b-2 border-verde-escuro uppercase"
+              className="inline-block text-center px-3 py-1.5 border-b-2 border-transparent hover:border-verde-escuro hover:font-bold uppercase transition-all"
             >
               Projetos
-            </Link>{' '}
+            </Link>
           </li>
           <li>
-            {' '}
             <Link
               href="/tutoriais"
-              className="inline-block text-center w-28 p-1 hover:font-bold hover:border-b-2 border-verde-escuro uppercase"
+              className="inline-block text-center px-3 py-1.5 border-b-2 border-transparent hover:border-verde-escuro hover:font-bold uppercase transition-all"
             >
               Tutoriais
-            </Link>{' '}
+            </Link>
           </li>
           <li>
-            {' '}
             <Link
               href="/contato"
-              className="inline-block text-center w-24 p-1 hover:font-bold hover:border-b-2 border-verde-escuro uppercase"
+              className="inline-block text-center px-3 py-1.5 border-b-2 border-transparent hover:border-verde-escuro hover:font-bold uppercase transition-all"
             >
               Contato
-            </Link>{' '}
+            </Link>
           </li>
         </ul>
       </nav>
 
-      <div className="w-full border-b border-verde-escuro mt-4 mb-10"></div>
+      {/* Linha divisória fixa e espaçada */}
+      <div className="w-full flex justify-center mt-4">
+        <div className="w-[85%] border-b border-verde-escuro/40 dark:border-verde-oliva/60" />
+      </div>
 
-      <div className="w-full justify-center items-center text-center pb-2 px-4">
-        <p className="text-verde-escuro font-medium text-sm sm:text-base">
-          © 2026 BioBot. Todos os direitos reservados.
+      <div className="w-full justify-center items-center text-center mt-4 p-2 text-xs sm:text-sm">
+        <p className="text-verde-escuro font-medium">
+          &copy; 2026 BioBot. Todos os direitos reservados.
         </p>
       </div>
     </footer>
