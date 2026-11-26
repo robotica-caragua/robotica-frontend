@@ -1,7 +1,7 @@
 'use client'
 
 import { Suspense, useEffect, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { BsArchive } from 'react-icons/bs'
 import {
   MdArrowBack,
@@ -30,7 +30,9 @@ const iconesMateriais = [
 ]
 
 function DetalhesTutorialConteudo() {
+  const router = useRouter()
   const searchParams = useSearchParams()
+  const handleVoltar = () => (window.history.length > 1 ? router.back() : router.push('/tutoriais'))
   const id = searchParams.get('id')
   const [tutorial, setTutorial] = useState(null)
   const [outrosTutoriais, setOutrosTutoriais] = useState([])
@@ -98,32 +100,34 @@ function DetalhesTutorialConteudo() {
         <p className="text-verde-musgo text-base sm:text-lg font-medium">
           Tutorial não encontrado.
         </p>
-        <Link
-          href="/tutoriais"
-          className="px-5 py-2.5 bg-verde-musgo text-white text-sm font-bold rounded-xl hover:bg-verde-escuro transition"
+        <button
+          type="button"
+          onClick={handleVoltar}
+          className="px-5 py-2.5 bg-verde-musgo text-white text-sm font-bold rounded-xl hover:bg-verde-escuro transition cursor-pointer"
         >
-          Voltar para Tutoriais
-        </Link>
+          Voltar
+        </button>
       </div>
     )
   }
 
   return (
-    <main className="w-full min-h-screen bg-branco-esverdeado/20 py-8 sm:py-12 px-4 flex flex-col items-center justify-start">
+    <main className="w-full grow bg-branco-esverdeado/20 py-8 sm:py-12 px-4 flex flex-col items-center justify-start">
       <div className="w-full max-w-5xl flex flex-col gap-8">
         <div className="self-start">
-          <Link
-            href="/tutoriais"
+          <button
+            type="button"
+            onClick={handleVoltar}
             className="text-verde-escuro hover:text-verde-musgo transition-colors font-bold text-xs sm:text-sm flex items-center gap-2 cursor-pointer bg-white border border-stone-200 px-3.5 py-2 rounded-xl shadow-xs"
           >
             <MdArrowBack size={18} />
-            <span>Voltar para Tutoriais</span>
-          </Link>
+            <span>Voltar</span>
+          </button>
         </div>
 
         {/* Video e Descrição */}
         <div className="border border-stone-200 flex flex-col gap-5 rounded-2xl p-6 sm:p-8 w-full bg-white shadow-xs">
-          <h1 className="text-verde-escuro font-extrabold text-2xl uppercase tracking-tight">
+          <h1 className="text-verde-escuro font-extrabold text-3xl sm:text-4xl uppercase tracking-tight">
             {tutorial.titulo}
           </h1>
 
@@ -137,7 +141,7 @@ function DetalhesTutorialConteudo() {
         {/* Materiais Necessários */}
         <div className="border border-stone-200 flex flex-col gap-4 rounded-2xl p-6 sm:p-8 w-full bg-white shadow-xs">
           <div className="flex items-center gap-3">
-            <div className="p-1.5 bg-[#E8F5D6] rounded-lg flex items-center justify-center">
+            <div className="p-1.5 bg-verde-pastel rounded-lg flex items-center justify-center">
               <BsArchive className="fill-verde-musgo text-lg" />
             </div>
             <h2 className="text-verde-escuro font-bold text-xl sm:text-2xl">
@@ -209,12 +213,12 @@ function DetalhesTutorialConteudo() {
 
 export default function DetalhesTutorial() {
   return (
-    <>
+    <div className="flex flex-col min-h-screen bg-branco-esverdeado/20">
       <Header />
       <Suspense fallback={null}>
         <DetalhesTutorialConteudo />
       </Suspense>
       <Footer />
-    </>
+    </div>
   )
 }

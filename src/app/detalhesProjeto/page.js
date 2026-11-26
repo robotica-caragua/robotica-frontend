@@ -1,7 +1,7 @@
 'use client'
 
 import { Suspense, useEffect, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
 import { Header } from '@/components/Header'
@@ -12,16 +12,23 @@ import {
   MdPhotoLibrary,
   MdInsertDriveFile,
   MdLocationOn,
-  MdArrowForward
+  MdArrowForward,
+  MdChevronLeft,
+  MdChevronRight
 } from 'react-icons/md'
 import Image from 'next/image'
-import containerImage from '@/assets/container.png'
 import { apiProjetos, mapearProjetoDaApi } from '@/services/api'
 
+const IMAGEM_FALLBACK_PROJETO =
+  'https://t4.ftcdn.net/jpg/01/63/58/21/360_F_163582149_7XleuAaTQJ7LYZMCCLyo2sJjiZTgv0As.jpg'
+
 function DetalhesProjetoConteudo() {
+  const router = useRouter()
   const searchParams = useSearchParams()
+  const handleVoltar = () => (window.history.length > 1 ? router.back() : router.push('/projetos'))
   const id = searchParams.get('id')
   const [projeto, setProjeto] = useState(null)
+  const [indiceImagem, setIndiceImagem] = useState(0)
   const [outrosProjetos, setOutrosProjetos] = useState([])
   const [carregando, setCarregando] = useState(true)
 
@@ -38,8 +45,15 @@ function DetalhesProjetoConteudo() {
         const selecionado = detalheApi || lista[0] || null
 
         if (selecionado) {
-          const mapeado = mapearProjetoDaApi(selecionado, containerImage)
-          const imagemApi = Array.isArray(selecionado.media) ? selecionado.media[0] : null
+          const mapeado = mapearProjetoDaApi(selecionado)
+          const galeria =
+            Array.isArray(mapeado.imagens) && mapeado.imagens.length > 0
+              ? mapeado.imagens
+              : mapeado.imagem
+                ? [mapeado.imagem]
+                : [IMAGEM_FALLBACK_PROJETO]
+
+          setIndiceImagem(0)
           setProjeto({
             id: mapeado.id,
             titulo: mapeado.titulo,
@@ -52,7 +66,7 @@ function DetalhesProjetoConteudo() {
             descricao: mapeado.descricao,
             categorias: mapeado.categorias,
             equipe: mapeado.equipe,
-            imagem: mapeado.imagemSalva || imagemApi || mapeado.imagem || containerImage
+            imagens: galeria
           })
 
           const relacionados = lista
@@ -90,33 +104,35 @@ function DetalhesProjetoConteudo() {
     return (
       <main className="w-full min-h-[60vh] py-16 px-4 flex flex-col items-center justify-center gap-4">
         <p className="text-verde-musgo text-base sm:text-lg font-medium">Projeto não encontrado.</p>
-        <Link
-          href="/projetos"
-          className="px-5 py-2.5 bg-verde-musgo text-white text-sm font-bold rounded-xl hover:bg-verde-escuro transition"
+        <button
+          type="button"
+          onClick={handleVoltar}
+          className="px-5 py-2.5 bg-verde-musgo text-white text-sm font-bold rounded-xl hover:bg-verde-escuro transition cursor-pointer"
         >
-          Voltar para Projetos
-        </Link>
+          Voltar
+        </button>
       </main>
     )
   }
 
   return (
-    <main className="w-full min-h-screen bg-branco-esverdeado/20 py-8 sm:py-12 px-4 flex flex-col items-center justify-start">
+    <main className="w-full grow bg-branco-esverdeado/20 py-8 sm:py-12 px-4 flex flex-col items-center justify-start">
       <div className="w-full max-w-5xl flex flex-col gap-8">
         {/* botão voltar */}
         <div className="self-start">
-          <Link
-            href="/projetos"
+          <button
+            type="button"
+            onClick={handleVoltar}
             className="text-verde-escuro hover:text-verde-musgo transition-colors font-bold text-xs sm:text-sm flex items-center gap-2 cursor-pointer bg-white border border-stone-200 px-3.5 py-2 rounded-xl shadow-xs"
           >
             <MdArrowBack size={18} />
-            <span>Voltar para Projetos</span>
-          </Link>
+            <span>Voltar</span>
+          </button>
         </div>
 
         {/* cabeçalho do Projeto */}
         <div className="flex flex-col gap-3">
-          <h1 className="text-verde-escuro text-2xl font-extrabold font-sans leading-tight">
+          <h1 className="text-verde-escuro text-3xl sm:text-4xl font-extrabold font-sans leading-tight">
             {projeto.titulo}
           </h1>
 
@@ -141,7 +157,7 @@ function DetalhesProjetoConteudo() {
           {/* galeria do projeto */}
           <div className="w-full flex-1 flex flex-col gap-3">
             <div className="flex items-center gap-2.5">
-              <div className="p-1.5 bg-[#E8F5D6] rounded-lg flex items-center justify-center">
+              <div className="p-1.5 bg-verde-pastel rounded-lg flex items-center justify-center">
                 <MdPhotoLibrary className="text-lg text-verde-musgo" />
               </div>
               <h2 className="text-verde-escuro text-lg sm:text-xl font-bold font-sans">
@@ -149,16 +165,60 @@ function DetalhesProjetoConteudo() {
               </h2>
             </div>
 
-            <div className="w-full h-64 sm:h-80 md:h-96 bg-white rounded-2xl overflow-hidden shadow-xs border border-stone-200">
+            <div className="relative w-full h-64 sm:h-80 md:h-96 bg-white rounded-2xl overflow-hidden shadow-xs border border-stone-200">
               <Image
                 className="w-full h-full object-cover"
-                src={projeto.imagem}
-                alt={`${projeto.titulo} Protótipo`}
+                src={projeto.imagens[indiceImagem] || IMAGEM_FALLBACK_PROJETO}
+                alt={`${projeto.titulo} Protótipo ${indiceImagem + 1}`}
                 width={648}
                 height={384}
+                unoptimized={String(projeto.imagens[indiceImagem] || '').startsWith('data:')}
                 priority
-                unoptimized
               />
+
+              {projeto.imagens.length > 1 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setIndiceImagem((atual) =>
+                        atual === 0 ? projeto.imagens.length - 1 : atual - 1
+                      )
+                    }
+                    aria-label="Imagem anterior"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 size-9 rounded-full bg-white/90 hover:bg-white text-verde-escuro shadow-md flex items-center justify-center transition cursor-pointer"
+                  >
+                    <MdChevronLeft size={24} />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setIndiceImagem((atual) =>
+                        atual === projeto.imagens.length - 1 ? 0 : atual + 1
+                      )
+                    }
+                    aria-label="Próxima imagem"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 size-9 rounded-full bg-white/90 hover:bg-white text-verde-escuro shadow-md flex items-center justify-center transition cursor-pointer"
+                  >
+                    <MdChevronRight size={24} />
+                  </button>
+
+                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-black/35 backdrop-blur-xs px-3 py-1.5 rounded-full">
+                    {projeto.imagens.map((_, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => setIndiceImagem(idx)}
+                        aria-label={`Ver imagem ${idx + 1}`}
+                        className={`h-2 rounded-full transition-all cursor-pointer ${
+                          idx === indiceImagem ? 'w-5 bg-verde-limao' : 'w-2 bg-white/70'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
@@ -172,7 +232,7 @@ function DetalhesProjetoConteudo() {
                 {projeto.categorias.map((cat) => (
                   <span
                     key={cat}
-                    className="px-2.5 py-1 bg-[#E8F5D6] text-verde-musgo text-xs font-semibold rounded-lg"
+                    className="px-2.5 py-1 bg-verde-pastel text-verde-musgo text-xs font-semibold rounded-lg"
                   >
                     {cat}
                   </span>
@@ -265,12 +325,12 @@ function DetalhesProjetoConteudo() {
 
 export default function DetalhesProjeto() {
   return (
-    <>
+    <div className="flex flex-col min-h-screen bg-branco-esverdeado/20">
       <Header />
       <Suspense fallback={null}>
         <DetalhesProjetoConteudo />
       </Suspense>
       <Footer />
-    </>
+    </div>
   )
 }

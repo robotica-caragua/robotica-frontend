@@ -1,48 +1,261 @@
 @import url('https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700&display=swap');
 @import 'tailwindcss';
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --bg-page: #fffff3;
-  --color-verde-pastel: #e6f5bc;
-  --color-verde-limao: #befc00;
-  --color-verde-oliva: #97e100;
-  --color-verde-musgo: #506600;
-  --color-verde-escuro: #002a15;
-  --color-vermelho: #ba1a1a;
-  --color-input-bg: #f4ffd5;
+  --bg-surface: #ffffff;
+  --bg-sidebar: #f4ffd5;
+  --bg-surface-soft: #f4ffd5;
+  --border-subtle: #506600;
+  --border-card: #506600;
+
+  --verde-pastel: #e6f5bc;
+  --verde-limao: #befc00;
+  --verde-oliva: #97e100;
+  --verde-musgo: #506600;
+  --verde-escuro: #002a15;
+  --vermelho: #ba1a1a;
+  --input-bg: #f4ffd5;
+  --branco-esverdeado: #fffff3;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg-page: #fffff3;
-    --verde-pastel: #e6f5bc;
-    --verde-limao: #befc00;
-    --verde-oliva: #97e100;
-    --verde-musgo: #506600;
-    --verde-escuro: #002a15;
-    --vermelho: #ba1a1a;
-    --input-bg: #f4ffd5;
-  }
+/* Nova Paleta Oficial do Modo Escuro BIOBOT */
+html.dark {
+  --bg-page: #001b0d;
+  --bg-surface: #002a15;
+  --bg-sidebar: #002a15;
+  --bg-surface-soft: #002a15;
+  --border-subtle: #97e100;
+  --border-card: #97e100;
+
+  --verde-pastel: #002a15;
+  --verde-limao: #befc00;
+  --verde-oliva: #97e100;
+  --verde-musgo: #befc00;
+  --verde-escuro: #fffff3;
+  --vermelho: #ba1a1a;
+  --input-bg: #002a15;
+  --branco-esverdeado: #001b0d;
 }
 
 body {
   background: var(--bg-page);
   color: var(--verde-escuro);
   font-family: 'Work Sans', sans-serif;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
 
 html {
   scroll-behavior: smooth;
 }
 
-@theme {
-  --bg-page: #fffff3;
-  --color-verde-pastel: #e6f5bc;
-  --color-verde-limao: #befc00;
-  --color-verde-oliva: #97e100;
-  --color-verde-musgo: #506600;
-  --color-verde-escuro: #002a15;
-  --color-vermelho: #ba1a1a;
-  --color-input-bg: #f4ffd5;
-  --color-branco-esverdeado: #fffff3;
+@theme inline {
+  --color-background: var(--bg-page);
+  --color-branco-creme: var(--bg-page);
+  --color-branco-esverdeado: var(--branco-esverdeado);
+  --color-verde-pastel: var(--verde-pastel);
+  --color-verde-limao: var(--verde-limao);
+  --color-verde-oliva: var(--verde-oliva);
+  --color-verde-musgo: var(--verde-musgo);
+  --color-verde-escuro: var(--verde-escuro);
+  --color-vermelho: var(--vermelho);
+  --color-input-bg: var(--input-bg);
+}
+
+/* =========================================================
+   Adaptações globais do Modo Escuro Oficial BIOBOT
+   (Replicando a distribuição de cores da Home escura em todas as páginas)
+   ========================================================= */
+html.dark aside.panel-sidebar {
+  background-color: var(--bg-sidebar) !important;
+  border-color: var(--border-card) !important;
+}
+
+html.dark footer {
+  background-color: #002a15 !important;
+}
+
+html.dark .bg-white {
+  background-color: var(--bg-surface) !important;
+}
+
+html.dark .bg-white\/80,
+html.dark .bg-white\/60 {
+  background-color: rgba(0, 42, 21, 0.92) !important;
+}
+
+html.dark .bg-white\/40 {
+  background-color: rgba(0, 42, 21, 0.65) !important;
+}
+
+html.dark .bg-\[\#FAF8F5\],
+html.dark .bg-\[\#F2F3EE\],
+html.dark .bg-\[\#E8EBDD\],
+html.dark .bg-\[\#E8F5D6\] {
+  background-color: var(--bg-surface) !important;
+}
+
+html.dark .bg-stone-50,
+html.dark .bg-stone-100,
+html.dark .bg-gray-200,
+html.dark .bg-gray-300,
+html.dark .bg-\[\#E1E3E4\] {
+  background-color: #001b0d !important;
+}
+
+/* Inputs, textareas e blocos secundários aninhados dentro de cards (#002A15) usam fundo #001B0D com borda #97E100 */
+html.dark .bg-white input:not([type='checkbox']):not([type='radio']):not([type='file']),
+html.dark .bg-white textarea,
+html.dark .bg-white .bg-input-bg,
+html.dark .bg-white .bg-verde-pastel\/60,
+html.dark .bg-white .bg-\[\#F2F3EE\] {
+  background-color: #001b0d !important;
+}
+
+html.dark .bg-white .bg-verde-pastel:not(button) {
+  background-color: #001b0d !important;
+  border: 1px solid rgba(151, 225, 0, 0.55);
+}
+
+html.dark .border-verde-musgo,
+html.dark .border-verde-musgo\/30,
+html.dark .border-verde-musgo\/40,
+html.dark .border-verde-musgo\/50,
+html.dark .border-verde-pastel,
+html.dark .border-stone-100,
+html.dark .border-stone-200,
+html.dark .border-stone-200\/80,
+html.dark .border-stone-300 {
+  border-color: #97e100 !important;
+}
+
+/* Mantém bordas finas e elegantes nos cards e botões no modo escuro, como na Home de referência */
+html.dark .border-2.border-verde-musgo,
+html.dark .border-2.border-stone-300 {
+  border-width: 1px !important;
+}
+
+html.dark .divide-stone-100 > :not(:last-child),
+html.dark .divide-verde-escuro\/10 > :not(:last-child) {
+  border-color: rgba(151, 225, 0, 0.25) !important;
+}
+
+html.dark .border-black {
+  border-color: #befc00 !important;
+}
+
+html.dark .text-black {
+  color: #befc00 !important;
+}
+
+html.dark .text-stone-700,
+html.dark .text-stone-600 {
+  color: #fffff3 !important;
+}
+
+html.dark .text-stone-500,
+html.dark .text-stone-400 {
+  color: #97e100 !important;
+}
+
+/* Botões e badges (bg-verde-musgo) seguem o padrão da Home escura: superfície #002A15 (#001B0D dentro de cards), borda fina #97E100 e texto/ícone #BEFC00 */
+html.dark .bg-verde-musgo {
+  background-color: #002a15 !important;
+  border: 1px solid #97e100 !important;
+  color: #befc00 !important;
+}
+
+html.dark .bg-white .bg-verde-musgo {
+  background-color: #001b0d !important;
+}
+
+html.dark .bg-verde-musgo:hover,
+html.dark .hover\:bg-verde-musgo:hover {
+  background-color: #befc00 !important;
+  border-color: #97e100 !important;
+  color: #001b0d !important;
+}
+
+/* Textos e ícones sobre superfícies em verde-limão ou oliva (selos ativos, badges, botões) */
+html.dark .bg-verde-limao:not(.sidebar-active-item):not(.btn-card-escola),
+html.dark .bg-verde-oliva:not(.pillars-strip) {
+  color: #001b0d !important;
+}
+
+html.dark .btn-card-escola {
+  background-color: #001b0d !important;
+  border-color: #97e100 !important;
+  color: #befc00 !important;
+}
+
+html.dark .btn-card-escola:hover {
+  background-color: #befc00 !important;
+  border-color: #97e100 !important;
+  color: #001b0d !important;
+}
+
+/* Garante que ícones (SVG) e textos internos herdem a transição suave de cor do botão sem criar fundo próprio nem delay */
+html.dark .bg-verde-musgo svg,
+html.dark .bg-verde-musgo span,
+html.dark .hover\:bg-verde-musgo svg,
+html.dark .hover\:bg-verde-musgo span,
+html.dark .btn-card-escola svg,
+html.dark .btn-card-escola span,
+html.dark .bg-verde-limao:not(.sidebar-active-item) svg,
+html.dark .bg-verde-limao:not(.sidebar-active-item) span,
+html.dark .bg-verde-oliva:not(.pillars-strip) svg,
+html.dark .bg-verde-oliva:not(.pillars-strip) span {
+  color: inherit !important;
+}
+
+html.dark .bg-verde-limao .bg-verde-musgo {
+  background-color: #001b0d !important;
+  border: none !important;
+}
+
+/* Botões destrutivos com alto contraste (#BA1A1A e texto #FFFFF3) sobre #001B0D e #002A15 */
+html.dark button.border-vermelho {
+  background-color: #ba1a1a !important;
+  border-color: #ba1a1a !important;
+  color: #fffff3 !important;
+}
+
+html.dark button.border-vermelho:hover {
+  filter: brightness(1.12);
+}
+
+/* Item ativo da sidebar: fundo #001B0D com borda fina #97E100 e texto/ícone #BEFC00 */
+html.dark .sidebar-active-item {
+  background-color: #001b0d !important;
+  border: 1px solid #97e100 !important;
+  color: #befc00 !important;
+  box-shadow: none !important;
+}
+
+html.dark .sidebar-active-item svg,
+html.dark .sidebar-active-item span {
+  color: #befc00 !important;
+}
+
+html.dark .hover\:bg-stone-50:hover,
+html.dark .hover\:bg-stone-50\/80:hover,
+html.dark .hover\:bg-stone-100:hover {
+  background-color: #001b0d !important;
+}
+
+/* Botão de alternância de tema com estilo outline da Home escura */
+html.dark .theme-toggle-btn {
+  background-color: #002a15 !important;
+  border-color: #97e100 !important;
+  color: #befc00 !important;
+}
+
+html.dark .theme-toggle-btn:hover {
+  background-color: #befc00 !important;
+  border-color: #97e100 !important;
+  color: #001b0d !important;
 }

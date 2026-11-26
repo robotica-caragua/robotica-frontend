@@ -1,5 +1,6 @@
 'use client'
 
+import { Select } from '@/components/Select'
 import { useEffect, useMemo, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -7,9 +8,8 @@ import { useRouter } from 'next/navigation'
 import { SideBarProfessor } from '@/components/SideBarProfessor'
 import { ModalConfirmacao } from '@/components/ModalConfirmacao'
 import { apiCategorias, apiEscolas, apiProjetos, mapearProjetoDaApi } from '@/services/api'
-import { IoSearchOutline, IoAddOutline } from 'react-icons/io5'
+import { IoAddOutline } from 'react-icons/io5'
 import {
-  MdKeyboardArrowDown,
   MdOutlineEdit,
   MdOutlineVisibility,
   MdOutlineVisibilityOff,
@@ -21,72 +21,81 @@ import containerImg from '@/assets/container.png'
 export default function GestaoProjetos() {
   const router = useRouter()
   const [projetos, setProjetos] = useState([])
+  const [categoriasApi, setCategoriasApi] = useState([])
+  const [escolasApi, setEscolasApi] = useState([])
   const [carregando, setCarregando] = useState(true)
-  const [busca, setBusca] = useState('')
   const [categoria, setCategoria] = useState('')
   const [escola, setEscola] = useState('')
   const [modal, setModal] = useState({ aberto: false, tipo: null, mensagem: '', titulo: '' })
 
-  const carregarProjetos = async () => {
-    setCarregando(true)
-    try {
-      const [listaProjetos, listaCategorias, listaEscolas] = await Promise.all([
-        apiProjetos.listar().catch(() => []),
-        apiCategorias.listar().catch(() => []),
-        apiEscolas.listar().catch(() => [])
-      ])
-
-      const dados = (Array.isArray(listaProjetos) ? listaProjetos : []).map((item, idx) => {
-        const mapeado = mapearProjetoDaApi(item)
-        return {
-          id: item.id,
-          titulo: item.name || mapeado.titulo,
-          descricao: item.description || mapeado.descricao,
-          imagem: idx % 2 === 0 ? containerImg : semaforo,
-          status: 'publicado',
-          visivel: true,
-          escola: item.school?.name || mapeado.escola || 'Rede Municipal',
-          categorias: mapeado.categorias || [],
-          curtidas: item.likes || mapeado.curtidas || 0,
-          infoData: `Atualizado em ${new Date(item.updatedAt || item.createdAt || Date.now()).toLocaleDateString('pt-BR')}`
-        }
-      })
-      setProjetos(dados)
-    } finally {
-      setCarregando(false)
-    }
-  }
-
   useEffect(() => {
-    // Carga inicial de dados da API ao montar a página
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    carregarProjetos()
+    let ativo = true
+
+    Promise.all([
+      apiProjetos.listar().catch(() => []),
+      apiCategorias.listar().catch(() => []),
+      apiEscolas.listar().catch(() => [])
+    ])
+      .then(([listaProjetos, listaCategorias, listaEscolas]) => {
+        if (!ativo) return
+        const dados = (Array.isArray(listaProjetos) ? listaProjetos : [])
+          .map((item, idx) => {
+            const mapeado = mapearProjetoDaApi(item, idx % 2 === 0 ? containerImg : semaforo)
+            return {
+              id: item.id,
+              titulo: item.name || mapeado.titulo,
+              descricao: item.description || mapeado.descricao,
+              imagem: mapeado.imagem,
+              status: 'publicado',
+              visivel: true,
+              escola: item.school?.name || mapeado.escola || 'Rede Municipal de Caraguatatuba',
+              categorias: mapeado.categorias || [],
+              curtidas: item.likes || mapeado.curtidas || 0,
+              createdAt: item.createdAt || mapeado.createdAt,
+              updatedAt: item.updatedAt || mapeado.updatedAt,
+              infoData: `Criado em ${new Date(item.updatedAt || item.createdAt || Date.now()).toLocaleDateString('pt-BR')}`
+            }
+          })
+          .sort(
+            (a, b) =>
+              new Date(b.updatedAt || b.createdAt || 0) -
+                new Date(a.updatedAt || a.createdAt || 0) || Number(b.id) - Number(a.id)
+          )
+        setProjetos(dados)
+        setCategoriasApi(
+          Array.isArray(listaCategorias) ? listaCategorias.map((c) => c.name).filter(Boolean) : []
+        )
+        setEscolasApi(
+          Array.isArray(listaEscolas) ? listaEscolas.map((s) => s.name).filter(Boolean) : []
+        )
+      })
+      .finally(() => {
+        if (ativo) setCarregando(false)
+      })
+
+    return () => {
+      ativo = false
+    }
   }, [])
 
   const opcoesCategoria = useMemo(() => {
-    const cats = new Set()
+    const cats = new Set(categoriasApi)
     projetos.forEach((p) => (p.categorias || []).forEach((c) => cats.add(c)))
-    return Array.from(cats).sort()
-  }, [projetos])
+    return Array.from(cats).sort((a, b) => a.localeCompare(b, 'pt-BR'))
+  }, [categoriasApi, projetos])
 
   const opcoesEscola = useMemo(() => {
-    const esc = new Set(projetos.map((p) => p.escola).filter(Boolean))
-    return Array.from(esc).sort()
-  }, [projetos])
+    const esc = new Set([...escolasApi, ...projetos.map((p) => p.escola).filter(Boolean)])
+    return Array.from(esc).sort((a, b) => a.localeCompare(b, 'pt-BR'))
+  }, [escolasApi, projetos])
 
   const projetosFiltrados = useMemo(() => {
     return projetos.filter((proj) => {
-      const termo = busca.toLowerCase().trim()
-      const bateuBusca =
-        !termo ||
-        proj.titulo.toLowerCase().includes(termo) ||
-        proj.descricao.toLowerCase().includes(termo) ||
-        proj.escola.toLowerCase().includes(termo)
       const bateuCat = !categoria || proj.categorias.includes(categoria)
       const bateuEscola = !escola || proj.escola === escola
-      return bateuBusca && bateuCat && bateuEscola
+      return bateuCat && bateuEscola
     })
-  }, [projetos, busca, categoria, escola])
+  }, [projetos, categoria, escola])
 
   const alternarVisibilidade = (id) => {
     setProjetos((lista) => lista.map((p) => (p.id === id ? { ...p, visivel: !p.visivel } : p)))
@@ -127,29 +136,14 @@ export default function GestaoProjetos() {
   }
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen bg-background relative">
+    <div className="flex flex-col lg:flex-row min-h-screen w-full bg-background relative">
       <SideBarProfessor />
 
-      <main className="flex-1 flex flex-col p-4 sm:p-8 lg:p-12 overflow-x-hidden">
-        <div className="w-full max-w-6xl mx-auto flex flex-col gap-8">
-          {/* Barra de pesquisa superior */}
-          <div className="relative w-full max-w-md">
-            <IoSearchOutline
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-verde-musgo pointer-events-none"
-              size={20}
-            />
-            <input
-              type="text"
-              placeholder="Pesquisar projetos..."
-              value={busca}
-              onChange={(e) => setBusca(e.target.value)}
-              className="w-full pl-11 pr-4 py-2 bg-input-bg border border-verde-musgo rounded-full text-verde-escuro placeholder-verde-escuro/60 text-sm focus:outline-none transition"
-            />
-          </div>
-
+      <main className="flex-1 flex flex-col pb-16">
+        <div className="w-full max-w-[1040px] mx-auto py-8 lg:py-10 px-6 sm:px-10 lg:px-14 flex flex-col gap-6 sm:gap-8">
           {/* Cabeçalho */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
-            <section className="flex flex-col gap-1.5 max-w-xl">
+            <section className="flex flex-col gap-2 max-w-[600px]">
               <h1 className="text-verde-escuro text-3xl sm:text-4xl font-bold leading-tight">
                 Meus Projetos
               </h1>
@@ -161,28 +155,28 @@ export default function GestaoProjetos() {
 
             <Link
               href="/novoProjeto"
-              className="shrink-0 px-5 py-2.5 bg-verde-musgo hover:bg-white hover:text-verde-musgo border-2 border-verde-musgo text-white text-sm font-bold rounded-xl shadow-xs flex items-center gap-2 transition cursor-pointer"
+              className="shrink-0 px-6 py-3 bg-verde-musgo hover:bg-white hover:text-verde-musgo border border-verde-musgo text-white text-sm sm:text-base font-bold rounded-lg shadow-sm flex items-center gap-2 transition cursor-pointer"
             >
               <IoAddOutline size={20} />
               <span>Novo Projeto</span>
             </Link>
           </div>
 
-          {/* Filtros */}
-          <div className="w-full p-5 bg-white border border-verde-musgo rounded-2xl flex flex-col md:flex-row items-stretch md:items-center gap-6">
+          {/* Barra técnica de filtros */}
+          <div className="w-full p-5 bg-white border border-b-4 border-verde-musgo rounded-2xl flex flex-col md:flex-row items-stretch md:items-center gap-6 md:gap-10">
             <div className="flex-1 flex flex-col gap-1">
               <label
                 htmlFor="filtro-categoria"
-                className="text-verde-musgo text-xs font-bold uppercase tracking-wider"
+                className="text-verde-musgo text-xs sm:text-sm font-bold uppercase tracking-wide"
               >
                 Categoria
               </label>
               <div className="relative">
-                <select
+                <Select
                   id="filtro-categoria"
                   value={categoria}
                   onChange={(e) => setCategoria(e.target.value)}
-                  className="w-full appearance-none bg-transparent text-verde-musgo text-sm font-medium pr-7 focus:outline-none cursor-pointer"
+                  className="w-full appearance-none bg-transparent text-verde-musgo text-sm sm:text-base font-medium pr-7 focus:outline-none cursor-pointer"
                 >
                   <option value="">Todas as Categorias</option>
                   {opcoesCategoria.map((op) => (
@@ -190,29 +184,25 @@ export default function GestaoProjetos() {
                       {op}
                     </option>
                   ))}
-                </select>
-                <MdKeyboardArrowDown
-                  size={18}
-                  className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 text-verde-musgo"
-                />
+                </Select>
               </div>
             </div>
 
-            <div className="hidden md:block w-px h-8 bg-verde-escuro/10" />
+            <div className="hidden md:block w-px h-10 bg-verde-escuro/10" />
 
             <div className="flex-1 flex flex-col gap-1">
               <label
                 htmlFor="filtro-escola"
-                className="text-verde-musgo text-xs font-bold uppercase tracking-wider"
+                className="text-verde-musgo text-xs sm:text-sm font-bold uppercase tracking-wide"
               >
                 Escola
               </label>
               <div className="relative">
-                <select
+                <Select
                   id="filtro-escola"
                   value={escola}
                   onChange={(e) => setEscola(e.target.value)}
-                  className="w-full appearance-none bg-transparent text-verde-musgo text-sm font-medium pr-7 focus:outline-none cursor-pointer"
+                  className="w-full appearance-none bg-transparent text-verde-musgo text-sm sm:text-base font-medium pr-7 focus:outline-none cursor-pointer"
                 >
                   <option value="">Todas as Escolas</option>
                   {opcoesEscola.map((op) => (
@@ -220,11 +210,7 @@ export default function GestaoProjetos() {
                       {op}
                     </option>
                   ))}
-                </select>
-                <MdKeyboardArrowDown
-                  size={18}
-                  className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 text-verde-musgo"
-                />
+                </Select>
               </div>
             </div>
           </div>

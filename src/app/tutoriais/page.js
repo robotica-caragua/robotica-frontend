@@ -110,7 +110,7 @@ export default function Tutoriais() {
         </section>
 
         {/* Container principal */}
-        <div className="w-full md:w-[85%] lg:w-[75%] mx-auto px-4 flex flex-col lg:flex-row items-start gap-8 mt-6 sm:mt-8">
+        <div className="w-full md:w-[85%] lg:w-[75%] max-w-[1200px] mx-auto px-4 flex flex-col lg:flex-row items-start gap-8 mt-6 sm:mt-8">
           {/* Coluna esquerda */}
           <aside className="w-full lg:w-72 shrink-0 flex flex-col gap-5">
             <div className="flex flex-col gap-2 w-full">
@@ -131,7 +131,7 @@ export default function Tutoriais() {
               <School value={escola} onChange={comReset(setEscola)} options={escolas} />
             </div>
 
-            <div className="hidden lg:block mt-2">
+            <div className="hidden lg:block">
               <BobIdea />
             </div>
           </aside>

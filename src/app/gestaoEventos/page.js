@@ -7,7 +7,7 @@ import { SideBarAdmin } from '@/components/SideBarAdmin'
 import { ModalConfirmacao } from '@/components/ModalConfirmacao'
 import { FilterButton } from '@/components/FilterButton'
 import { CardEventoAdmin } from '@/components/CardEventoAdmin'
-import { apiProjetos } from '@/services/api'
+import { apiEventos, mapearEventoDaApi } from '@/services/api'
 import { IoAddOutline, IoAddCircleOutline } from 'react-icons/io5'
 import { MdOutlineEmojiEvents, MdOutlineScience, MdOutlineCode, MdSmartToy } from 'react-icons/md'
 
@@ -35,24 +35,24 @@ export default function GestaoEventos() {
   useEffect(() => {
     let ativo = true
 
-    apiProjetos
+    apiEventos
       .listar()
       .then((lista) => {
         if (!ativo) return
         setEventos(
-          (Array.isArray(lista) ? lista : []).map((proj, idx) => ({
-            id: proj.id,
-            icone: iconesEvento[idx % iconesEvento.length],
-            titulo: proj.name,
-            data: new Date(proj.createdAt || Date.now()).toLocaleDateString('pt-BR', {
-              day: '2-digit',
-              month: 'long',
-              year: 'numeric'
-            }),
-            info: proj.school?.name || 'Rede Municipal',
-            selo: 'Inscrições Abertas',
-            status: 'agendado'
-          }))
+          (Array.isArray(lista) ? lista : []).map((ev, idx) => {
+            const mapeado = mapearEventoDaApi(ev)
+            return {
+              id: ev.id,
+              icone: iconesEvento[idx % iconesEvento.length],
+              titulo: mapeado.titulo,
+              data: mapeado.data,
+              info: mapeado.local,
+              selo:
+                mapeado.inscricoes === 'fechadas' ? 'Inscrições Encerradas' : 'Inscrições Abertas',
+              status: mapeado.status || 'agendado'
+            }
+          })
         )
       })
       .catch(() => {})
@@ -81,7 +81,7 @@ export default function GestaoEventos() {
     if (!modal.eventoParaExcluir) return
     const ev = modal.eventoParaExcluir
     try {
-      await apiProjetos.excluir(ev.id)
+      await apiEventos.excluir(ev.id)
       setEventos((prev) => prev.filter((item) => item.id !== ev.id))
       setModal({
         aberto: true,
@@ -102,33 +102,31 @@ export default function GestaoEventos() {
   }
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen bg-background relative">
+    <div className="flex flex-col lg:flex-row min-h-screen w-full bg-background relative">
       <SideBarAdmin />
 
-      <main className="flex-1 flex flex-col">
-        <div className="w-full max-w-6xl mx-auto py-8 lg:py-12 px-4 sm:px-8 flex flex-col gap-8">
+      <main className="flex-1 flex flex-col pb-16">
+        <div className="w-full max-w-[1040px] mx-auto py-8 lg:py-10 px-6 sm:px-10 lg:px-14 flex flex-col gap-6 sm:gap-8">
           <div className="flex flex-wrap justify-between items-end gap-6">
-            <section className="flex flex-col gap-2">
-              <h2 className="text-verde-escuro text-2xl font-bold leading-tight">
+            <section className="flex flex-col gap-2 max-w-[600px]">
+              <h1 className="text-verde-escuro text-3xl sm:text-4xl font-bold leading-tight">
                 Gestão de Eventos
-              </h2>
-              <p className="text-verde-musgo text-base sm:text-lg lg:text-xl font-normal">
+              </h1>
+              <p className="text-verde-musgo text-sm sm:text-base font-normal">
                 Cadastre e organize os torneios, mostras e feiras de robótica da rede.
               </p>
             </section>
 
             <Link
               href="/cadastrarEvento"
-              className="shrink-0 px-6 py-3 bg-verde-musgo hover:bg-white hover:text-verde-musgo border border-verde-musgo text-white text-base sm:text-lg font-bold rounded-lg shadow-sm flex items-center gap-2 transition"
+              className="px-6 py-3 bg-verde-musgo hover:bg-white hover:text-verde-musgo border border-verde-musgo text-white text-sm sm:text-base font-bold rounded-lg flex items-center gap-2 shadow-sm cursor-pointer transition"
             >
-              <IoAddOutline size={24} /> Novo Evento
+              <IoAddOutline size={20} />
+              <span>Criar Evento</span>
             </Link>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3 sm:gap-4">
-            <span className="text-verde-escuro text-xs font-bold uppercase tracking-wider">
-              Status:
-            </span>
+          <div className="flex flex-wrap gap-3">
             {filtros.map(({ valor, texto }) => (
               <FilterButton
                 key={valor}
@@ -151,7 +149,7 @@ export default function GestaoEventos() {
                   title={evento.titulo}
                   date={evento.data}
                   info={evento.info}
-                  status={evento.selo}
+                  selo={evento.selo}
                   onEdit={() => router.push(`/cadastrarEvento?id=${evento.id}`)}
                   onDelete={() => excluirEvento(evento)}
                 />
@@ -159,12 +157,10 @@ export default function GestaoEventos() {
 
               <Link
                 href="/cadastrarEvento"
-                className="flex min-h-56 flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-verde-oliva text-verde-escuro hover:bg-input-bg transition"
+                className="min-h-60 p-6 rounded-2xl border-2 border-dashed border-verde-musgo/60 bg-white/40 hover:bg-verde-pastel/40 transition flex flex-col items-center justify-center gap-3 text-verde-musgo cursor-pointer"
               >
-                <div className="flex size-12 items-center justify-center rounded-full bg-verde-pastel">
-                  <IoAddCircleOutline size={26} />
-                </div>
-                <span className="text-sm">Novo Evento</span>
+                <IoAddCircleOutline size={36} />
+                <span className="text-base font-bold">Agendar Novo Evento</span>
               </Link>
             </div>
           )}

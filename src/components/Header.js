@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { MdArrowForward, MdClose, MdMenu } from 'react-icons/md'
 import Image from 'next/image'
 import Logo from '../assets/logo.svg'
+import IconLogo from '../app/icon.svg'
+import { ThemeToggle } from './ThemeToggle'
 
 export function Header() {
   const [menuAberto, setMenuAberto] = useState(false)
@@ -24,7 +26,7 @@ export function Header() {
   return (
     <header
       id="topo"
-      className="w-full md:w-[85%] lg:w-[75%] mx-auto my-3 sm:my-4 lg:my-6 px-4 sm:px-6"
+      className="w-full md:w-[85%] lg:w-[75%] max-w-[1200px] mx-auto my-3 sm:my-4 lg:my-6 px-4 sm:px-6"
     >
       <div className="h-16 flex items-center justify-between flex-row-reverse lg:flex-row">
         {/* Logo (à direita no mobile conforme Figma, à esquerda no desktop) */}
@@ -34,9 +36,22 @@ export function Header() {
             alt="Logo Conexão Robótica"
             width={180}
             height={50}
-            className="w-32 sm:w-40 lg:w-[180px] h-auto"
+            className="dark:hidden w-32 sm:w-40 lg:w-[180px] h-auto"
             priority
           />
+          <span className="hidden dark:inline-flex items-center gap-2.5">
+            <Image
+              src={IconLogo}
+              alt=""
+              width={40}
+              height={40}
+              className="w-9 h-9 sm:w-10 sm:h-10 object-contain"
+              priority
+            />
+            <span className="text-2xl sm:text-3xl font-extrabold tracking-tight text-verde-escuro">
+              BIOBOT
+            </span>
+          </span>
         </Link>
 
         {/* Botão Hamburger (à esquerda no mobile conforme Figma) */}
@@ -103,6 +118,10 @@ export function Header() {
                 <MdArrowForward size={28} />
               </Link>
             </li>
+
+            <li>
+              <ThemeToggle />
+            </li>
           </ul>
         </nav>
       </div>
@@ -120,8 +139,10 @@ export function Header() {
           {/* Painel do menu lateral */}
           <div className="relative z-50 w-72 max-w-[85vw] h-full bg-[#FAF8F5] shadow-2xl flex flex-col justify-between p-6 overflow-y-auto">
             <div>
-              {/* Botão de Fechar no topo direito do drawer */}
-              <div className="flex justify-end mb-6">
+              {/* Topo do drawer com alternador de tema e botão fechar */}
+              <div className="flex items-center justify-between mb-6">
+                <ThemeToggle variant="pill" />
+
                 <button
                   type="button"
                   onClick={() => setMenuAberto(false)}

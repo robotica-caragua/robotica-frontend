@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Button } from '@/components/Button'
 import { Header } from '@/components/Header'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -14,6 +13,7 @@ export default function LoginPage() {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
+  const [mostrarSenha, setMostrarSenha] = useState(false)
   const [erro, setErro] = useState('')
   const [carregando, setCarregando] = useState(false)
 
@@ -29,7 +29,11 @@ export default function LoginPage() {
     setCarregando(true)
     try {
       const dados = await apiAuth.login({ email: email.trim(), password: senha })
-      const destino = dados?.user?.role === 'ADMIN' ? '/gestaoUsuarios' : '/painelProfessor'
+      const ehAdmin =
+        dados?.user?.role === 'ADMIN' ||
+        dados?.user?.perfil === 'ADMINISTRADOR' ||
+        dados?.user?.permissaoAdministrador === true
+      const destino = ehAdmin ? '/dashboard' : '/painelProfessor'
       router.push(destino)
     } catch (err) {
       setErro(err.message || 'Credenciais inválidas ou servidor indisponível.')
@@ -43,7 +47,7 @@ export default function LoginPage() {
       <Header />
       <main className="px-4 py-8">
         <div className="flex flex-row gap-2 justify-center text-center">
-          <h1 className="font-bold text-3xl sm:text-4xl text-verde-escuro">
+          <h1 className="font-extrabold text-3xl sm:text-4xl uppercase tracking-tight text-verde-escuro">
             ACESSE SUA <span className="text-verde-musgo">CONTA!</span>
           </h1>
         </div>
@@ -84,15 +88,57 @@ export default function LoginPage() {
               >
                 Senha
               </label>
-              <input
-                className="h-11 bg-verde-pastel/60 rounded-xl border border-verde-musgo px-3 text-verde-escuro text-sm sm:text-base focus:outline-none focus:ring-1 focus:ring-verde-musgo transition w-full"
-                type="password"
-                id="password-field"
-                value={senha}
-                onChange={(e) => setSenha(e.target.value)}
-                placeholder="Digite sua senha..."
-                required
-              />
+              <div className="relative">
+                <input
+                  className="h-11 bg-verde-pastel/60 rounded-xl border border-verde-musgo px-3 pe-11 text-verde-escuro text-sm sm:text-base focus:outline-none focus:ring-1 focus:ring-verde-musgo transition w-full"
+                  type={mostrarSenha ? 'text' : 'password'}
+                  id="password-field"
+                  value={senha}
+                  onChange={(e) => setSenha(e.target.value)}
+                  placeholder="Digite sua senha..."
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setMostrarSenha((prev) => !prev)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-verde-musgo hover:text-verde-escuro transition cursor-pointer"
+                  aria-label="Alternar visibilidade da senha"
+                >
+                  {mostrarSenha ? (
+                    <svg
+                      className="shrink-0 size-5"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                  ) : (
+                    <svg
+                      className="shrink-0 size-5"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
+                      <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" />
+                      <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" />
+                      <line x1="2" x2="22" y1="2" y2="22" />
+                    </svg>
+                  )}
+                </button>
+              </div>
 
               {erro && <p className="mt-2 text-xs font-semibold text-vermelho">{erro}</p>}
 

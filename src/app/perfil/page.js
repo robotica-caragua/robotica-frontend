@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import Link from 'next/link'
 import {
   MdTrendingUp,
   MdOutlineRocketLaunch,
@@ -10,38 +11,41 @@ import {
   MdOutlineEdit,
   MdOutlineAccountBalance,
   MdOutlineLink,
-  MdLockOutline
+  MdOutlineSecurity,
+  MdOutlineLockReset,
+  MdClose,
+  MdOutlineLocationOn
 } from 'react-icons/md'
-import { IoCheckmarkCircle, IoRadioButtonOffOutline } from 'react-icons/io5'
 import { AdminSidebar } from '@/components/AdminSidebar'
 import { ModalConfirmacao } from '@/components/ModalConfirmacao'
+import { Select } from '@/components/Select'
 import {
   apiAuth,
   apiEscolas,
   apiProjetos,
+  apiSolicitacoesVinculo,
   apiTutoriais,
   apiUsuarios,
   obterToken,
   obterUsuario
 } from '@/services/api'
 
-const RequisitoItem = ({ atendido, texto }) => (
-  <div
-    className={`flex items-center gap-2 text-sm transition-colors duration-300 ${
-      atendido ? 'text-verde-escuro font-semibold' : 'text-verde-musgo opacity-60'
-    }`}
-  >
-    {atendido ? (
-      <IoCheckmarkCircle
-        size={18}
-        className="text-verde-oliva shadow-[0px_0px_8px_0px_rgba(185,246,0,0.40)] rounded-full"
-      />
-    ) : (
-      <IoRadioButtonOffOutline size={18} />
-    )}
-    <span>{texto}</span>
-  </div>
-)
+function normalizarVinculo(item, idx = 0) {
+  const escolaObj = item?.school || item
+  if (!escolaObj?.name) return null
+  return {
+    id: escolaObj.id ?? idx + 1,
+    escola: escolaObj.name,
+    endereco: escolaObj.address || 'Caraguatatuba - SP',
+    status: item?.status || 'ativo',
+    ativo:
+      item?.status === 'em_analise'
+        ? false
+        : item?.active !== undefined
+          ? Boolean(item.active)
+          : true
+  }
+}
 
 function criarPerfilInicial(usuarioSalvo) {
   return {
@@ -55,28 +59,33 @@ function criarPerfilInicial(usuarioSalvo) {
     pessoal: {
       nome: usuarioSalvo?.name || '',
       email: usuarioSalvo?.email || '',
-      telefone: '',
+      telefone: usuarioSalvo?.phone || '',
       matricula: usuarioSalvo?.id ? `#${String(usuarioSalvo.id).padStart(5, '0')}` : '',
-      cpf: '',
-      nascimento: ''
+      cpf: usuarioSalvo?.cpf || '',
+      nascimento: usuarioSalvo?.birthDate || ''
     },
     vinculos: []
   }
 }
 
 export default function PerfilPage() {
-  const [perfil, setPerfil] = useState(() => criarPerfilInicial(obterUsuario()))
+  const [perfil, setPerfil] = useState(() => criarPerfilInicial(null))
+  const [escolasDisponiveis, setEscolasDisponiveis] = useState([])
   const [editando, setEditando] = useState(false)
-  const [mostrarSenha, setMostrarSenha] = useState(false)
-  const [senha, setSenha] = useState('')
-  const [modal, setModal] = useState({ aberto: false, tipo: 'sucesso', mensagemErro: '' })
 
-  const validacoes = {
-    tamanho: senha.length >= 8,
-    maiuscula: /[A-Z]/.test(senha),
-    numero: /[0-9]/.test(senha),
-    especial: /[^A-Za-z0-9]/.test(senha)
-  }
+  // Modal de solicitação de novo vínculo
+  const [modalVinculoAberto, setModalVinculoAberto] = useState(false)
+  const [escolaSelecionadaId, setEscolaSelecionadaId] = useState('')
+  const [erroSelecaoEscola, setErroSelecaoEscola] = useState('')
+
+  // Modal de feedback geral (atualização de perfil / solicitação enviada)
+  const [modal, setModal] = useState({
+    aberto: false,
+    tipo: 'sucesso',
+    titulo: '',
+    mensagem: '',
+    textoBotao: 'Continuar no Perfil'
+  })
 
   useEffect(() => {
     let ativo = true
@@ -85,40 +94,56 @@ export default function PerfilPage() {
       obterToken() ? apiAuth.me().catch(() => null) : Promise.resolve(null),
       apiTutoriais.listar().catch(() => []),
       apiProjetos.listar().catch(() => []),
-      apiEscolas.listar().catch(() => [])
-    ]).then(async ([user, listaTutoriais, listaProjetos, listaEscolas]) => {
+      apiEscolas.listar().catch(() => []),
+      apiEscolas.listarDoUsuarioLogado().catch(() => [])
+    ]).then(([userApi, listaTutoriais, listaProjetos, listaEscolas, escolasDoUsuario]) => {
       if (!ativo) return
 
-      let vinculos = []
-      if (user?.id) {
-        const escDoUsuario = await apiUsuarios.buscarEscolaDoUsuario(user.id).catch(() => null)
-        if (escDoUsuario?.name) {
-          vinculos = [
-            {
-              id: escDoUsuario.id || 1,
-              escola: escDoUsuario.name,
-              endereco: escDoUsuario.address || 'Caraguatatuba - SP',
-              ativo: true
-            }
-          ]
-        }
+      const usuarioAtual = userApi || obterUsuario()
+      const escolasDaRede = Array.isArray(listaEscolas) ? listaEscolas : []
+      setEscolasDisponiveis(escolasDaRede)
+
+      let vinculos = Array.isArray(usuarioAtual?.schools)
+        ? usuarioAtual.schools.map(normalizarVinculo).filter(Boolean)
+        : []
+
+      if (vinculos.length === 0 && Array.isArray(escolasDoUsuario) && escolasDoUsuario.length > 0) {
+        vinculos = escolasDoUsuario.map(normalizarVinculo).filter(Boolean)
       }
 
-      if (vinculos.length === 0 && Array.isArray(listaEscolas) && listaEscolas.length > 0) {
-        vinculos = listaEscolas.map((esc, idx) => ({
-          id: esc.id,
-          escola: esc.name,
-          endereco: esc.address || 'Caraguatatuba - SP',
-          ativo: idx === 0
-        }))
+      // Contas antigas com apenas schoolId (sem registros em schools).
+      if (vinculos.length === 0 && usuarioAtual?.schoolId) {
+        const encontrada = escolasDaRede.find(
+          (esc) => Number(esc.id) === Number(usuarioAtual.schoolId)
+        )
+        const v = normalizarVinculo(encontrada, 0)
+        if (v) vinculos = [v]
       }
+
+      // Anexa solicitações de vínculo pendentes ("Em Análise") deste professor
+      const solicitacoesUsuario = apiSolicitacoesVinculo.listarDoUsuario(
+        usuarioAtual?.id,
+        usuarioAtual?.email
+      )
+      const idsJaAtivos = new Set(vinculos.map((v) => Number(v.id)))
+      const vinculosEmAnalise = solicitacoesUsuario
+        .filter((s) => s.status === 'em_analise' && !idsJaAtivos.has(Number(s.schoolId)))
+        .map((s) => ({
+          id: Number(s.schoolId),
+          escola: s.schoolName,
+          endereco: s.schoolAddress || 'Caraguatatuba - SP',
+          status: 'em_analise',
+          ativo: false
+        }))
+
+      const todosVinculos = [...vinculos, ...vinculosEmAnalise]
 
       if (!ativo) return
 
       setPerfil((prev) => ({
         ...prev,
-        id: user?.id || prev.id,
-        role: user?.role || prev.role,
+        id: usuarioAtual?.id || prev.id,
+        role: usuarioAtual?.role || prev.role,
         impacto: {
           tutoriais: Array.isArray(listaTutoriais) ? listaTutoriais.length : 0,
           equipes: Array.isArray(listaProjetos) ? listaProjetos.length : 0,
@@ -126,13 +151,17 @@ export default function PerfilPage() {
         },
         pessoal: {
           ...prev.pessoal,
-          nome: user?.name || prev.pessoal.nome,
-          email: user?.email || prev.pessoal.email,
-          matricula: user?.id
-            ? `#${String(user.id).padStart(5, '0')}`
-            : prev.pessoal.matricula || '-'
+          nome: usuarioAtual?.name || prev.pessoal.nome,
+          email: usuarioAtual?.email || prev.pessoal.email,
+          matricula: usuarioAtual?.matricula
+            ? String(usuarioAtual.matricula).startsWith('#')
+              ? String(usuarioAtual.matricula)
+              : `#${usuarioAtual.matricula}`
+            : usuarioAtual?.id
+              ? `#${String(usuarioAtual.id).padStart(5, '0')}`
+              : prev.pessoal.matricula || '-'
         },
-        vinculos
+        vinculos: todosVinculos
       }))
     })
 
@@ -140,6 +169,16 @@ export default function PerfilPage() {
       ativo = false
     }
   }, [])
+
+  const idsVinculados = useMemo(
+    () => new Set(perfil.vinculos.map((v) => Number(v.id))),
+    [perfil.vinculos]
+  )
+
+  const escolaSelecionadaObj = useMemo(
+    () => escolasDisponiveis.find((esc) => String(esc.id) === String(escolaSelecionadaId)) || null,
+    [escolasDisponiveis, escolaSelecionadaId]
+  )
 
   const cardsImpacto = [
     {
@@ -188,61 +227,140 @@ export default function PerfilPage() {
       setModal({
         aberto: true,
         tipo: 'erro',
-        mensagemErro: 'Faça login para atualizar suas informações no servidor.'
+        titulo: 'Não foi possível atualizar o perfil!',
+        mensagem: 'Faça login para atualizar suas informações no servidor.',
+        textoBotao: 'Entendido'
       })
       return
     }
 
     try {
-      await apiUsuarios.atualizar(perfil.id, {
+      const idsEscolasAtuais = perfil.vinculos
+        .map((v) => Number(v.id))
+        .filter((id) => Number.isInteger(id) && id > 0)
+      const atualizado = await apiUsuarios.atualizar(perfil.id, {
         name: perfil.pessoal.nome,
         email: perfil.pessoal.email,
-        ...(senha.length >= 6 ? { password: senha } : {})
+        ...(idsEscolasAtuais.length > 0 ? { schoolIds: idsEscolasAtuais } : {})
       })
+      if (atualizado) {
+        apiAuth.me({ forcar: true }).catch(() => {})
+      }
       setEditando(false)
-      setModal({ aberto: true, tipo: 'sucesso', mensagemErro: '' })
+      setModal({
+        aberto: true,
+        tipo: 'sucesso',
+        titulo: 'Perfil atualizado com sucesso!',
+        mensagem: 'Suas informações pessoais foram salvas no servidor.',
+        textoBotao: 'Continuar no Perfil'
+      })
     } catch (err) {
       setModal({
         aberto: true,
         tipo: 'erro',
-        mensagemErro: err?.message || 'Não foi possível atualizar os dados do perfil.'
+        titulo: 'Não foi possível atualizar o perfil!',
+        mensagem: err?.message || 'Verifique os dados informados e tente novamente.',
+        textoBotao: 'Entendido'
       })
     }
   }
 
+  function abrirModalVinculo() {
+    setEscolaSelecionadaId('')
+    setErroSelecaoEscola('')
+    setModalVinculoAberto(true)
+  }
+
+  async function handleSolicitarVinculo(e) {
+    e.preventDefault()
+
+    if (!escolaSelecionadaObj) {
+      setErroSelecaoEscola('Selecione uma escola disponível para enviar a solicitação.')
+      return
+    }
+
+    try {
+      const usuarioLogado = obterUsuario()
+      apiSolicitacoesVinculo.criar({
+        userId: perfil.id || usuarioLogado?.id,
+        userName: perfil.pessoal.nome || usuarioLogado?.name || 'Professor(a)',
+        userEmail: perfil.pessoal.email || usuarioLogado?.email || '',
+        userMatricula: perfil.pessoal.matricula || '',
+        schoolId: Number(escolaSelecionadaObj.id),
+        schoolName: escolaSelecionadaObj.name,
+        schoolAddress: escolaSelecionadaObj.address || 'Caraguatatuba - SP'
+      })
+
+      const novoVinculoEmAnalise = {
+        id: Number(escolaSelecionadaObj.id),
+        escola: escolaSelecionadaObj.name,
+        endereco: escolaSelecionadaObj.address || 'Caraguatatuba - SP',
+        status: 'em_analise',
+        ativo: false
+      }
+
+      setPerfil((prev) => {
+        const jaListado = prev.vinculos.some(
+          (v) => Number(v.id) === Number(escolaSelecionadaObj.id)
+        )
+        const atualizados = jaListado ? prev.vinculos : [...prev.vinculos, novoVinculoEmAnalise]
+        return {
+          ...prev,
+          vinculos: atualizados
+        }
+      })
+      setModalVinculoAberto(false)
+      setModal({
+        aberto: true,
+        tipo: 'sucesso',
+        titulo: 'Solicitação enviada para análise!',
+        mensagem: `Sua solicitação de vínculo com a unidade "${escolaSelecionadaObj.name}" foi registrada. A equipe administrativa irá analisar o pedido e liberar o vínculo em breve.`,
+        textoBotao: 'Entendido'
+      })
+    } catch (err) {
+      setErroSelecaoEscola(
+        err?.message || 'Não foi possível vincular a escola selecionada. Tente novamente.'
+      )
+    }
+  }
+
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen">
+    <div className="flex flex-col lg:flex-row min-h-screen w-full bg-background relative">
       <AdminSidebar variant="professor" />
 
-      <div className="flex flex-1 flex-col px-4 sm:px-6 lg:px-10 pb-16">
-        <main className="mx-auto flex w-full max-w-6xl flex-col gap-6 pt-8 lg:pt-12">
+      <div className="flex flex-1 flex-col pb-16">
+        <main className="w-full max-w-[1040px] mx-auto flex flex-col gap-6 sm:gap-8 py-8 lg:py-10 px-6 sm:px-10 lg:px-14">
           {/* Cabeçalho */}
-          <div>
-            <h1 className="text-2xl font-bold text-verde-escuro">Configurações de Perfil</h1>
-            <p className="mt-1 text-sm text-verde-musgo">
+          <section className="flex flex-col gap-2">
+            <h1 className="text-3xl sm:text-4xl font-bold text-verde-escuro leading-tight">
+              Configurações de Perfil
+            </h1>
+            <p className="text-sm sm:text-base text-verde-musgo">
               Gerencie a identidade da sua conta, vínculos escolares e preferências de segurança.
             </p>
-          </div>
+          </section>
 
           {/* Meu Impacto */}
           <section className="flex flex-col gap-3">
             <div className="flex items-center gap-2 text-verde-escuro">
               <MdTrendingUp size={20} className="text-verde-musgo" />
-              <h2 className="text-base font-bold">Meu Impacto</h2>
+              <h2 className="text-base sm:text-lg font-bold">Meu Impacto</h2>
             </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               {cardsImpacto.map(({ label, value, icon: Icon }) => (
                 <div
                   key={label}
-                  className="flex items-center gap-4 rounded-2xl bg-white px-5 py-4 shadow-sm"
+                  className="flex items-center gap-4 rounded-2xl border border-verde-musgo/20 bg-white px-5 py-4 shadow-sm"
                 >
                   <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-input-bg text-verde-musgo">
                     <Icon size={22} />
                   </div>
                   <div>
-                    <p className="text-xl font-bold leading-tight text-verde-escuro">{value}</p>
-                    <p className="text-xs text-verde-musgo">{label}</p>
+                    <p className="text-xl sm:text-2xl font-bold leading-tight text-verde-escuro">
+                      {value}
+                    </p>
+                    <p className="text-xs sm:text-sm text-verde-musgo">{label}</p>
                   </div>
                 </div>
               ))}
@@ -250,213 +368,244 @@ export default function PerfilPage() {
           </section>
 
           {/* Informações Pessoais */}
-          <section className="rounded-2xl bg-white p-7 shadow-sm">
-            <div className="mb-6 flex items-center justify-between">
-              <div className="flex items-center gap-2 text-verde-escuro">
-                <MdPersonOutline size={20} className="text-verde-musgo" />
-                <h2 className="text-base font-bold">Informações Pessoais</h2>
+          <section className="rounded-2xl border border-verde-musgo bg-white p-6 sm:p-8 shadow-sm">
+            <div className="mb-6 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-2.5 text-verde-escuro">
+                <MdPersonOutline size={22} className="text-verde-musgo shrink-0" />
+                <h2 className="text-base sm:text-lg font-bold uppercase tracking-wide">
+                  Informações Pessoais
+                </h2>
               </div>
 
               <button
                 type="button"
                 onClick={alternarEdicao}
-                className="flex items-center gap-1.5 text-xs font-bold text-verde-musgo hover:underline cursor-pointer"
+                className="flex items-center gap-1.5 text-sm font-bold text-verde-musgo hover:underline cursor-pointer"
               >
                 <MdOutlineEdit size={16} />
                 {editando ? 'Salvar' : 'Editar'}
               </button>
             </div>
 
-            <div className="grid grid-cols-1 gap-x-12 gap-y-6 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-x-12 gap-y-5 sm:grid-cols-2">
               {camposPessoais.map(({ key, label }) => (
                 <div key={key}>
-                  <p className="text-[11px] font-bold uppercase text-verde-musgo">{label}</p>
+                  <p className="text-xs font-bold uppercase tracking-wide text-verde-musgo">
+                    {label}
+                  </p>
                   {editando ? (
                     <input
                       type="text"
                       value={perfil.pessoal[key]}
                       onChange={(e) => handleCampoChange(key, e.target.value)}
-                      className="mt-1 w-full rounded-lg border border-verde-musgo bg-input-bg px-3 py-1.5 text-sm text-verde-escuro focus:outline-none"
+                      className="mt-1.5 w-full h-11 rounded-xl border border-verde-musgo bg-input-bg px-3.5 text-sm sm:text-base text-verde-escuro focus:outline-none focus:ring-1 focus:ring-verde-musgo"
                     />
                   ) : (
-                    <p className="mt-1 text-sm text-verde-escuro">{perfil.pessoal[key] || '-'}</p>
+                    <p className="mt-1 text-sm sm:text-base text-verde-escuro">
+                      {perfil.pessoal[key] || '-'}
+                    </p>
                   )}
                 </div>
               ))}
             </div>
           </section>
 
-          {/* Vínculos Institucionais */}
-          <section className="rounded-2xl bg-white p-7 shadow-sm">
-            <div className="mb-5 flex items-center gap-2 text-verde-escuro">
-              <MdOutlineAccountBalance size={20} className="text-verde-musgo" />
-              <h2 className="text-base font-bold">Vínculos Institucionais</h2>
-            </div>
-
-            <div className="flex flex-col gap-3">
-              {perfil.vinculos.length > 0 ? (
-                perfil.vinculos.map((vinculo) => (
-                  <div
-                    key={vinculo.id}
-                    className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-verde-musgo/20 bg-input-bg px-5 py-4"
-                  >
-                    <div>
-                      <h3 className="text-sm font-bold text-verde-escuro">{vinculo.escola}</h3>
-                      <p className="mt-0.5 text-xs text-verde-musgo">{vinculo.endereco}</p>
-                    </div>
-
-                    <span
-                      className={`rounded-full px-3 py-1 text-xs font-bold
-                        ${
-                          vinculo.ativo
-                            ? 'bg-verde-oliva text-verde-escuro'
-                            : 'bg-verde-escuro/10 text-verde-escuro/70'
-                        }`}
-                    >
-                      {vinculo.ativo ? 'Ativo' : 'Inativo'}
-                    </span>
-                  </div>
-                ))
-              ) : (
-                <p className="text-sm text-verde-musgo py-2">
-                  Nenhum vínculo escolar encontrado para esta conta.
-                </p>
-              )}
-
-              <button
-                type="button"
-                className="mt-1 flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-verde-musgo/40 py-3 text-xs font-medium text-verde-musgo hover:bg-input-bg cursor-pointer"
-              >
-                <MdOutlineLink size={18} />
-                Vincular Outra Escola
-              </button>
-            </div>
-          </section>
-
-          {/* Credenciais */}
-          <section className="p-8 bg-white rounded-3xl shadow-sm border border-verde-musgo border-opacity-10 flex flex-col gap-8">
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 bg-verde-pastel bg-opacity-20 rounded-lg flex justify-center items-center text-verde-musgo">
-                <MdLockOutline size={24} />
-              </div>
-              <h3 className="text-verde-escuro text-2xl font-semibold">Credenciais</h3>
-            </div>
-
-            <div className="flex flex-col md:flex-row gap-6 items-start w-full justify-center">
-              <div className="flex flex-col gap-2 max-w-lg flex-1 w-full">
-                <label className="text-verde-musgo text-sm font-bold uppercase tracking-wide px-1">
-                  Nova senha
-                </label>
-
-                <div className="relative">
-                  <input
-                    type={mostrarSenha ? 'text' : 'password'}
-                    placeholder="Digite a senha..."
-                    value={senha}
-                    onChange={(e) => setSenha(e.target.value)}
-                    className="w-full px-4 py-3.5 pe-12 bg-input-bg border border-verde-musgo rounded-xl text-verde-musgo focus:outline-none transition"
-                  />
-
-                  <button
-                    type="button"
-                    onClick={() => setMostrarSenha(!mostrarSenha)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-verde-musgo hover:text-verde-escuro transition cursor-pointer"
-                    aria-label="Alternar visibilidade da senha"
-                  >
-                    {mostrarSenha ? (
-                      <svg
-                        className="shrink-0 size-5"
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
-                        <circle cx="12" cy="12" r="3" />
-                      </svg>
-                    ) : (
-                      <svg
-                        className="shrink-0 size-5"
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
-                        <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" />
-                        <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" />
-                        <line x1="2" x2="22" y1="2" y2="22" />
-                      </svg>
-                    )}
-                  </button>
+          {/* Vínculos Institucionais (exibido para Professores) */}
+          {perfil.role !== 'ADMIN' && (
+            <section className="rounded-2xl border border-verde-musgo bg-white p-6 sm:p-8 shadow-sm">
+              <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5 text-verde-escuro">
+                  <MdOutlineAccountBalance size={22} className="text-verde-musgo shrink-0" />
+                  <h2 className="text-base sm:text-lg font-bold uppercase tracking-wide">
+                    Vínculos Institucionais
+                  </h2>
                 </div>
-
-                <span className="text-verde-musgo opacity-75 text-xs px-1 mb-2">
-                  O usuário deverá alterar a senha no primeiro acesso.
+                <span className="text-xs font-semibold text-verde-musgo">
+                  {perfil.vinculos.length}{' '}
+                  {perfil.vinculos.length === 1 ? 'unidade vinculada' : 'unidades vinculadas'}
                 </span>
+              </div>
 
-                {/* Requisitos senha */}
-                <div className="flex flex-col gap-2 p-4 bg-input-bg rounded-xl border border-verde-musgo border-opacity-20">
-                  <span className="text-verde-escuro text-sm font-bold mb-1">
-                    A senha deve conter:
-                  </span>
-                  <div className="grid grid-cols-2 gap-y-3 gap-x-4">
-                    <RequisitoItem atendido={validacoes.tamanho} texto="Mínimo 8 caracteres" />
-                    <RequisitoItem atendido={validacoes.maiuscula} texto="1 letra maiúscula" />
-                    <RequisitoItem atendido={validacoes.numero} texto="1 número" />
-                    <RequisitoItem atendido={validacoes.especial} texto="1 caractere especial" />
+              <div className="flex flex-col gap-3.5">
+                {perfil.vinculos.length > 0 ? (
+                  perfil.vinculos.map((vinculo) => (
+                    <div
+                      key={vinculo.id}
+                      className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-verde-musgo/20 bg-input-bg px-5 py-4 transition hover:border-verde-musgo/40"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <h3 className="text-sm sm:text-base font-bold text-verde-escuro">
+                          {vinculo.escola}
+                        </h3>
+                        <p className="mt-0.5 text-xs sm:text-sm text-verde-musgo">
+                          {vinculo.endereco}
+                        </p>
+                      </div>
+
+                      <span
+                        className={`shrink-0 rounded-full px-3.5 py-1 text-xs font-bold ${
+                          vinculo.status === 'em_analise'
+                            ? 'bg-amber-100 text-amber-800 border border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-500/50'
+                            : vinculo.ativo
+                              ? 'bg-verde-limao text-verde-escuro'
+                              : 'bg-verde-escuro/10 text-verde-escuro/70'
+                        }`}
+                      >
+                        {vinculo.status === 'em_analise'
+                          ? 'Em Análise'
+                          : vinculo.ativo
+                            ? 'Ativo'
+                            : 'Inativo'}
+                      </span>
+                    </div>
+                  ))
+                ) : (
+                  <div className="rounded-xl border border-verde-musgo/20 bg-input-bg/50 px-5 py-4 text-sm text-verde-musgo">
+                    Nenhum vínculo escolar encontrado para esta conta.
                   </div>
-                </div>
-              </div>
+                )}
 
-              {/* Toggle permissões de admin */}
-              <div className="flex-1 max-w-lg w-full p-5 bg-input-bg rounded-2xl border border-verde-musgo flex justify-between items-center md:mt-7">
-                <div className="flex flex-col">
-                  <span className="text-verde-escuro text-base font-bold">
-                    Permissões de Administrador
-                  </span>
-                  <span className="text-verde-musgo text-sm">
-                    Acesso completo a todos os controles.
-                  </span>
-                </div>
-
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={perfil.role === 'ADMIN'}
-                    readOnly
-                    className="sr-only peer"
-                  />
-                  <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-verde-oliva"></div>
-                </label>
+                <button
+                  type="button"
+                  onClick={abrirModalVinculo}
+                  className="mt-1 flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-verde-musgo/50 py-3.5 text-xs sm:text-sm font-bold text-verde-musgo hover:bg-input-bg hover:border-verde-musgo transition cursor-pointer"
+                >
+                  <MdOutlineLink size={18} />
+                  Solicitar Novo Vínculo
+                </button>
               </div>
+            </section>
+          )}
+
+          {/* Segurança */}
+          <section className="rounded-2xl border border-verde-musgo bg-white p-6 sm:p-8 shadow-sm">
+            <div className="mb-5 flex items-center gap-2.5 text-verde-escuro pb-4 border-b border-verde-escuro/10">
+              <MdOutlineSecurity size={22} className="text-verde-musgo shrink-0" />
+              <h2 className="text-base sm:text-lg font-bold uppercase tracking-wide">Segurança</h2>
             </div>
+
+            <Link
+              href="/forgot-password"
+              className="inline-flex items-center gap-2 text-sm sm:text-base font-bold text-verde-musgo hover:text-verde-escuro hover:underline transition"
+            >
+              <MdOutlineLockReset size={20} className="shrink-0" />
+              <span>Esqueceu sua senha? Solicitar recuperação</span>
+            </Link>
           </section>
         </main>
       </div>
 
+      {/* Modal Solicitar Novo Vínculo */}
+      {modalVinculoAberto && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="titulo-modal-vinculo"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4"
+        >
+          <div className="relative w-full max-w-xl rounded-3xl border border-verde-musgo bg-white p-7 sm:p-10 shadow-2xl">
+            <button
+              type="button"
+              onClick={() => setModalVinculoAberto(false)}
+              aria-label="Fechar modal"
+              className="absolute top-6 right-6 p-1.5 rounded-lg text-verde-musgo hover:bg-input-bg hover:text-verde-escuro transition cursor-pointer"
+            >
+              <MdClose size={22} />
+            </button>
+
+            <div className="flex items-center gap-3 mb-2">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-verde-pastel text-verde-musgo">
+                <MdOutlineAccountBalance size={22} />
+              </div>
+              <h2
+                id="titulo-modal-vinculo"
+                className="text-xl sm:text-2xl font-bold text-verde-escuro"
+              >
+                Solicitar Novo <span className="text-verde-musgo">Vínculo</span>
+              </h2>
+            </div>
+
+            <p className="text-sm text-verde-musgo leading-relaxed">
+              Selecione a unidade escolar desejada. Sua solicitação será encaminhada aos
+              administradores da rede para análise e liberação do acesso.
+            </p>
+
+            <form onSubmit={handleSolicitarVinculo} noValidate className="mt-6 flex flex-col gap-5">
+              <div className="flex flex-col gap-1.5">
+                <label
+                  htmlFor="select-escola-vinculo"
+                  className="text-sm font-semibold text-verde-escuro"
+                >
+                  Escola disponível
+                </label>
+                <Select
+                  id="select-escola-vinculo"
+                  value={escolaSelecionadaId}
+                  onChange={(e) => {
+                    setEscolaSelecionadaId(e.target.value)
+                    setErroSelecaoEscola('')
+                  }}
+                  placeholder="Selecione uma escola..."
+                  searchPlaceholder="Pesquisar escola..."
+                  className="w-full h-12 rounded-xl border border-verde-musgo bg-input-bg px-4 text-sm sm:text-base text-verde-escuro focus:outline-none focus:ring-1 focus:ring-verde-musgo"
+                >
+                  <option value="">Selecione uma escola...</option>
+                  {escolasDisponiveis.map((esc) => {
+                    const jaVinculada = idsVinculados.has(Number(esc.id))
+                    return (
+                      <option key={esc.id} value={String(esc.id)} disabled={jaVinculada}>
+                        {esc.name}
+                        {jaVinculada ? ' (Já vinculada)' : ''}
+                      </option>
+                    )
+                  })}
+                </Select>
+                {erroSelecaoEscola && (
+                  <span className="text-xs font-semibold text-vermelho mt-0.5">
+                    {erroSelecaoEscola}
+                  </span>
+                )}
+              </div>
+
+              {escolaSelecionadaObj && (
+                <div className="flex items-start gap-2.5 rounded-xl border border-verde-musgo/20 bg-input-bg px-4 py-3 text-xs sm:text-sm text-verde-musgo">
+                  <MdOutlineLocationOn size={18} className="shrink-0 mt-0.5 text-verde-escuro" />
+                  <div>
+                    <p className="font-bold text-verde-escuro">{escolaSelecionadaObj.name}</p>
+                    <p>{escolaSelecionadaObj.address || 'Caraguatatuba - SP'}</p>
+                  </div>
+                </div>
+              )}
+
+              <div className="mt-2 flex flex-col-reverse sm:flex-row items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setModalVinculoAberto(false)}
+                  className="w-full sm:w-auto px-6 py-3 rounded-xl border-2 border-stone-300 bg-white hover:bg-stone-50 text-stone-700 text-sm sm:text-base font-bold transition cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="w-full sm:w-auto px-6 py-3 rounded-xl border-2 border-verde-musgo bg-verde-musgo hover:bg-white hover:text-verde-musgo text-white text-sm sm:text-base font-bold shadow-xs transition cursor-pointer"
+                >
+                  Solicitar Novo Vínculo
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       <ModalConfirmacao
         aberto={modal.aberto}
         tipo={modal.tipo}
-        titulo={modal.tipo === 'sucesso' ? 'Perfil atualizado com' : 'Não foi possível atualizar'}
-        destaque={modal.tipo === 'sucesso' ? 'sucesso!' : 'o perfil!'}
-        mensagem={
-          modal.tipo === 'sucesso'
-            ? 'Suas informações pessoais foram salvas no servidor.'
-            : modal.mensagemErro || 'Verifique os dados informados e tente novamente.'
-        }
-        textoBotaoSucesso="Continuar no Perfil"
-        onConfirmar={() => setModal({ aberto: false, tipo: 'sucesso', mensagemErro: '' })}
-        onCancelar={() => setModal({ aberto: false, tipo: 'sucesso', mensagemErro: '' })}
-        onTentarNovamente={() => setModal({ aberto: false, tipo: 'sucesso', mensagemErro: '' })}
+        titulo={modal.titulo}
+        mensagem={modal.mensagem}
+        textoBotaoSucesso={modal.textoBotao}
+        onConfirmar={() => setModal((prev) => ({ ...prev, aberto: false }))}
+        onCancelar={() => setModal((prev) => ({ ...prev, aberto: false }))}
+        onTentarNovamente={() => setModal((prev) => ({ ...prev, aberto: false }))}
       />
     </div>
   )
