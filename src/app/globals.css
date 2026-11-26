@@ -259,3 +259,16 @@ html.dark .theme-toggle-btn:hover {
   border-color: #97e100 !important;
   color: #001b0d !important;
 }
+
+@keyframes pillars-carousel {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-pillars-carousel {
+  animation: pillars-carousel 24s linear infinite;
+}

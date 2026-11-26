@@ -26,12 +26,12 @@ const pillars = [
 
 function PillarItem({ Icon, title, size = 60 }) {
   return (
-    <div className="flex flex-col items-center justify-center text-center w-full max-w-[200px]">
+    <div className="flex flex-col items-center justify-center text-center">
       <Icon
         className="text-white dark:text-verde-limao drop-shadow-[0_2px_4px_rgba(0,0,0,0.25)]"
         size={size}
       />
-      <h3 className="mt-2.5 text-white dark:text-verde-limao text-xs sm:text-sm font-bold text-center uppercase tracking-wider drop-shadow-xs">
+      <h3 className="mt-2.5 text-white dark:text-verde-limao text-xs sm:text-sm font-bold text-center uppercase tracking-wider whitespace-nowrap drop-shadow-xs">
         {title}
       </h3>
     </div>
@@ -203,9 +203,25 @@ export default function HomePage() {
         </section>
       </main>
 
-      {/* Faixa de Pilares (exatamente como na imagem 1) */}
-      <section className="pillars-strip w-full bg-verde-oliva dark:bg-verde-pastel py-6 sm:py-8 px-4">
-        <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-10 items-center justify-items-center">
+      {/* Faixa de Pilares */}
+      <section className="pillars-strip w-full bg-verde-oliva dark:bg-verde-pastel py-6 sm:py-8 overflow-hidden">
+        <div className="flex w-max animate-pillars-carousel lg:hidden">
+          {[0, 1].map((copyIndex) => (
+            <div
+              key={copyIndex}
+              aria-hidden={copyIndex === 1}
+              className="flex shrink-0 items-center gap-10 sm:gap-14 pr-10 sm:pr-14"
+            >
+              {pillars.map(({ title, Icon }) => (
+                <div key={`${copyIndex}-${title}`} className="shrink-0">
+                  <PillarItem Icon={Icon} title={title} />
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+
+        <div className="hidden lg:grid lg:grid-cols-4 gap-6 sm:gap-10 max-w-6xl mx-auto px-4 items-center justify-items-center">
           {pillars.map(({ title, Icon }) => (
             <PillarItem key={title} Icon={Icon} title={title} />
           ))}
